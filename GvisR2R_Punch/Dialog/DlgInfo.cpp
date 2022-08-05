@@ -36,7 +36,7 @@ CDlgInfo::CDlgInfo(CWnd* pParent /*=NULL*/)
 CDlgInfo::~CDlgInfo()
 {
 	if (pView->m_pDlgMenu01)
-		pView->m_pDlgMenu01->UpdateInfo();
+		pView->m_pDlgMenu01->UpdateData();
 }
 
 void CDlgInfo::DoDataExchange(CDataExchange* pDX)
@@ -1125,7 +1125,7 @@ void CDlgInfo::OnBtnExit()
 {
 	// TODO: Add your control notification handler code here
 	if (pView->m_pDlgMenu01)
-		pView->m_pDlgMenu01->UpdateInfo();
+		pView->m_pDlgMenu01->UpdateData();
 
 	OnOK();
 }
@@ -1511,7 +1511,6 @@ void CDlgInfo::OnBnClickedChk86()
 }
 
 
-
 void CDlgInfo::OnBnClickedChk1187()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
@@ -1555,4 +1554,9 @@ void CDlgInfo::OnBnClickedChk1188()
 
 	CString sData = pDoc->WorkingInfo.LastJob.bUseEngraveCleanner ? _T("1") : _T("0");
 	::WritePrivateProfileString(_T("Last Job"), _T("Use Engrave Cleanner"), sData, PATH_WORKING_INFO);
+}
+
+void CDlgInfo::UpdateData()
+{
+	Disp();
 }

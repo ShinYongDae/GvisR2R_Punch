@@ -65,6 +65,7 @@ public:
 	void SetDualTest(BOOL bOn=TRUE);
 
 	void SetEngraveLastShot(int nSerial);
+
 // Dialog Data
 	//{{AFX_DATA(CDlgFrameHigh)
 	enum { IDD = IDD_DLG_FRAME_HIGH };

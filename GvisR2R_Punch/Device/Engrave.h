@@ -65,7 +65,22 @@ public:
 
 	// Communcation
 
-	void GetSysInfo(SOCKET_DATA SockData);
+	// GetSysSignal
+	void GetSysSignal(SOCKET_DATA SockData);
+	void GetSignalMain(SOCKET_DATA SockData);
+	void GetSignalTorqueMotor(SOCKET_DATA SockData);
+	void GetSignalInductionMotor(SOCKET_DATA SockData);
+	void GetSignalCore150mm(SOCKET_DATA SockData);
+	void GetSignalEtc(SOCKET_DATA SockData);
+	void GetSignalRecoiler(SOCKET_DATA SockData);
+	void GetSignalPunch(SOCKET_DATA SockData);
+	void GetSignalAOIDn(SOCKET_DATA SockData);
+	void GetSignalAOIUp(SOCKET_DATA SockData);
+	void GetSignalEngrave(SOCKET_DATA SockData);
+	void GetSignalUncoiler(SOCKET_DATA SockData);
+
+	// GetSysData
+	void GetSysData(SOCKET_DATA SockData);
 	void GetOpInfo(SOCKET_DATA SockData);
 	void GetInfo(SOCKET_DATA SockData);
 	void GetTotRatio(SOCKET_DATA SockData);
@@ -82,7 +97,22 @@ public:
 	void GetMkInfoLf(SOCKET_DATA SockData);
 	void GetMkInfoRt(SOCKET_DATA SockData);
 
-	BOOL SetSysInfo();
+	// SetSysSignal
+	BOOL SetSysSignal();
+	void SetSignalMain();
+	void SetSignalTorqueMotor();
+	void SetSignalInductionMotor();
+	void SetSignalCore150mm();
+	void SetSignalEtc();
+	void SetSignalRecoiler();
+	void SetSignalPunch();
+	void SetSignalAOIDn();
+	void SetSignalAOIUp();
+	void SetSignalEngrave();
+	void SetSignalUncoiler();
+
+	// SetSysData
+	BOOL SetSysData();
 	void SetOpInfo();
 	void SetInfo();
 	void SetTotRatio();
@@ -250,8 +280,138 @@ public:
 	void SetMkHgtPosX4Rt();
 	void SetMkHgtPosY4Rt();
 
-	// End for SetSysInfo()
+	// End for SetSysData()
 
+	// Start Switch
+
+	// Main
+	void SwReady(BOOL bOn);
+	void SwRun(BOOL bOn);
+	void SwReset(BOOL bOn);
+	void SwStop(BOOL bOn);
+	void SwAuto(BOOL bOn);
+	void SwManual(BOOL bOn);
+
+	// Torque Motor
+	void SwMkTq(BOOL bOn);
+	void SwAoiTq(BOOL bOn);
+	void SwEngTq(BOOL bOn);
+
+	// Induction Motor
+	void SwRcInductionCcw(BOOL bOn);	// SetOneMetal
+	void SwUcInductionCcw(BOOL bOn);	// SetTwoMetal
+
+	// Core 150mm
+	void SwRcCore150mm(BOOL bOn);
+	void SwUcCore150mm(BOOL bOn);
+
+	// Etc
+	void SwAoiEmg(BOOL bOn);
+	//void SwBufRolSol(BOOL bOn);
+	//void SwMkDnSol(BOOL bOn);
+
+	// Recoiler
+	void SwRcRelation(BOOL bOn);
+	void SwRcFdCw(BOOL bOn);
+	void SwRcFdCcw(BOOL bOn);
+	void SwRcReelChuck(BOOL bOn);
+	void SwRcDcRlUpDn(BOOL bOn);
+	void SwRcReelJoinL(BOOL bOn);
+	void SwRcReelJoinR(BOOL bOn);
+	void SwRcReelJoinVac(BOOL bOn);
+	void SwRcPaperChuck(BOOL bOn);
+	void SwRcPaperCw(BOOL bOn);
+	void SwRcPaperCcw(BOOL bOn);
+	void SwRcRewinder(BOOL bOn);
+	void SwRcRewinderReelPaper(BOOL bOn);
+
+	// Punching
+	void SwMkRelation(BOOL bOn);
+	void SwMkFdCw(BOOL bOn);
+	void SwMkFdCcw(BOOL bOn);
+	void SwMkFdVac(BOOL bOn);	
+	void SwMkPushUp(BOOL bOn);
+	void SwMkTblBlw(BOOL bOn);
+	void SwMkTblVac(BOOL bOn);	
+	void SwMkFdClp(BOOL bOn);	
+	void SwMkTqClp(BOOL bOn);
+	void SwMkMvOne(BOOL bOn);
+	void SwMkLsrPt(BOOL bOn);
+
+	void SwMkDcRSol(BOOL bOn);
+
+	// AOIDn
+	void SwAoiDnRelation(BOOL bOn);
+	void SwAoiDnFdCw(BOOL bOn);
+	void SwAoiDnFdCcw(BOOL bOn);
+	void SwAoiDnFdVac(BOOL bOn);
+	void SwAoiDnPushUp(BOOL bOn);
+	void SwAoiDnTblBlw(BOOL bOn);
+	void SwAoiDnTblVac(BOOL bOn);
+	void SwAoiDnFdClp(BOOL bOn);
+	void SwAoiDnTqClp(BOOL bOn);
+	void SwAoiDnMvOne(BOOL bOn);
+	void SwAoiDnLsrPt(BOOL bOn);
+
+	void SwAoiDnClrRoll(BOOL bOn);
+	void SwAoiDnSonicBlw(BOOL bOn);
+
+	void SwAoiDnTest(BOOL bOn);
+	void SwAoiDnReset(BOOL bOn);
+	void SwAoiDnLotEnd(BOOL bOn);
+
+	// AOIUp
+	void SwAoiUpRelation(BOOL bOn);
+	void SwAoiUpFdCw(BOOL bOn);
+	void SwAoiUpFdCcw(BOOL bOn);
+	void SwAoiUpFdVac(BOOL bOn);
+	void SwAoiUpPushUp(BOOL bOn);
+	void SwAoiUpTblBlw(BOOL bOn);
+	void SwAoiUpTblVac(BOOL bOn);
+	void SwAoiUpFdClp(BOOL bOn);
+	void SwAoiUpTqClp(BOOL bOn);
+	void SwAoiUpMvOne(BOOL bOn);
+	void SwAoiUpLsrPt(BOOL bOn);
+
+	void SwAoiUpClrRoll(BOOL bOn);
+	void SwAoiUpTqVac(BOOL bOn);
+
+	void SwAoiUpTest(BOOL bOn);
+	void SwAoiUpReset(BOOL bOn);
+	void SwAoiUpLotEnd(BOOL bOn);
+
+	// Engrave
+	void SwEngRelation(BOOL bOn);
+	void SwEngFdCw(BOOL bOn);
+	void SwEngFdCcw(BOOL bOn);
+	void SwEngFdVac(BOOL bOn);
+	void SwEngPushUp(BOOL bOn);
+	void SwEngTblBlw(BOOL bOn);
+	void SwEngTblVac(BOOL bOn);
+	void SwEngFdClp(BOOL bOn);
+	void SwEngTqClp(BOOL bOn);
+	void SwEngMvOne(BOOL bOn);
+	void SwEngLsrPt(BOOL bOn);
+
+	void SwEngDcRSol(BOOL bOn);
+	void SwEngSonicBlw(BOOL bOn);
+
+	// Uncoiler
+	void SwUcRelation(BOOL bOn);
+	void SwUcFdCw(BOOL bOn);
+	void SwUcFdCcw(BOOL bOn);
+	void SwUcReelChuck(BOOL bOn);
+	void SwUcDcRlUpDn(BOOL bOn);
+	void SwUcReelJoinL(BOOL bOn);
+	void SwUcReelJoinR(BOOL bOn);
+	void SwUcReelJoinVac(BOOL bOn);
+	void SwUcPaperChuck(BOOL bOn);
+	void SwUcPaperCw(BOOL bOn);
+	void SwUcPaperCcw(BOOL bOn);
+	void SwUcClRlUpDn(BOOL bOn);
+	void SwUcClRlPshUpDn(BOOL bOn);
+
+	// End Switch
 
 protected:
 	afx_msg LRESULT wmClientReceived(WPARAM wParam, LPARAM lParam);

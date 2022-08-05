@@ -47,6 +47,8 @@ public:
 	void AtDlgShow();
 	void AtDlgHide();
 
+	void UpdateData();
+
 // Dialog Data
 	//{{AFX_DATA(CDlgInfo)
 	enum { IDD = IDD_DLG_INFO };

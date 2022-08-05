@@ -124,7 +124,7 @@ public:
 	int GetSerial();
 	BOOL SetSerial(int nSerial, BOOL bDumy=FALSE);
 	void UpdateWorking();
-	void UpdateInfo();
+	void UpdateData();
 	void UpdateRst();
 	void ResetMkInfo();
 	void ResetMkInfoUp();

@@ -45,7 +45,7 @@ class CMpDevice : public CWnd
 // 	long Read(CString strRegAddr);
 	int atoh(CString &strVal);
 
-	void SetConfigure(UINT16 nBoardId, UINT16 nDevIdIoIn, UINT16 nDevIdIoOut, INT nOffsetAxisID);
+	//void SetConfigure(UINT16 nBoardId, UINT16 nDevIdIoIn, UINT16 nDevIdIoOut, INT nOffsetAxisID);
 
 
 // Construction

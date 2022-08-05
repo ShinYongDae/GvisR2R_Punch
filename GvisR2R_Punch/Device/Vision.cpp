@@ -2796,7 +2796,6 @@ void CVision::SetDispAxisPos()
 	m_nDisplayAxisPosLineHeight = (int)m_dFontSizePixelY;
 }
 
-
 void CVision::DispAxisPos(BOOL bForceWrite)
 {
 	double dFdEnc;
@@ -2837,6 +2836,7 @@ void CVision::DispAxisPos(BOOL bForceWrite)
 			//m_pMilDrawOverlay->DrawText(m_ptDisplayAxisPosOffset.x, m_ptDisplayAxisPosOffset.y+m_nDisplayAxisPosLineHeight*1, szText);
 			m_pMil->DrawText(szText, m_ptDisplayAxisPosOffset.x, m_ptDisplayAxisPosOffset.y+m_nDisplayAxisPosLineHeight*1, M_COLOR_GREEN);
 		}
+#ifdef USE_MPE
 		dFdEnc = (double)pDoc->m_pMpeData[0][0];	// 마킹부 Feeding 엔코더 값(단위 mm )
 		if(fabs(m_dFdEnc-dFdEnc)>0.05 || bForceWrite)
 		{
@@ -2855,6 +2855,7 @@ void CVision::DispAxisPos(BOOL bForceWrite)
 			//m_pMilDrawOverlay->DrawText(m_ptDisplayAxisPosOffset.x, m_ptDisplayAxisPosOffset.y+(m_nDisplayAxisPosLineHeight*2), szText);
 			m_pMil->DrawText(szText, m_ptDisplayAxisPosOffset.x, m_ptDisplayAxisPosOffset.y + m_nDisplayAxisPosLineHeight * 3, M_COLOR_GREEN);
 		}
+#endif
 	}
 	else if(m_nIdx==1)
 	{
@@ -2875,6 +2876,7 @@ void CVision::DispAxisPos(BOOL bForceWrite)
 			//m_pMilDrawOverlay->DrawText(m_ptDisplayAxisPosOffset.x, m_ptDisplayAxisPosOffset.y+m_nDisplayAxisPosLineHeight*1, szText);
 			m_pMil->DrawText(szText, m_ptDisplayAxisPosOffset.x, m_ptDisplayAxisPosOffset.y+m_nDisplayAxisPosLineHeight*1, M_COLOR_GREEN);
 		}
+#ifdef USE_MPE
 		double dBufEnc = (double)pDoc->m_pMpeData[0][1]	/ 1000.0;	// 마킹부 버퍼 엔코더 값(단위 mm * 1000)
 		if(fabs(m_dBufEnc-dBufEnc)>0.05 || bForceWrite)
 		{
@@ -2893,6 +2895,7 @@ void CVision::DispAxisPos(BOOL bForceWrite)
 			//m_pMilDrawOverlay->DrawText(m_ptDisplayAxisPosOffset.x, m_ptDisplayAxisPosOffset.y+(m_nDisplayAxisPosLineHeight*2), szText);
 			m_pMil->DrawText(szText, m_ptDisplayAxisPosOffset.x, m_ptDisplayAxisPosOffset.y + m_nDisplayAxisPosLineHeight * 3, M_COLOR_GREEN);
 		}
+#endif
 	}
 }
 
@@ -3922,11 +3925,11 @@ BOOL CVision::Grab(int nPos, BOOL bDraw)
 #endif
 
 #ifdef USE_IDS
-	GrabIds(nPos, bDraw);
+	return GrabIds(nPos, bDraw);
 #endif
 
 #ifdef USE_CREVIS
-	GrabCrevis(nPos, bDraw);
+	return GrabCrevis(nPos, bDraw);
 #endif
 	
 	return TRUE;
@@ -3974,6 +3977,7 @@ void CVision::GetIdsSize(int &nX, int &nY)
 	}
 #endif
 }
+
 void CVision::GetCrevisSize(int &nX, int &nY)
 {
 #ifdef USE_CREVIS

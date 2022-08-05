@@ -396,7 +396,12 @@ bool CSocketComm::ShutdownConnection(SOCKET sock)
 	return ( 0 == closesocket( sock ));
 }
 
-
+BOOL CSocketComm::Shutdown()
+{
+	return ShutdownConnection((SOCKET)m_hComm);
+	//shutdown((SOCKET)m_hComm, SD_RECEIVE);
+	//return (0 == closesocket((SOCKET)m_hComm));
+}
 ///////////////////////////////////////////////////////////////////////////////
 // GetSockName
 ///////////////////////////////////////////////////////////////////////////////
@@ -496,7 +501,7 @@ bool CSocketComm::CreateSocket(CString strIP, LPCTSTR strServiceName, int nFamil
 		return false;
 
 	// Create a Socket that is bound to a specific service provide
-	// nFamily: (AF_INET), IPv4 주소 체컖E사퓖E
+	// nFamily: (AF_INET), IPv4 주소
 
 	SOCKET sock = socket(nFamily, SOCK_STREAM, 0);
 	if (INVALID_SOCKET != sock)
@@ -645,7 +650,7 @@ void CSocketComm::StopComm()
 	if (IsOpen())
 	{
 		CloseComm();
-		Sleep(10);
+		Sleep(100);
 	}
 }
 
@@ -862,7 +867,6 @@ int CSocketComm::GetServerID()
 {
 	return m_nServer;
 }
-
 
 DWORD CSocketComm::WriteCommData(SOCKET_DATA SocketData, DWORD dwTimeout, DWORD dwStrLen)
 {

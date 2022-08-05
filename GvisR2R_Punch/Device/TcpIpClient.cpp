@@ -46,18 +46,22 @@ void CTcpIpClient::OnEvent(UINT uEvent)
 	{
 	case EVT_CONSUCCESS:
 		//AfxMessageBox(_T("Connection Established\r\n"));
+		TRACE("Connection Established\r\n");
 		break;
 	case EVT_CONFAILURE:
 		//AfxMessageBox(_T("Connection Failed\r\n"));
+		TRACE("Connection Failed\r\n");
 		break;
 	case EVT_CONDROP:
 		//AfxMessageBox(_T("Connection Abandonned\r\n"));
+		TRACE("Connection Abandonned\r\n");
 		break;
 	case EVT_ZEROLENGTH:
 		//AfxMessageBox(_T("Zero Length Message\r\n"));
+		TRACE("Zero Length Message\r\n");
 		break;
 	default:
-		//TRACE("Unknown Socket event\n");
+		TRACE("Unknown Socket event\n");
 		break;
 	}
 

@@ -3385,7 +3385,7 @@ void CDlgMenu02::OnBtnBuffInitMove()
 void CDlgMenu02::OnBtnBuffInitSave() 
 {
 	// TODO: Add your control notification handler code here
-	if(!pView->m_pMotion)
+	if(!pView->m_pMotion || !pDoc->m_pMpeData)
 		return;
 
 	BOOL bOn = myBtn[16].GetCheck();

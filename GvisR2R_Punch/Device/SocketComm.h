@@ -25,8 +25,6 @@
 #include <list>
 #include <cstdlib>
 
-
-
 #define BUFFER_DATA_SIZE	16384
 
 typedef struct tagSocketData {
@@ -122,6 +120,7 @@ typedef std::list<SockAddrIn> CSockAddrList;
 
 class CSocketComm
 {
+	//BOOL m_bConnected;	// Connection is done.
 	CString m_strLastError;
 	int m_nServer;
 
@@ -139,7 +138,6 @@ public:
 
 	SOCKET_DATA m_SocketData;
 
-
 	BOOL IsConnected();
 	void SetConnectedStatus(BOOL bConnected);
 
@@ -151,7 +149,7 @@ public:
 
 	bool ListenFrom(CString strIP, LPCTSTR strServiceName, int nFamily);							// use on Server (listen)
 	static SOCKET WaitForConnection(SOCKET server_sock, sockaddr* acceptIp, int* lenthOfIp);		// use on Server (accept)
-	SOCKET WaitForConnection(SOCKET server_sock, sockaddr_in* acceptIp, int* lenthOfIp);		// use on Server (accept)
+	static SOCKET WaitForConnection(SOCKET server_sock, sockaddr_in* acceptIp, int* lenthOfIp);		// use on Server (accept)
 	bool ConnectTo(CString strClientIP, LPCTSTR strServerIP, LPCTSTR strServiceName, int nFamily);	// use on Client (connect)
 
 	virtual void OnDataReceived();
@@ -167,6 +165,7 @@ public:
 	CString CharToString(char *szStr);
 
 	DWORD WriteCommData(SOCKET_DATA SocketData, DWORD dwTimeout, DWORD dwStrLen = -1);
+	BOOL Shutdown();
 
 protected:
 	HANDLE		m_hComm;		// Serial Comm handle

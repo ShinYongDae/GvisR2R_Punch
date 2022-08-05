@@ -155,8 +155,6 @@ CGvisR2R_PunchView::CGvisR2R_PunchView()
 	m_pVision[1] = NULL;
 #endif
 
-
-
 	m_bTIM_DISP_STATUS = FALSE;
 
 	m_bThread[0] = FALSE;
@@ -465,7 +463,6 @@ void CGvisR2R_PunchView::OnInitialUpdate()
 	CFormView::OnInitialUpdate();
 	GetParentFrame()->RecalcLayout();
 	ResizeParentToFit();
-
 
 	InitMyMsg();
 
@@ -817,6 +814,7 @@ void CGvisR2R_PunchView::OnTimer(UINT_PTR nIDEvent)
 			//MoveMkInitPos();
 			InitPLC();
 			SetPlcParam();
+			GetPlcParam();
 			TcpIpInit();
 			m_bTIM_DISP_STATUS = TRUE;
 			SetTimer(TIM_DISP_STATUS, 100, NULL);
@@ -887,8 +885,10 @@ void CGvisR2R_PunchView::OnTimer(UINT_PTR nIDEvent)
 		GetMpeSignal();
 		//GetMpeData();
 		DoIO();
-
 		ChkMyMsg();
+
+		if (m_pDlgMenu03)
+			m_pDlgMenu03->UpdateSignal();
 
 		if (m_bTIM_MPE_IO)
 			SetTimer(TIM_MPE_IO, 100, NULL);
@@ -1399,7 +1399,7 @@ BOOL CGvisR2R_PunchView::HwInit()
 	//  	HWND hCtrlV1[4] = {0};
 	// 	hCtrlV1[0] = GetDlgItem(IDC_STC_VISION_2)->GetSafeHwnd();
 	// 	m_pVision[1] = new CVision(1, hCtrlV1, this);
-
+#ifdef USE_MPE
 	if (!m_pMpe)
 		m_pMpe = new CMpDevice(this);
 	if (!m_pMpe->Init(1, 1))
@@ -1409,7 +1409,7 @@ BOOL CGvisR2R_PunchView::HwInit()
 		PostMessage(WM_CLOSE);
 		return FALSE;
 	}
-
+#endif
 //#ifdef USE_SR1000W
 //	if (!m_pSr1000w)
 //	{
@@ -2388,7 +2388,7 @@ BOOL CGvisR2R_PunchView::ChkVsShare(int &nSerial)
 BOOL CGvisR2R_PunchView::ChkVsShareUp(int &nSerial)
 {
 	CFileFind cFile;
-	BOOL bExist = cFile.FindFile(pDoc->WorkingInfo.System.sPathVsShareUp + "*.pcr");
+	BOOL bExist = cFile.FindFile(pDoc->WorkingInfo.System.sPathVsShareUp + _T("*.pcr"));
 	if (!bExist)
 		return FALSE; // pcr파일이 존재하지 않음.
 
@@ -2423,7 +2423,7 @@ BOOL CGvisR2R_PunchView::ChkVsShareUp(int &nSerial)
 BOOL CGvisR2R_PunchView::ChkVsShareDn(int &nSerial)
 {
 	CFileFind cFile;
-	BOOL bExist = cFile.FindFile(pDoc->WorkingInfo.System.sPathVsShareDn + "*.pcr");
+	BOOL bExist = cFile.FindFile(pDoc->WorkingInfo.System.sPathVsShareDn + _T("*.pcr"));
 	if (!bExist)
 		return FALSE; // pcr파일이 존재하지 않음.
 
@@ -2479,7 +2479,7 @@ BOOL CGvisR2R_PunchView::ChkShare(int &nSerial)
 BOOL CGvisR2R_PunchView::ChkShareUp(int &nSerial)
 {
 	CFileFind cFile;
-	BOOL bExist = cFile.FindFile(pDoc->WorkingInfo.System.sPathVrsShareUp + "*.pcr");
+	BOOL bExist = cFile.FindFile(pDoc->WorkingInfo.System.sPathVrsShareUp + _T("*.pcr"));
 	if (!bExist)
 		return FALSE; // pcr파일이 존재하지 않음.
 
@@ -2514,7 +2514,7 @@ BOOL CGvisR2R_PunchView::ChkShareUp(int &nSerial)
 BOOL CGvisR2R_PunchView::ChkShareDn(int &nSerial)
 {
 	CFileFind cFile;
-	BOOL bExist = cFile.FindFile(pDoc->WorkingInfo.System.sPathVrsShareDn + "*.pcr");
+	BOOL bExist = cFile.FindFile(pDoc->WorkingInfo.System.sPathVrsShareDn + _T("*.pcr"));
 	if (!bExist)
 		return FALSE; // pcr파일이 존재하지 않음.
 
@@ -2709,7 +2709,7 @@ BOOL CGvisR2R_PunchView::SortingOutUp(int* pSerial, int nTot)
 BOOL CGvisR2R_PunchView::ChkBufUp(int* pSerial, int &nTot)
 {
 	CFileFind cFile;
-	BOOL bExist = cFile.FindFile(pDoc->WorkingInfo.System.sPathVrsBufUp + "*.pcr");
+	BOOL bExist = cFile.FindFile(pDoc->WorkingInfo.System.sPathVrsBufUp + _T("*.pcr"));
 	if (!bExist)
 	{
 		pDoc->m_bBufEmpty[0] = TRUE;
@@ -2764,7 +2764,7 @@ BOOL CGvisR2R_PunchView::ChkBufUp(int* pSerial, int &nTot)
 BOOL CGvisR2R_PunchView::ChkBufDn(int* pSerial, int &nTot)
 {
 	CFileFind cFile;
-	BOOL bExist = cFile.FindFile(pDoc->WorkingInfo.System.sPathVrsBufDn + "*.pcr");
+	BOOL bExist = cFile.FindFile(pDoc->WorkingInfo.System.sPathVrsBufDn + _T("*.pcr"));
 	if (!bExist)
 	{
 		pDoc->m_bBufEmpty[1] = TRUE;
@@ -4720,6 +4720,7 @@ void CGvisR2R_PunchView::DoDoorSens()
 
 void CGvisR2R_PunchView::DoModeSel()
 {
+#ifdef USE_MPE
 	if (!pDoc->m_pMpeIo)
 		return;
 
@@ -4751,7 +4752,11 @@ void CGvisR2R_PunchView::DoModeSel()
 		pDoc->Status.bManual = FALSE;
 		pDoc->Status.bOneCycle = FALSE;
 	}
-
+#else
+	pDoc->Status.bAuto = FALSE;
+	pDoc->Status.bManual = TRUE;
+	pDoc->Status.bOneCycle = FALSE;
+#endif
 
 	if (pDoc->Status.bManual && !m_bManual)
 	{
@@ -8450,6 +8455,7 @@ BOOL CGvisR2R_PunchView::IsTest()
 
 BOOL CGvisR2R_PunchView::IsTestUp()
 {
+#ifdef USE_MPE
 	if (!pDoc->m_pMpeIo)
 		return FALSE;
 
@@ -8460,11 +8466,13 @@ BOOL CGvisR2R_PunchView::IsTestUp()
 	BOOL bOn0 = (pDoc->m_pMpeIo[nInSeg + 10] & 0x01 << 8) ? TRUE : FALSE; //[34] 검사부 상 검사 시작 <-> Y4368 I/F
 	if (bOn0)
 		return TRUE;
+#endif
 	return FALSE;
 }
 
 BOOL CGvisR2R_PunchView::IsTestDn()
 {
+#ifdef USE_MPE
 	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
 	if (!bDualTest)
 		return FALSE;
@@ -8479,11 +8487,13 @@ BOOL CGvisR2R_PunchView::IsTestDn()
 	BOOL bOn1 = (pDoc->m_pMpeIo[nInSeg + 14] & 0x01 << 8) ? TRUE : FALSE; //[38] 검사부 하 검사 시작 <-> Y4468 I/F
 	if (bOn1)
 		return TRUE;
+#endif
 	return FALSE;
 }
 
 BOOL CGvisR2R_PunchView::IsAoiTblVac()
 {
+#ifdef USE_MPE
 	if (!pDoc->m_pMpeIo)
 		return FALSE;
 
@@ -8504,6 +8514,7 @@ BOOL CGvisR2R_PunchView::IsAoiTblVac()
 		if (bOn0)
 			return TRUE;
 	}
+#endif
 	return FALSE;
 }
 
@@ -9851,7 +9862,7 @@ void CGvisR2R_PunchView::ModelChange(int nAoi) // 0 : AOI-Up , 1 : AOI-Dn
 		pView->SetPathAtBufUp();
 		if (pView->m_pDlgMenu01)
 		{
-			pView->m_pDlgMenu01->UpdateInfo();
+			pView->m_pDlgMenu01->UpdateData();
 			if (pView->m_nSelRmap == RMAP_UP || pView->m_nSelRmap == RMAP_ALLUP)
 				pView->m_pDlgMenu01->OpenReelmap(pView->m_nSelRmap);
 		}
@@ -9865,7 +9876,7 @@ void CGvisR2R_PunchView::ModelChange(int nAoi) // 0 : AOI-Up , 1 : AOI-Dn
 		pView->SetPathAtBufDn();
 		if (pView->m_pDlgMenu01)
 		{
-			pView->m_pDlgMenu01->UpdateInfo();
+			pView->m_pDlgMenu01->UpdateData();
 			if (pView->m_nSelRmap == RMAP_DN || pView->m_nSelRmap == RMAP_ALLDN)
 				pView->m_pDlgMenu01->OpenReelmap(pView->m_nSelRmap);
 		}
@@ -11426,7 +11437,7 @@ BOOL CGvisR2R_PunchView::UpdateReelmap(int nSerial)
 void CGvisR2R_PunchView::InitInfo()
 {
 	if (m_pDlgMenu01)
-		m_pDlgMenu01->UpdateInfo();
+		m_pDlgMenu01->UpdateData();
 
 	if (m_pDlgMenu05)
 	{
@@ -11448,7 +11459,7 @@ void CGvisR2R_PunchView::InitReelmap()
 	pDoc->InitReelmap();
 	pDoc->SetReelmap(ROT_NONE);
 	// 	pDoc->SetReelmap(ROT_CCW_90);
-	pDoc->UpdateInfo();
+	pDoc->UpdateData();
 }
 
 void CGvisR2R_PunchView::InitReelmapUp()
@@ -11456,7 +11467,7 @@ void CGvisR2R_PunchView::InitReelmapUp()
 	pDoc->InitReelmapUp();
 	pDoc->SetReelmap(ROT_NONE);
 	// 	pDoc->SetReelmap(ROT_CCW_90);
-	pDoc->UpdateInfo();
+	pDoc->UpdateData();
 }
 
 void CGvisR2R_PunchView::InitReelmapDn()
@@ -11468,7 +11479,7 @@ void CGvisR2R_PunchView::InitReelmapDn()
 	pDoc->InitReelmapDn();
 	pDoc->SetReelmap(ROT_NONE);
 	// 	pDoc->SetReelmap(ROT_CCW_90);
-	pDoc->UpdateInfo();
+	pDoc->UpdateData();
 }
 
 // void CGvisR2R_PunchView::LoadMstInfo()
@@ -12049,7 +12060,7 @@ BOOL CGvisR2R_PunchView::IsChkTmpStop()
 			// 			m_dTempPauseLen += m_dTempPauseLen;
 			pDoc->WorkingInfo.LastJob.bTempPause = FALSE;
 			if (m_pDlgMenu01)
-				m_pDlgMenu01->UpdateInfo();
+				m_pDlgMenu01->UpdateData();
 			return TRUE;
 		}
 	}
@@ -12071,7 +12082,7 @@ BOOL CGvisR2R_PunchView::IsVerify()
 		{
 			pDoc->WorkingInfo.LastJob.bVerify = FALSE;
 			if (m_pDlgMenu01)
-				m_pDlgMenu01->UpdateInfo();
+				m_pDlgMenu01->UpdateData();
 		}
 	}
 
@@ -12464,7 +12475,7 @@ BOOL CGvisR2R_PunchView::MakeDummyUp(int nErr) // AOI 상면 기준.
 
 	sDummyPath.Format(_T("%s%04d.pcr"), pDoc->WorkingInfo.System.sPathVsShareUp, nSerial);
 
-	fpPCR = fopen(pRtn = StringToChar(sDummyPath), "w+"); delete pRtn;
+	fpPCR = fopen(pRtn = StringToChar(sDummyPath), "w+"); if(pRtn) delete pRtn; pRtn = NULL;
 	if (fpPCR == NULL)
 	{
 		AfxMessageBox(_T("TROUBLE_SAVE_PIECEOUT_VRS"), MB_ICONWARNING | MB_OK);
@@ -20229,45 +20240,160 @@ void CGvisR2R_PunchView::SetPlcParam()
 #ifdef USE_MPE
 	//long lData;
 	//IoWrite(_T("ML45006"), long(_tstof(pDoc->WorkingInfo.LastJob.sTempPauseLen)*1000.0));	// 일시정지 길이 (단위 M * 1000)
-	pView->m_pMpe->Write(_T("ML45006"), long(_tstof(pDoc->WorkingInfo.LastJob.sTempPauseLen)*1000.0));
+	m_pMpe->Write(_T("ML45006"), long(_tstof(pDoc->WorkingInfo.LastJob.sTempPauseLen)*1000.0));
 	//IoWrite(_T("ML45002"), long(_tstof(pDoc->WorkingInfo.LastJob.sLotSepLen)*1000.0));	// Lot 분리 길이 (단위 M * 1000)
-	pView->m_pMpe->Write(_T("ML45002"), long(_tstof(pDoc->WorkingInfo.LastJob.sLotSepLen)*1000.0));
+	m_pMpe->Write(_T("ML45002"), long(_tstof(pDoc->WorkingInfo.LastJob.sLotSepLen)*1000.0));
 	//IoWrite(_T("ML45004"), long(_tstof(pDoc->WorkingInfo.LastJob.sLotCutPosLen)*1000.0));	// Lot 분리 후 절단위치 (단위 M * 1000)
-	pView->m_pMpe->Write(_T("ML45004"), long(_tstof(pDoc->WorkingInfo.LastJob.sLotCutPosLen)*1000.0));
-	pView->m_pMpe->Write(_T("ML45126"), (long)_tstoi(pDoc->WorkingInfo.LastJob.sSampleTestShotNum));	// 샘플검사 Shot수
+	m_pMpe->Write(_T("ML45004"), long(_tstof(pDoc->WorkingInfo.LastJob.sLotCutPosLen)*1000.0));
+	m_pMpe->Write(_T("ML45126"), (long)_tstoi(pDoc->WorkingInfo.LastJob.sSampleTestShotNum));	// 샘플검사 Shot수
 
 	if (pDoc->WorkingInfo.LastJob.bTempPause)
 	{
 		//pView->IoWrite(_T("MB440183"), 1);	// 일시정지사용(PC가 On시키고, PLC가 확인하고 Off시킴)-20141031
-		pView->m_pMpe->Write(_T("MB440183"), 1);
-		pView->ChkTempStop(TRUE);
+		m_pMpe->Write(_T("MB440183"), 1);
+		ChkTempStop(TRUE);
 	}
 	else
 	{
-		//pView->IoWrite(_T("MB440183"), 0);	// 일시정지사용(PC가 On시키고, PLC가 확인하고 Off시킴)-20141031
-		pView->m_pMpe->Write(_T("MB440183"), 0);
-		pView->ChkTempStop(FALSE);
+		//IoWrite(_T("MB440183"), 0);	// 일시정지사용(PC가 On시키고, PLC가 확인하고 Off시킴)-20141031
+		m_pMpe->Write(_T("MB440183"), 0);
+		ChkTempStop(FALSE);
 	}
 
 	if (pDoc->WorkingInfo.LastJob.bLotSep)
 	{
-		pView->SetLotLastShot();
-		pView->m_pMpe->Write(_T("MB440184"), 1);
-		//pView->IoWrite(_T("MB440184"), 1);	// 로트분리사용(PC가 On시키고, PC가 확인하고 Off시킴)-20141031
+		SetLotLastShot();
+		m_pMpe->Write(_T("MB440184"), 1);
+		//IoWrite(_T("MB440184"), 1);	// 로트분리사용(PC가 On시키고, PC가 확인하고 Off시킴)-20141031
 	}
 	else
-		pView->m_pMpe->Write(_T("MB440184"), 0);
-	//pView->IoWrite(_T("MB440184"), 0);	// 로트분리사용(PC가 On시키고, PC가 확인하고 Off시킴)-20141031
+		m_pMpe->Write(_T("MB440184"), 0);
+	//IoWrite(_T("MB440184"), 0);	// 로트분리사용(PC가 On시키고, PC가 확인하고 Off시킴)-20141031
 
-	pView->m_pMpe->Write(_T("MB44017A"), (pDoc->WorkingInfo.LastJob.bDualTest) ? 0 : 1);		// 단면 검사 On
-	pView->m_pMpe->Write(_T("MB44017B"), (pDoc->WorkingInfo.LastJob.bSampleTest) ? 1 : 0);		// Sample 검사 On
-	pView->m_pMpe->Write(_T("MB44017D"), (pDoc->WorkingInfo.LastJob.bOneMetal) ? 1 : 0);		// One Metal On
-	pView->m_pMpe->Write(_T("MB44017C"), (pDoc->WorkingInfo.LastJob.bTwoMetal) ? 1 : 0);		// Two Metal On
-	pView->m_pMpe->Write(_T("MB44017E"), (pDoc->WorkingInfo.LastJob.bCore150Recoiler) ? 1 : 0);	// Recoiler Core 150mm On
-	pView->m_pMpe->Write(_T("MB44017F"), (pDoc->WorkingInfo.LastJob.bCore150Uncoiler) ? 1 : 0);	// Uncoiler Core 150mm On
+	m_pMpe->Write(_T("MB44017A"), (pDoc->WorkingInfo.LastJob.bDualTest) ? 0 : 1);		// 단면 검사 On
+	m_pMpe->Write(_T("MB44017B"), (pDoc->WorkingInfo.LastJob.bSampleTest) ? 1 : 0);		// Sample 검사 On
+	m_pMpe->Write(_T("MB44017D"), (pDoc->WorkingInfo.LastJob.bOneMetal) ? 1 : 0);		// One Metal On
+	m_pMpe->Write(_T("MB44017C"), (pDoc->WorkingInfo.LastJob.bTwoMetal) ? 1 : 0);		// Two Metal On
+	m_pMpe->Write(_T("MB44017E"), (pDoc->WorkingInfo.LastJob.bCore150Recoiler) ? 1 : 0);	// Recoiler Core 150mm On
+	m_pMpe->Write(_T("MB44017F"), (pDoc->WorkingInfo.LastJob.bCore150Uncoiler) ? 1 : 0);	// Uncoiler Core 150mm On
 
-	pView->m_pMpe->Write(_T("MB44010E"), (pDoc->WorkingInfo.LastJob.bUseAoiUpCleanRoler ? 1 : 0));
-	pView->m_pMpe->Write(_T("MB44010F"), (pDoc->WorkingInfo.LastJob.bUseAoiDnCleanRoler ? 1 : 0));
+	m_pMpe->Write(_T("MB44010E"), (pDoc->WorkingInfo.LastJob.bUseAoiUpCleanRoler ? 1 : 0));
+	m_pMpe->Write(_T("MB44010F"), (pDoc->WorkingInfo.LastJob.bUseAoiDnCleanRoler ? 1 : 0));
+#endif
+}
+
+void CGvisR2R_PunchView::GetPlcParam()
+{
+#ifdef USE_MPE
+	// Main
+	pDoc->BtnStatus.Main.Ready = m_pMpe->Read(_T("MB005503")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Main.Run = m_pMpe->Read(_T("MB005501")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Main.Reset = m_pMpe->Read(_T("MB005504")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Main.Stop = m_pMpe->Read(_T("MB005502")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Main.Auto = m_pMpe->Read(_T("MB005505")) ? TRUE : FALSE;	// 마킹부 자동/수동 (ON)
+	pDoc->BtnStatus.Main.Manual = m_pMpe->Read(_T("MB005505")) ? FALSE : TRUE;	// 마킹부 자동/수동 (OFF)
+
+	// TorqueMotor
+	pDoc->BtnStatus.Tq.Mk = m_pMpe->Read(_T("MB440155")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Tq.Aoi = m_pMpe->Read(_T("MB440156")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Tq.Eng = m_pMpe->Read(_T("MB440154")) ? TRUE : FALSE;
+
+	// InductionMotor
+	pDoc->BtnStatus.Induct.Rc = m_pMpe->Read(_T("MB44017D")) ? TRUE : FALSE;	//pView->SetTwoMetal(FALSE, TRUE);	// One Metal IDC_CHK_68		
+	pDoc->BtnStatus.Induct.Uc = m_pMpe->Read(_T("MB44017C")) ? TRUE : FALSE;	//pView->SetTwoMetal(TRUE, TRUE);	// Two Metal IDC_CHK_69
+
+	// Core150mm
+	pDoc->BtnStatus.Core150.Rc = m_pMpe->Read(_T("MB44017E")) ? TRUE : FALSE;	// SetCore150mmRecoiler(TRUE);	// Recoiler IDC_CHK_70	
+	pDoc->BtnStatus.Core150.Uc = m_pMpe->Read(_T("MB44017F")) ? TRUE : FALSE;	// SetCore150mmUncoiler(TRUE);	// Uncoiler IDC_CHK_71	
+
+	// Etc
+	//pDoc->BtnStatus.Etc.EmgAoi = m_pMpe->Read(_T("")) ? TRUE : FALSE;
+
+	// Recoiler
+	pDoc->BtnStatus.Rc.Relation = m_pMpe->Read(_T("MB005801")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Rc.FdCw = m_pMpe->Read(_T("MB00580C")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Rc.FdCcw = m_pMpe->Read(_T("MB00580D")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Rc.ReelChuck = m_pMpe->Read(_T("MB00580B")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Rc.DcRlUpDn = m_pMpe->Read(_T("MB005802")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Rc.ReelJoinL = m_pMpe->Read(_T("MB005805")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Rc.ReelJoinR = m_pMpe->Read(_T("MB005806")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Rc.ReelJoinVac = m_pMpe->Read(_T("MB00580F")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Rc.PprChuck = m_pMpe->Read(_T("MB005808")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Rc.PprCw = m_pMpe->Read(_T("MB005809")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Rc.PprCcw = m_pMpe->Read(_T("MB00580A")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Rc.Rewine = m_pMpe->Read(_T("MB005803")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Rc.RewineReelPpr = m_pMpe->Read(_T("MB005804")) ? TRUE : FALSE;
+
+	// Punch
+	pDoc->BtnStatus.Mk.Relation = m_pMpe->Read(_T("MB005511")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Mk.FdCw = m_pMpe->Read(_T("MB005513")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Mk.FdCcw = m_pMpe->Read(_T("MB005514")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Mk.FdVac = m_pMpe->Read(_T("MB005515")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Mk.PushUp = m_pMpe->Read(_T("MB005516")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Mk.TblBlw = m_pMpe->Read(_T("MB005512")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Mk.TblVac = m_pMpe->Read(_T("MB005517")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Mk.FdClp = m_pMpe->Read(_T("MB005519")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Mk.TqClp = m_pMpe->Read(_T("MB00551A")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Mk.MvOne = m_pMpe->Read(_T("MB440151")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Mk.LsrPt = m_pMpe->Read(_T("MB005518")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Mk.DcRSol = m_pMpe->Read(_T("MB00551B")) ? TRUE : FALSE;
+
+	// AOIDn
+	pDoc->BtnStatus.AoiDn.Relation = m_pMpe->Read(_T("MB005701")) ? TRUE : FALSE;
+	pDoc->BtnStatus.AoiDn.FdCw = m_pMpe->Read(_T("MB005703")) ? TRUE : FALSE;
+	pDoc->BtnStatus.AoiDn.FdCcw = m_pMpe->Read(_T("MB005704")) ? TRUE : FALSE;
+	pDoc->BtnStatus.AoiDn.FdVac = m_pMpe->Read(_T("MB005705")) ? TRUE : FALSE;
+	pDoc->BtnStatus.AoiDn.PushUp = m_pMpe->Read(_T("MB005706")) ? TRUE : FALSE;
+	pDoc->BtnStatus.AoiDn.TblBlw = m_pMpe->Read(_T("MB005702")) ? TRUE : FALSE;
+	pDoc->BtnStatus.AoiDn.TblVac = m_pMpe->Read(_T("MB005707")) ? TRUE : FALSE;
+	pDoc->BtnStatus.AoiDn.FdClp = m_pMpe->Read(_T("MB005709")) ? TRUE : FALSE;
+	pDoc->BtnStatus.AoiDn.TqClp = m_pMpe->Read(_T("MB00570A")) ? TRUE : FALSE;
+	pDoc->BtnStatus.AoiDn.MvOne = m_pMpe->Read(_T("MB440151")) ? TRUE : FALSE;
+	pDoc->BtnStatus.AoiDn.LsrPt = m_pMpe->Read(_T("MB005708")) ? TRUE : FALSE;
+	pDoc->BtnStatus.AoiDn.SonicBlw = m_pMpe->Read(_T("MB44014F")) ? TRUE : FALSE;
+
+	// AOIUp
+	pDoc->BtnStatus.AoiUp.Relation = m_pMpe->Read(_T("MB005601")) ? TRUE : FALSE;
+	pDoc->BtnStatus.AoiUp.FdCw = m_pMpe->Read(_T("MB005603")) ? TRUE : FALSE;
+	pDoc->BtnStatus.AoiUp.FdCcw = m_pMpe->Read(_T("MB005604")) ? TRUE : FALSE;
+	pDoc->BtnStatus.AoiUp.FdVac = m_pMpe->Read(_T("MB005605")) ? TRUE : FALSE;
+	pDoc->BtnStatus.AoiUp.PushUp = m_pMpe->Read(_T("MB005606")) ? TRUE : FALSE;
+	pDoc->BtnStatus.AoiUp.TblBlw = m_pMpe->Read(_T("MB005602")) ? TRUE : FALSE;
+	pDoc->BtnStatus.AoiUp.TblVac = m_pMpe->Read(_T("MB005607")) ? TRUE : FALSE;
+	pDoc->BtnStatus.AoiUp.FdClp = m_pMpe->Read(_T("MB005609")) ? TRUE : FALSE;
+	pDoc->BtnStatus.AoiUp.TqClp = m_pMpe->Read(_T("MB00560A")) ? TRUE : FALSE;
+	pDoc->BtnStatus.AoiUp.MvOne = m_pMpe->Read(_T("MB440151")) ? TRUE : FALSE;
+	pDoc->BtnStatus.AoiUp.LsrPt = m_pMpe->Read(_T("MB005608")) ? TRUE : FALSE;
+
+	// Engrave
+	//pDoc->BtnStatus.Eng.Relation = m_pMpe->Read(_T("")) ? TRUE : FALSE;
+	//pDoc->BtnStatus.Eng.FdCw = m_pMpe->Read(_T("")) ? TRUE : FALSE;
+	//pDoc->BtnStatus.Eng.FdCcw = m_pMpe->Read(_T("")) ? TRUE : FALSE;
+	//pDoc->BtnStatus.Eng.FdVac = m_pMpe->Read(_T("")) ? TRUE : FALSE;
+	//pDoc->BtnStatus.Eng.PushUp = m_pMpe->Read(_T("")) ? TRUE : FALSE;
+	//pDoc->BtnStatus.Eng.TblBlw = m_pMpe->Read(_T("")) ? TRUE : FALSE;
+	//pDoc->BtnStatus.Eng.TblVac = m_pMpe->Read(_T("")) ? TRUE : FALSE;
+	//pDoc->BtnStatus.Eng.FdClp = m_pMpe->Read(_T("")) ? TRUE : FALSE;
+	//pDoc->BtnStatus.Eng.TqClp = m_pMpe->Read(_T("")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Eng.MvOne = m_pMpe->Read(_T("MB440151")) ? TRUE : FALSE;
+	//pDoc->BtnStatus.Eng.LsrPt = m_pMpe->Read(_T("")) ? TRUE : FALSE;
+	//pDoc->BtnStatus.Eng.DcRSol = m_pMpe->Read(_T("")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Eng.SonicBlw = m_pMpe->Read(_T("MB44014E")) ? TRUE : FALSE;
+
+	// Uncoiler
+	pDoc->BtnStatus.Uc.Relation = m_pMpe->Read(_T("MB005401")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Uc.FdCw = m_pMpe->Read(_T("MB00540C")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Uc.FdCcw = m_pMpe->Read(_T("MB00540D")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Uc.ReelChuck = m_pMpe->Read(_T("MB00540B")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Uc.DcRlUpDn = m_pMpe->Read(_T("MB005402")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Uc.ReelJoinL = m_pMpe->Read(_T("MB005405")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Uc.ReelJoinR = m_pMpe->Read(_T("MB005406")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Uc.ReelJoinVac = m_pMpe->Read(_T("MB00540F")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Uc.PprChuck = m_pMpe->Read(_T("MB005408")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Uc.PprCw = m_pMpe->Read(_T("MB005409")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Uc.PprCcw = m_pMpe->Read(_T("MB00540A")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Uc.ClRlUpDn = m_pMpe->Read(_T("MB005403")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Uc.ClRlPshUpDn = m_pMpe->Read(_T("MB005404")) ? TRUE : FALSE;
 #endif
 }
 
@@ -20849,7 +20975,7 @@ BOOL CGvisR2R_PunchView::ChkLotCutPos()
 			::WritePrivateProfileString(_T("Last Job"), _T("Use Lot seperate"), _T("0"), PATH_WORKING_INFO);
 
 			if (m_pDlgMenu01)
-				m_pDlgMenu01->UpdateInfo();
+				m_pDlgMenu01->UpdateData();
 
 			return TRUE;
 		}
@@ -21002,9 +21128,12 @@ void CGvisR2R_PunchView::MakeResult()
 		}
 	}
 	//버퍼의 내용을 file에 복사한다.
+	char* pRtn = NULL;
 	file.SeekToBegin();
-	file.Write(StringToChar(strData), strData.GetLength());
+	file.Write(pRtn = StringToChar(strData), strData.GetLength());
 	file.Close();
+	if (pRtn)
+		delete pRtn;
 }
 
 void CGvisR2R_PunchView::MakeSapp3()
@@ -21025,10 +21154,12 @@ void CGvisR2R_PunchView::MakeSapp3()
 	_stprintf(FileName, _T("%s"), sPath);
 	char* pRtn = NULL;
 	fp = fopen(pRtn=TCHARToChar(FileName), "w+");
+	if(pRtn) delete pRtn; 
+	pRtn = NULL;
 
 	if (fp != NULL)
 	{
-		fprintf( fp, "%s\n", StringToChar(m_pDlgMenu05->Sapp3Data()) );
+		fprintf( fp, "%s\n", pRtn = StringToChar(m_pDlgMenu05->Sapp3Data()) );
 	}
 	else
 	{
@@ -21880,37 +22011,36 @@ LRESULT CGvisR2R_PunchView::wmClientReceived(WPARAM wParam, LPARAM lParam)
 	switch (nCmdCode)
 	{
 	case _GetSig:
-		//if (nMsgId == _Connect)
-		//{
-		//	sSockData.nCmdCode = _Rtn;
-		//	sSockData.nMsgID = _Connect;
-		//	m_pEngrave->SendCommand(nAcceptId, sSockData);
-		//}
+		break;
+	case _GetData:
+		break;
+	case _SetSig:
+		if (m_pEngrave)
+			m_pEngrave->GetSysSignal(rSockData);
+
+		if (m_pDlgMenu03)
+			m_pDlgMenu03->UpdateSignal();
 		break;
 	case _SetData:
 		if (m_pEngrave)
-		{
-			m_pEngrave->GetSysInfo(rSockData);
-		}
+			m_pEngrave->GetSysData(rSockData);
+
+		if (m_pDlgMenu01)
+			m_pDlgMenu01->UpdateData();
+
+		//if (m_pDlgMenu02)
+		//	m_pDlgMenu02->UpdateData();
+
+		if (m_pDlgMenu03)
+			m_pDlgMenu03->UpdateData();
+
+		if (m_pDlgMenu04)
+			m_pDlgMenu04->UpdateData();
 		break;
-	//case SrTriggerInputOn:
-	//	//if (m_pDlgMenu02)
-	//	//{
-	//	//	m_pDlgMenu02->Disp2dCode();
-	//	//}
-	//	break;
 	default:
 		break;
 	}
 
-	if (m_pDlgMenu01)
-		m_pDlgMenu01->UpdateInfo();
-
-	if (m_pDlgMenu03)
-		m_pDlgMenu03->UpdateInfo();
-
-	if (m_pDlgMenu04)
-		m_pDlgMenu04->UpdateInfo();
 
 	return (LRESULT)1;
 }
@@ -21950,7 +22080,16 @@ BOOL CGvisR2R_PunchView::IsConnected()
 				m_bContEngraveF = TRUE;
 				DWORD dwStartTick = GetTickCount();
 
-				while(!m_pEngrave->SetSysInfo())
+				while(!m_pEngrave->SetSysData())
+				{
+					Sleep(100);
+					if (GetTickCount() >= (dwStartTick + DELAY_RESPONSE))
+					{
+						AfxMessageBox(_T(" WaitResponse() Time Out. \r\n m_pEngrave->IsConnected() !!!"));
+						break;
+					}
+				}
+				while (!m_pEngrave->SetSysSignal())
 				{
 					Sleep(100);
 					if (GetTickCount() >= (dwStartTick + DELAY_RESPONSE))

@@ -2,7 +2,6 @@
 //
 
 #include "stdafx.h"
-#include "../Global/GlobalDefine.h"
 //#include "GroupBlendControl.h"
 #include "BufferControl.h"
 

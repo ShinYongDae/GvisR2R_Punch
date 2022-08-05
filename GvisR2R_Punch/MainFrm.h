@@ -13,7 +13,6 @@ class CMainFrame : public CFrameWnd
 	BOOL m_bLockDispStsBar;
 	CString m_sDispMsg[10];
 
-
 protected: // serialization에서만 만들어집니다.
 	CMainFrame();
 	DECLARE_DYNCREATE(CMainFrame)

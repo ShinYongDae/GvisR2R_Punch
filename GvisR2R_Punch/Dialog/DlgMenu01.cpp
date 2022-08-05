@@ -169,7 +169,7 @@ void CDlgMenu01::OnShowWindow(BOOL bShow, UINT nStatus)
 void CDlgMenu01::AtDlgShow()
 {
 	LoadImg();
-	UpdateInfo();
+	UpdateData();
 
 	if(pDoc->WorkingInfo.LastJob.nMergingLayer==0) 	// [0]:AOI-Up , [1]:AOI-Dn
 	{
@@ -291,7 +291,7 @@ BOOL CDlgMenu01::OnInitDialog()
 	SetPnlDefNum();
 	//InitMkInfo();
 	
-	UpdateInfo();
+	UpdateData();
 	pView->DispStsBar(_T("정지-1"), 0);
 	pView->DispMain(_T("정 지"), RGB_RED);
 	EnableBtn(TRUE);
@@ -2244,7 +2244,7 @@ void CDlgMenu01::ChkUserInfo(BOOL bOn)
 	}
 	else
 	{
-		UpdateInfo();
+		UpdateData();
 	}
 
 	myBtn[1].SetCheck(bOn);
@@ -2743,7 +2743,7 @@ void CDlgMenu01::ResetSerial()
 	}
 }
 
-void CDlgMenu01::UpdateInfo()
+void CDlgMenu01::UpdateData()
 {
 	CString sVal;
 
@@ -3533,7 +3533,7 @@ void CDlgMenu01::OnChkEjectBuffer()
 				{
 					m_bLastProcFromUp = FALSE;
 					m_bLastProc = TRUE;
-#ifdef USE_MPE
+#ifdef USE_MPE 
 					pView->m_pMpe->Write(_T("MB440186"), 1);			// 잔량처리 AOI(하) 부터(PC가 On시키고, PLC가 확인하고 Off시킴)-20141112
 					pView->m_pMpe->Write(_T("MB440181"), 1);					// 잔량처리(PC가 On시키고, PLC가 확인하고 Off시킴)-20141031
 #endif
@@ -4642,6 +4642,7 @@ void CDlgMenu01::OnChk2layer()
 
 	CString sData = bUse ? _T("1") : _T("0");
 	::WritePrivateProfileString(_T("Last Job"), _T("Use 2Layer"), sData, PATH_WORKING_INFO);
+
 	this->MoveWindow(m_pRect, TRUE);
 }
 

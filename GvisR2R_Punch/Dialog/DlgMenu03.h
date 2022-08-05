@@ -74,6 +74,14 @@ class CDlgMenu03 : public CDialog
 	void InitGroup();
 
 	void Disp();
+	void DispMain();
+	void DispRecoiler();
+	void DispPunch();
+	void DispAoiDn();
+	void DispAoiUp();
+	void DispEngrave();
+	void DispUncoiler();
+
 // 	void MyBtnDown(int nCtrlID);
 // 	void MyBtnUp(int nCtrlID);
 	void ChkDoneMkAoi();
@@ -131,8 +139,10 @@ public:
 	afx_msg LRESULT OnMyBtnDown(WPARAM wPara, LPARAM lPara);
 	afx_msg LRESULT OnMyBtnUp(WPARAM wPara, LPARAM lPara);
 
-// 	void SwMyBtnDown(int nCtrlID);
-// 	void SwMyBtnUp(int nCtrlID);
+ 	void SwMyBtnDown(int nCtrlID);
+ 	void SwMyBtnUp(int nCtrlID);
+	void SwEngraveBtn(int nCtrlID, BOOL bOn);
+	void SwMpeBtn(int nCtrlID, long lData);
 
 	BOOL IsMkFdVac();		// not used
 	BOOL IsMkTqVac();		// not used
@@ -271,7 +281,8 @@ public:
 	void SetEngraveCleanner(BOOL bOn);
 	void SetAoiDnCleanner(BOOL bOn);
 
-	void UpdateInfo();
+	void UpdateData();
+	void UpdateSignal();
 
 // Dialog Data
 	//{{AFX_DATA(CDlgMenu03)

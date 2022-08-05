@@ -450,7 +450,7 @@ void CGvisR2R_PunchDoc::Dump(CDumpContext& dc) const
 
 // CGvisR2R_PunchDoc ¸í·É
 
-void CGvisR2R_PunchDoc::UpdateInfo()
+void CGvisR2R_PunchDoc::UpdateData()
 {
 	if (!m_pReelMap)
 		return;
@@ -4239,7 +4239,7 @@ BOOL CGvisR2R_PunchDoc::GetAoiInfoUp(int nSerial, int *pNewLot, BOOL bFromBuf) /
 				pView->SetPathAtBufUp();
 				if (pView->m_pDlgMenu01)
 				{
-					pView->m_pDlgMenu01->UpdateInfo();
+					pView->m_pDlgMenu01->UpdateData();
 					if (pView->m_nSelRmap == RMAP_UP || pView->m_nSelRmap == RMAP_ALLUP)
 						pView->m_pDlgMenu01->OpenReelmap(pView->m_nSelRmap);
 				}
@@ -4387,7 +4387,7 @@ BOOL CGvisR2R_PunchDoc::GetAoiInfoDn(int nSerial, int *pNewLot, BOOL bFromBuf) /
 				pView->SetPathAtBufDn();
 				if (pView->m_pDlgMenu01)
 				{
-					pView->m_pDlgMenu01->UpdateInfo();
+					pView->m_pDlgMenu01->UpdateData();
 					if (pView->m_nSelRmap == RMAP_DN || pView->m_nSelRmap == RMAP_ALLDN)
 						pView->m_pDlgMenu01->OpenReelmap(pView->m_nSelRmap);
 				}
@@ -7745,8 +7745,6 @@ void CGvisR2R_PunchDoc::UpdateProcessNum(CString sProcessNum)
 	}
 	pDoc->m_pReelMap->UpdateProcessNum(sProcessNum, pView->m_nSelRmap); // [0]:AOI-Up , [1]:AOI-Dn , [2]:AOI-AllUp , [3]:AOI-AllDn
 }
-
-
 
 
 void CGvisR2R_PunchDoc::SetProbWaitPos(int nProb, double dPos)

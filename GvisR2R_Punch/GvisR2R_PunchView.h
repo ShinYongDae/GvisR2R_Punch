@@ -279,6 +279,7 @@ class CGvisR2R_PunchView : public CFormView
 	//BOOL ChkXmpCollision();
 	void DispStsMainMsg(int nIdx = 0);
 	void SetPlcParam();
+	void GetPlcParam();
 
 	BOOL DoElecChk(CString &sRst);  // TRUE: bDone , FALSE: Doing
 

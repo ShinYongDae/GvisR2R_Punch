@@ -106,8 +106,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	m_wndStatusBar.SetPaneInfo(6, ID_SEPARATOR, SBPS_NORMAL, nScreenWidth * 2 / 60);
 	m_wndStatusBar.SetPaneInfo(7, ID_SEPARATOR, SBPS_NORMAL, nScreenWidth * 6 / 60);
 
-	CreateProgressBar(); // statusbar에 Progress bar control 생성
-	m_Progress.SetPos(0);
+	//CreateProgressBar(); // statusbar에 Progress bar control 생성
+	//m_Progress.SetPos(0);
 
 	return 0;
 }
@@ -210,6 +210,7 @@ void CMainFrame::OnDestroy()
 	CFrameWnd::OnDestroy();
 
 	// TODO: 여기에 메시지 처리기 코드를 추가합니다.
+#ifdef USE_VISION
 	//if (pView->m_pVision[1])
 	//{
 	//	delete pView->m_pVision[1];
@@ -221,12 +222,14 @@ void CMainFrame::OnDestroy()
 	//	delete pView->m_pVision[0];
 	//	pView->m_pVision[0] = NULL;
 	//}
+#endif
 }
 
 
 BOOL CMainFrame::DestroyWindow()
 {
 	// TODO: 여기에 특수화된 코드를 추가 및/또는 기본 클래스를 호출합니다.
+#ifdef USE_VISION
 	//if (pView->m_pVision[1])
 	//{
 	//	delete pView->m_pVision[1];
@@ -238,7 +241,7 @@ BOOL CMainFrame::DestroyWindow()
 	//	delete pView->m_pVision[0];
 	//	pView->m_pVision[0] = NULL;
 	//}
-
+#endif
 	pView->DestroyView();
 
 	return CFrameWnd::DestroyWindow();

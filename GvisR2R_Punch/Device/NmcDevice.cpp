@@ -2022,9 +2022,7 @@ BOOL CNmcDevice::TwoStartPosMove0(int nMsId0, int nMsId1, double fPos0, double f
 		//}
 
 		m_bInterpolationMotion[0] = TRUE;
-
 	}
-
 
 	//MC_GroupReadStatus(m_nBoardId, GroupNo, &GroupStatus);
 	//if (GroupStatus & GroupStandby)
@@ -2962,7 +2960,6 @@ double CNmcDevice::GetSCurveVelocity(double dLen, double &dVel, double &dAcc, do
 			}
 			else
 			{
-
 				AfxMessageBox(_T("Calculation Error at Speed profile of S-Curve motion"));
 			}
 		}

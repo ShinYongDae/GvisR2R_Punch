@@ -728,9 +728,9 @@ BOOL CMpDevice::Write(CString strRegAddr, long lData, BOOL bCheck)
 		}
 	}
 
+	m_cs.Unlock();
 #endif
 
-	m_cs.Unlock();
 	return TRUE;
 }
 
