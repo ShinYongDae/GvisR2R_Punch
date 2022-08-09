@@ -1062,529 +1062,6 @@ void CDlgMenu03::InitStatic()
 	}
 }
 
-/*
-void CDlgMenu03::Disp() 
-{
-	if(!pDoc->m_pMpeIo)
-		return;
-
-	BOOL bOn;
-
-	// MpeIO
-	int nInSeg = pDoc->MkIo.MpeIo.nInSeg;
-	int nOutSeg = pDoc->MkIo.MpeIo.nOutSeg;
-
-	
-#ifdef USE_MPE
-	// [Main]
-	bOn = pDoc->m_pMpeIo[nInSeg+4] & (0x01<<1) ? TRUE : FALSE;	// 마킹부 운전 스위치 램프
-	if(myBtn[0].GetCheck() != bOn)
-		myBtn[0].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 4] & (0x01<<2) ? TRUE : FALSE;	// 마킹부 정지 스위치 램프
-	if(myBtn[33].GetCheck() != bOn)
-		myBtn[33].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 4] & (0x01<<3) ? TRUE : FALSE;	// 마킹부 운전준비 스위치 램프
-	if(myBtn[34].GetCheck() != bOn)
-		myBtn[34].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 4] & (0x01<<4) ? TRUE : FALSE;	// 마킹부 리셋 스위치 램프
-	if(myBtn[1].GetCheck() != bOn)
-		myBtn[1].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 5] & (0x01<<11) ? TRUE : FALSE;	//[29] 마킹부 댄서롤 상승/하강 스위치 램프
-	if(myBtn[48].GetCheck() != bOn)
-		myBtn[48].SetCheck(bOn);
-
-	if(pDoc->Status.bAuto)	// Auto
-	{
-		if(myStcTitle[33].GetImageBk() != LBL_IMG_DN)
-			myStcTitle[33].SetImageBk(LBL_IMG_DN);	// 자 동
-		if(myStcTitle[34].GetImageBk() != LBL_IMG_UP)
-			myStcTitle[34].SetImageBk(LBL_IMG_UP);	// 1회 운전
-		if(myStcTitle[35].GetImageBk() != LBL_IMG_UP)
-			myStcTitle[35].SetImageBk(LBL_IMG_UP);	// 수 동 
-	}
-	else if(pDoc->Status.bManual)	// Manual
-	{
-		if(myStcTitle[33].GetImageBk() != LBL_IMG_UP)
-			myStcTitle[33].SetImageBk(LBL_IMG_UP);	// 자 동
-		if(myStcTitle[34].GetImageBk() != LBL_IMG_UP)
-			myStcTitle[34].SetImageBk(LBL_IMG_UP);	// 1회 운전
-		if(myStcTitle[35].GetImageBk() != LBL_IMG_DN)
-			myStcTitle[35].SetImageBk(LBL_IMG_DN);	// 수 동 
-	}
-	else if(pDoc->Status.bOneCycle)	// OneCycl
-	{
-		if(myStcTitle[33].GetImageBk() != LBL_IMG_UP)
-			myStcTitle[33].SetImageBk(LBL_IMG_UP);	// 자 동
-		if(myStcTitle[34].GetImageBk() != LBL_IMG_DN)
-			myStcTitle[34].SetImageBk(LBL_IMG_DN);	// 1회 운전
-		if(myStcTitle[35].GetImageBk() != LBL_IMG_UP)
-			myStcTitle[35].SetImageBk(LBL_IMG_UP);	// 수 동 
-	}
-	else
-	{
-		if(myStcTitle[33].GetImageBk() != LBL_IMG_UP)
-			myStcTitle[33].SetImageBk(LBL_IMG_UP);	// 자 동
-		if(myStcTitle[34].GetImageBk() != LBL_IMG_UP)
-			myStcTitle[34].SetImageBk(LBL_IMG_UP);	// 1회 운전
-		if(myStcTitle[35].GetImageBk() != LBL_IMG_UP)
-			myStcTitle[35].SetImageBk(LBL_IMG_UP);	// 수 동 
-	}
-
-
-	// [Marking]
-	bOn = pDoc->m_pMpeIo[nInSeg + 5] & (0x01<<1) ? TRUE : FALSE;	// 마킹부 연동 온/오프 스위치 램프
-	if(myBtn[9].GetImageBk() != bOn)
-		myBtn[9].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 5] & (0x01<<2) ? TRUE : FALSE;	// 마킹부 테이블 브로워 스위치 램프
-	if(myBtn[14].GetImageBk() != bOn)
-		myBtn[14].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 5] & (0x01<<3) ? TRUE : FALSE;	// 마킹부 피딩 정회전 스위치 램프
-	if(myBtn[10].GetImageBk() != bOn)
-		myBtn[10].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 5] & (0x01<<4) ? TRUE : FALSE;	// 마킹부 피딩 역회전 스위치 램프
-	if(myBtn[11].GetImageBk() != bOn)
-		myBtn[11].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 5] & (0x01<<5) ? TRUE : FALSE;	// 마킹부 피딩 진공 스위치 램프
-	if(myBtn[12].GetImageBk() != bOn)
-		myBtn[12].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 5] & (0x01<<6) ? TRUE : FALSE;	// 마킹부 토크 진공 스위치 램프
-	if(myBtn[13].GetImageBk() != bOn)
-		myBtn[13].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 5] & (0x01<<7) ? TRUE : FALSE;	// 마킹부 테이블 진공 스위치 램프
-	if(myBtn[15].GetImageBk() != bOn)
-		myBtn[15].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 5] & (0x01<<8) ? TRUE : FALSE;	// 마킹부 레이져 포인터 스위치 램프
-	if(myBtn[49].GetImageBk() != bOn)
-		myBtn[49].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 5] & (0x01<<9) ? TRUE : FALSE;	// 마킹부 피딩 클램프 스위치 램프
-	if(myBtn[51].GetImageBk() != bOn)
-		myBtn[51].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 5] & (0x01<<10) ? TRUE : FALSE;	// 마킹부 토크 클램프 스위치 램프
-	if(myBtn[52].GetImageBk() != bOn)
-		myBtn[52].SetCheck(bOn);
-
-	bOn = pDoc->WorkingInfo.LastJob.bMkOnePnl;				// 마킹부 한판넬 이송
-	if(myBtn[16].GetImageBk() != bOn)
-		myBtn[16].SetCheck(bOn);
-
-
-	// [상면 AOI]
-	bOn = pDoc->m_pMpeIo[nInSeg + 8] & (0x01<<1) ? TRUE : FALSE;	//[32] 검사부 연동 온/오프 스위치 램프
-	if(myBtn[17].GetImageBk() != bOn)
-		myBtn[17].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 8] & (0x01<<2) ? TRUE : FALSE;	// 검사부 테이블 브로워 스위치 램프
-	if(myBtn[22].GetImageBk() != bOn)
-		myBtn[22].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 8] & (0x01<<3) ? TRUE : FALSE;	// 검사부 피딩 정회전 스위치 램프
-	if(myBtn[18].GetImageBk() != bOn)
-		myBtn[18].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 8] & (0x01<<4) ? TRUE : FALSE;	// 검사부 피딩 역회전 스위치 램프
-	if(myBtn[19].GetImageBk() != bOn)
-		myBtn[19].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 8] & (0x01<<5) ? TRUE : FALSE;	// 검사부 피딩 진공 스위치 램프
-	if(myBtn[20].GetImageBk() != bOn)
-		myBtn[20].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 8] & (0x01<<6) ? TRUE : FALSE;	// 검사부 토크 진공 스위치 램프
-	if(myBtn[21].GetImageBk() != bOn)
-		myBtn[21].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 8] & (0x01<<7) ? TRUE : FALSE;	// 검사부 테이블 진공 스위치 램프
-	if(myBtn[23].GetImageBk() != bOn)
-		myBtn[23].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 8] & (0x01<<8) ? TRUE : FALSE;	// 검사부 레이져 포인터 스위치 램프
-	if(myBtn[50].GetImageBk() != bOn)
-		myBtn[50].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 8] & (0x01<<9) ? TRUE : FALSE;	// 검사부 피딩 클램프 스위치 램프
-	if(myBtn[53].GetImageBk() != bOn)
-		myBtn[53].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 8] & (0x01<<10) ? TRUE : FALSE;	// 검사부 텐션 클램프 스위치 램프 
-	if(myBtn[54].GetImageBk() != bOn)
-		myBtn[54].SetCheck(bOn);
-
-	bOn = pDoc->WorkingInfo.LastJob.bAoiOnePnl;				// 검사부 한판넬 이송
-	if(myBtn[24].GetImageBk() != bOn)
-		myBtn[24].SetCheck(bOn);
-
-
-	// [하면 AOI]
-	bOn = pDoc->m_pMpeIo[nInSeg + 12] & (0x01<<1) ? TRUE : FALSE;	//[36] 검사부 연동 온/오프 스위치 램프
-	if(myBtn[55].GetImageBk() != bOn)
-		myBtn[55].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 12] & (0x01<<2) ? TRUE : FALSE;	// 검사부 테이블 브로워 스위치 램프
-	if(myBtn[60].GetImageBk() != bOn)
-		myBtn[60].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 12] & (0x01<<3) ? TRUE : FALSE;	// 검사부 피딩 정회전 스위치 램프
-	if(myBtn[56].GetImageBk() != bOn)
-		myBtn[56].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 12] & (0x01<<4) ? TRUE : FALSE;	// 검사부 피딩 역회전 스위치 램프
-	if(myBtn[57].GetImageBk() != bOn)
-		myBtn[57].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 12] & (0x01<<5) ? TRUE : FALSE;	// 검사부 피딩 진공 스위치 램프
-	if(myBtn[58].GetImageBk() != bOn)
-		myBtn[58].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 12] & (0x01<<6) ? TRUE : FALSE;	// 검사부 토크 진공 스위치 램프
-	if(myBtn[59].GetImageBk() != bOn)
-		myBtn[59].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 12] & (0x01<<7) ? TRUE : FALSE;	// 검사부 테이블 진공 스위치 램프
-	if(myBtn[61].GetImageBk() != bOn)
-		myBtn[61].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 12] & (0x01<<8) ? TRUE : FALSE;	// 검사부 레이져 포인터 스위치 램프
-	if(myBtn[65].GetImageBk() != bOn)
-		myBtn[65].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 12] & (0x01<<9) ? TRUE : FALSE;	// 검사부 피딩 클램프 스위치 램프
-	if(myBtn[62].GetImageBk() != bOn)
-		myBtn[62].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 12] & (0x01<<10) ? TRUE : FALSE;	// 검사부 텐션 클램프 스위치 램프 
-	if(myBtn[63].GetImageBk() != bOn)
-		myBtn[63].SetCheck(bOn);
-
-	bOn = pDoc->WorkingInfo.LastJob.bAoiOnePnl;				// 검사부 한판넬 이송
-	if(myBtn[64].GetImageBk() != bOn)
-		myBtn[64].SetCheck(bOn);
-
-
-	// [Uncoiler]
-	bOn = pDoc->m_pMpeIo[nInSeg] & (0x01<<1) ? TRUE : FALSE;		//[24] 언코일러 연동 온/오프 스위치 램프
-	if(myBtn[25].GetImageBk() != bOn)
-		myBtn[25].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg] & (0x01<<2) ? TRUE : FALSE;		// 언코일러 댄서롤 상승/하강 스위치 램프
-	if(myBtn[28].GetImageBk() != bOn)
-		myBtn[28].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg] & (0x01<<3) ? TRUE : FALSE;		// 언코일러 클린롤러 상승/하강 스위치 램프
-	if(myBtn[29].GetImageBk() != bOn)
-		myBtn[29].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg] & (0x01<<4) ? TRUE : FALSE;		// 언코일러 클린롤러누름 상승/하강 스위치 램프
-	if(myBtn[36].GetImageBk() != bOn)
-		myBtn[36].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg] & (0x01<<5) ? TRUE : FALSE;		// 언코일러 제품 이음매(좌) 스위치 램프
-	if(myBtn[30].GetImageBk() != bOn)
-		myBtn[30].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg] & (0x01<<6) ? TRUE : FALSE;		// 언코일러 제품 이음매(우) 스위치 램프
-	if(myBtn[37].GetImageBk() != bOn)
-		myBtn[37].SetCheck(bOn);
-
-// 	bOn = pDoc->m_pMpeIo[nInSeg] & (0x01<<7) ? TRUE : FALSE;		// 언코일러 제품휠 지지 스위치 램프
-// 	if(myBtn[38].GetImageBk() != bOn)
-// 		myBtn[38].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg] & (0x01<<8) ? TRUE : FALSE;		// 언코일러 간지척 클램프 스위치 램프
-	if(myBtn[31].GetImageBk() != bOn)
-		myBtn[31].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg] & (0x01<<9) ? TRUE : FALSE;		// 언코일러 간지휠 정회전 스위치 램프
-	if(myBtn[32].GetImageBk() != bOn)
-		myBtn[32].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg] & (0x01<<10) ? TRUE : FALSE;		// 언코일러 간지휠 역회전 스위치 램프
-	if(myBtn[39].GetImageBk() != bOn)
-		myBtn[39].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg] & (0x01<<11) ? TRUE : FALSE;		// 언코일러 제품척 클램프 스위치 램프
-	if(myBtn[35].GetImageBk() != bOn)
-		myBtn[35].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg] & (0x01<<12) ? TRUE : FALSE;		// 언코일러 제품휠 정회전 스위치 램프
-	if(myBtn[26].GetImageBk() != bOn)
-		myBtn[26].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg] & (0x01<<13) ? TRUE : FALSE;		// 언코일러 제품휠 역회전 스위치 램프
-	if(myBtn[27].GetImageBk() != bOn)
-		myBtn[27].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg] & (0x01<<14) ? TRUE : FALSE;		// 언코일러 제품 EPC원점 스위치 램프
-	if(myBtn[40].GetImageBk() != bOn)
-		myBtn[40].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg] & (0x01<<15) ? TRUE : FALSE;		// 언코일러 제품 이음매 진공 스위치 램프
-	if(myBtn[38].GetImageBk() != bOn)
-		myBtn[38].SetCheck(bOn);
-
-
-	// [Recoiler]
-	bOn = pDoc->m_pMpeIo[nInSeg + 16] & (0x01<<1) ? TRUE : FALSE;	//[40] 리코일러 연동 온/오프 스위치 램프
-	if(myBtn[4].GetImageBk() != bOn)
-		myBtn[4].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 16] & (0x01<<2) ? TRUE : FALSE;	// 리코일러 댄서롤 상승/하강 스위치 램프
-	if(myBtn[42].GetImageBk() != bOn)
-		myBtn[42].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 16] & (0x01<<3) ? TRUE : FALSE;	// 리코일러 Rewinder 동작 스위치 램프
-	if(myBtn[66].GetImageBk() != bOn)
-		myBtn[66].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 16] & (0x01<<4) ? TRUE : FALSE;	// 리코일러 Rewinder 제품 & 간지 스위치 램프
-	if(myBtn[67].GetImageBk() != bOn)
-		myBtn[67].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 16] & (0x01<<5) ? TRUE : FALSE;	// 리코일러 제품 이음매(좌) 스위치 램프
-	if(myBtn[43].GetImageBk() != bOn)
-		myBtn[43].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 16] & (0x01<<6) ? TRUE : FALSE;	// 리코일러 제품 이음매(우) 스위치 램프
-	if(myBtn[7].GetImageBk() != bOn)
-		myBtn[7].SetCheck(bOn);
-
-// 	bOn = pDoc->m_pMpeIo[nInSeg + 16] & (0x01<<7) ? TRUE : FALSE;	// 리코일러 제품휠 지지 스위치 램프
-// 	if(myBtn[8].GetImageBk() != bOn)
-// 		myBtn[8].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 16] & (0x01<<8) ? TRUE : FALSE;	// 리코일러 간지척 클램프 스위치 램프
-	if(myBtn[44].GetImageBk() != bOn)
-		myBtn[44].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 16] & (0x01<<9) ? TRUE : FALSE;	// 리코일러 간지휠 정회전 스위치 램프
-	if(myBtn[45].GetImageBk() != bOn)
-		myBtn[45].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 16] & (0x01<<10) ? TRUE : FALSE;	// 리코일러 간지휠 역회전 스위치 램프
-	if(myBtn[46].GetImageBk() != bOn)
-		myBtn[46].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 16] & (0x01<<11) ? TRUE : FALSE;	// 리코일러 제품척 클램프 스위치 램프
-	if(myBtn[41].GetImageBk() != bOn)
-		myBtn[41].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 16] & (0x01<<12) ? TRUE : FALSE;	// 리코일러 제품휠 정회전 스위치 램프
-	if(myBtn[5].GetImageBk() != bOn)
-		myBtn[5].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 16] & (0x01<<13) ? TRUE : FALSE;	// 리코일러 제품휠 역회전 스위치 램프
-	if(myBtn[6].GetImageBk() != bOn)
-		myBtn[6].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 16] & (0x01<<14) ? TRUE : FALSE;	// 리코일러 제품 EPC원점 스위치 램프
-	if(myBtn[47].GetImageBk() != bOn)
-		myBtn[47].SetCheck(bOn);
-
-	bOn = pDoc->m_pMpeIo[nInSeg + 16] & (0x01<<15) ? TRUE : FALSE;	// 리코일러 제품 이음매 진공 스위치 램프
-	if(myBtn[8].GetImageBk() != bOn)
-		myBtn[8].SetCheck(bOn);
-#endif
-
-	// [Torque Motor]
-	bOn = pDoc->WorkingInfo.Motion.bMkTq;
-	if(myBtn[2].GetImageBk() != bOn)
-		myBtn[2].SetCheck(bOn);
-
-	bOn = pDoc->WorkingInfo.Motion.bAoiTq;
-	if(myBtn[3].GetImageBk() != bOn)
-		myBtn[3].SetCheck(bOn);
-
-	bOn = pDoc->WorkingInfo.Motion.bEngraveTq;
-	if (myBtn[83].GetImageBk() != bOn)
-		myBtn[83].SetCheck(bOn);
-	
-	// 마킹부 텐션 ON (PC가 ON/OFF시킴)
-#ifdef USE_MPE
-	bOn = (pDoc->m_pMpeSignal[4] & (0x01<<5)) > 0 ? TRUE : FALSE;
-	if(bOn != pDoc->WorkingInfo.Motion.bMkTq)
-	{
-		if(pDoc->WorkingInfo.Motion.bMkTq)
-			pView->m_pMpe->Write(_T("MB440155"), 1);
-		else
-			pView->m_pMpe->Write(_T("MB440155"), 0);
-	}
-#endif
-
-	// 검사부 텐션 ON (PC가 ON/OFF시킴)
-#ifdef USE_MPE
-	bOn = (pDoc->m_pMpeSignal[4] & (0x01<<6)) > 0 ? TRUE : FALSE;
-	if(bOn != pDoc->WorkingInfo.Motion.bAoiTq)
-	{
-		if(pDoc->WorkingInfo.Motion.bAoiTq)
-			pView->m_pMpe->Write(_T("MB440156"), 1);
-		else
-			pView->m_pMpe->Write(_T("MB440156"), 0);
-	}
-#endif
-
-	// 각인부 텐션 ON (PC가 ON/OFF시킴)
-#ifdef USE_MPE
-	bOn = (pDoc->m_pMpeSignal[4] & (0x01<<4)) > 0 ? TRUE : FALSE;
-	if(bOn != pDoc->WorkingInfo.Motion.bEngraveTq)
-	{
-		if(pDoc->WorkingInfo.Motion.bEngraveTq)
-			pView->m_pMpe->Write(_T("MB440154"), 1);
-		else
-			pView->m_pMpe->Write(_T("MB440154"), 0);
-	}
-#endif
-
-
-	// 각인부 세정기 ON (PC가 ON/OFF시킴)
-
-	if(pDoc->WorkingInfo.LastJob.bUseEngraveCleanner)
-	{
-#ifdef USE_MPE
-		pView->m_pMpe->Write(_T("MB44016E"), 1);
-#endif
-		myBtn[85].ShowWindow(SW_SHOW);
-	}
-	else
-	{
-#ifdef USE_MPE
-		pView->m_pMpe->Write(_T("MB44016E"), 0);
-#endif
-		myBtn[85].ShowWindow(SW_HIDE);
-	}
-
-	bOn = pDoc->WorkingInfo.LastJob.bEngraveCleanner;
-	if (myBtn[85].GetImageBk() != bOn)
-		myBtn[85].SetCheck(bOn);
-#ifdef USE_MPE
-	//bOn = (pDoc->m_pMpeSignal[5] & (0x01 << 14)) > 0 ? TRUE : FALSE;
-	bOn = ( pView->m_pMpe->Read(_T("MB44014E")) ? TRUE : FALSE );
-	if (bOn != pDoc->WorkingInfo.LastJob.bEngraveCleanner)
-	{
-		if (pDoc->WorkingInfo.LastJob.bEngraveCleanner)
-			pView->m_pMpe->Write(_T("MB44014E"), 1);
-		else
-			pView->m_pMpe->Write(_T("MB44014E"), 0);
-	}
-#endif
-
-
-	// AOI(하) 세정기 ON (PC가 ON/OFF시킴)
-
-	if (pDoc->WorkingInfo.LastJob.bUseAoiDnCleanner)
-	{
-#ifdef USE_MPE
-		pView->m_pMpe->Write(_T("MB44016F"), 1);
-#endif
-		myBtn[86].ShowWindow(SW_SHOW);
-	}
-	else
-	{
-#ifdef USE_MPE
-		pView->m_pMpe->Write(_T("MB44016F"), 0);
-#endif
-		myBtn[86].ShowWindow(SW_HIDE);
-	}
-
-	bOn = pDoc->WorkingInfo.LastJob.bAoiDnCleanner;
-	if (myBtn[86].GetImageBk() != bOn)
-		myBtn[86].SetCheck(bOn);
-#ifdef USE_MPE
-	//bOn = (pDoc->m_pMpeSignal[5] & (0x01 << 15)) > 0 ? TRUE : FALSE;
-	bOn = (pView->m_pMpe->Read(_T("MB44014F")) ? TRUE : FALSE);
-	if (bOn != pDoc->WorkingInfo.LastJob.bAoiDnCleanner)
-	{
-		if (pDoc->WorkingInfo.LastJob.bAoiDnCleanner)
-			pView->m_pMpe->Write(_T("MB44014F"), 1);
-		else
-			pView->m_pMpe->Write(_T("MB44014F"), 0);
-	}
-#endif
-	
-	// [Core 150mm]
-	bOn = pDoc->WorkingInfo.LastJob.bCore150Recoiler;
-	if(myBtn[70].GetImageBk() != bOn)
-		myBtn[70].SetCheck(bOn);
-
-	bOn = pDoc->WorkingInfo.LastJob.bCore150Uncoiler;
-	if(myBtn[71].GetImageBk() != bOn)
-		myBtn[71].SetCheck(bOn);
-
-
-	CString sCap;
-	// [One Metal]
-	bOn = pDoc->WorkingInfo.LastJob.bOneMetal;
-	if(bOn)	
-	{
-		sCap = myStcTitle[74].GetText();
-		if(sCap != _T("Recoiler\r정방향 CCW"))
-		{
-			myStcTitle[74].ShowWindow(SW_HIDE);
-			myStcTitle[74].SetTextColor(RGB_RED);
-			myStcTitle[74].SetText(_T("Recoiler\r정방향 CCW"));
-			myStcTitle[74].ShowWindow(SW_SHOW);
-		}
-	}
-	else
-	{
-		sCap = myStcTitle[74].GetText();
-		if(sCap != _T("Recoiler\r정방향 CW"))
-		{
-			myStcTitle[74].ShowWindow(SW_HIDE);
-			myStcTitle[74].SetTextColor(RGB_NAVY);
-			myStcTitle[74].SetText(_T("Recoiler\r정방향 CW"));
-			myStcTitle[74].ShowWindow(SW_SHOW);
-		}
-	}
-
-	if(myBtn[68].GetImageBk() != bOn)
-	{
-		myBtn[68].SetCheck(bOn);
-	}
-
-	// [Two Metal]
-	bOn = pDoc->WorkingInfo.LastJob.bTwoMetal;
-	if(bOn)	
-	{
-		sCap = myStcTitle[75].GetText();
-		if(sCap != _T("Uncoiler\r역방향"))
-		{
-			myStcTitle[75].ShowWindow(SW_HIDE);
-			myStcTitle[75].SetTextColor(RGB_RED);
-			myStcTitle[75].SetText(_T("Uncoiler\r역방향"));
-			myStcTitle[75].ShowWindow(SW_SHOW);
-		}
-	}
-	else
-	{
-		sCap = myStcTitle[75].GetText();
-		if(sCap != _T("Uncoiler\r정방향"))
-		{
-			myStcTitle[75].ShowWindow(SW_HIDE);
-			myStcTitle[75].SetTextColor(RGB_NAVY);
-			myStcTitle[75].SetText(_T("Uncoiler\r정방향"));
-			myStcTitle[75].ShowWindow(SW_SHOW);
-		}
-	}
-
-	if(myBtn[69].GetImageBk() != bOn)
-	{
-		myBtn[69].SetCheck(bOn);
-	}
-}
-*/
-
 void CDlgMenu03::Disp()
 {
 	DispMain();
@@ -3397,9 +2874,6 @@ BOOL CDlgMenu03::GetEngraveTq()
 	return (pDoc->WorkingInfo.Motion.bEngraveTq);
 }
 
-
-
-
 void CDlgMenu03::SetMkTq(BOOL bOn)
 {
 // 	pDoc->WorkingInfo.Motion.bMkTq = bOn;
@@ -3821,7 +3295,6 @@ void CDlgMenu03::SwReset()
 	pView->m_bSwReset = TRUE;
 }
 
-
 // [Torque Motor]
 void CDlgMenu03::SwMkTq(BOOL bOn)
 {
@@ -3861,7 +3334,6 @@ void CDlgMenu03::SwEngraveTq(BOOL bOn)
 {
 	SetEngraveTq(bOn);
 }
-
 
 // [Marking]
 void CDlgMenu03::SwMkRelation(BOOL bOn) 
@@ -4170,7 +3642,6 @@ void CDlgMenu03::SwBufRolSol()
 // 	else
 // 		pDoc->m_pSliceIo[6] |= (0x01<<6);						
 }
-
 
 // [AOI]
 void CDlgMenu03::SwAoiRelation(BOOL bOn) 
@@ -4566,7 +4037,6 @@ void CDlgMenu03::SwAoiTqClp()
 // 		pDoc->m_pSliceIo[9] |= (0x01<<9);						
 }
 
-
 // [Uncoiler]
 void CDlgMenu03::SwUcRelation(BOOL bOn) 
 {
@@ -4794,7 +4264,6 @@ void CDlgMenu03::SwUcReelChuck()
 // 		pDoc->m_pMpeIo[8] |= (0x01<<11);						
 }
 
-
 // [Recoiler]
 void CDlgMenu03::SwRcRelation(BOOL bOn) 
 {
@@ -4998,7 +4467,6 @@ void CDlgMenu03::OnChk24()
 		SetMkOnePnl(!bOn);
 		SetEngraveOnePnl(!bOn);
 }
-
 
 BOOL CDlgMenu03::PreTranslateMessage(MSG* pMsg) 
 {
@@ -5257,7 +4725,6 @@ void CDlgMenu03::SetDualTest(BOOL bOn)
 			myBtn[65].ShowWindow(SW_HIDE);
 	}
 }
-
 
 BOOL CDlgMenu03::OnEraseBkgnd(CDC* pDC)
 {

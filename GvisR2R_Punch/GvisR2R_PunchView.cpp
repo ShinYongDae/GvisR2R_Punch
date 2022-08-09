@@ -20394,6 +20394,8 @@ void CGvisR2R_PunchView::GetPlcParam()
 	pDoc->BtnStatus.Uc.PprCcw = m_pMpe->Read(_T("MB00540A")) ? TRUE : FALSE;
 	pDoc->BtnStatus.Uc.ClRlUpDn = m_pMpe->Read(_T("MB005403")) ? TRUE : FALSE;
 	pDoc->BtnStatus.Uc.ClRlPshUpDn = m_pMpe->Read(_T("MB005404")) ? TRUE : FALSE;
+#else
+	pDoc->BtnStatus.Main.Manual = TRUE;
 #endif
 }
 
