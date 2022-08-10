@@ -14212,7 +14212,7 @@ void CGvisR2R_PunchView::DoMark0()
 BOOL CGvisR2R_PunchView::SaveMk0Img(int nMkPcsIdx)
 {
 	if (!pDoc->WorkingInfo.System.bSaveMkImg)
-		return FALSE;
+		return TRUE;
 
 	int nSerial;
 	if (pDoc->WorkingInfo.LastJob.bDualTest)
@@ -14874,7 +14874,7 @@ void CGvisR2R_PunchView::DoMark1()
 BOOL CGvisR2R_PunchView::SaveMk1Img(int nMkPcsIdx)
 {
 	if (!pDoc->WorkingInfo.System.bSaveMkImg)
-		return FALSE;
+		return TRUE;
 
 	int nSerial;
 	if (pDoc->WorkingInfo.LastJob.bDualTest)

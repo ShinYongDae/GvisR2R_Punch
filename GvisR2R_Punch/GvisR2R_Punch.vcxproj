@@ -201,11 +201,16 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Device\AdoConnection.h" />
     <ClInclude Include="Device\BufferControl.h" />
     <ClInclude Include="Device\CamIRayple.h" />
     <ClInclude Include="Device\CEasyThread.h" />
+    <ClInclude Include="Device\Data.h" />
+    <ClInclude Include="Device\DataRow.h" />
+    <ClInclude Include="Device\DataSource.h" />
     <ClInclude Include="Device\Engrave.h" />
     <ClInclude Include="Device\EngraveDef.h" />
+    <ClInclude Include="Device\Field.h" />
     <ClInclude Include="Device\FileOperation.h" />
     <ClInclude Include="Device\HardwareInfoDefine.h" />
     <ClInclude Include="Device\HardwareInfoEx.h" />
@@ -299,10 +304,15 @@
     <ClInclude Include="type_def.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Device\AdoConnection.cpp" />
     <ClCompile Include="Device\BufferControl.cpp" />
     <ClCompile Include="Device\CamIRayple.cpp" />
     <ClCompile Include="Device\CEasyThread.cpp" />
+    <ClCompile Include="Device\Data.cpp" />
+    <ClCompile Include="Device\DataRow.cpp" />
+    <ClCompile Include="Device\DataSource.cpp" />
     <ClCompile Include="Device\Engrave.cpp" />
+    <ClCompile Include="Device\Field.cpp" />
     <ClCompile Include="Device\FileOperation.cpp" />
     <ClCompile Include="Device\HardwareInfoEx.cpp" />
     <ClCompile Include="Device\LibMil.cpp" />

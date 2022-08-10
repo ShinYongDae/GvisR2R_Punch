@@ -4090,13 +4090,18 @@ BOOL CVision::SaveMkImg(CString sPath)
 
 	//if (m_pMil)
 	//	MilOriginDisp = m_pMil->AllocBuf(PIN_IMG_DISP_SIZEX, PIN_IMG_DISP_SIZEY, 1L + M_UNSIGNED, M_IMAGE + M_DISP + M_PROC);
-	//MimResize(MilPinImgBuf, MilOriginDisp->m_MilImage, (double)PIN_IMG_DISP_SIZEX / 1024.0, (double)PIN_IMG_DISP_SIZEY / 1024.0, M_DEFAULT);
+	//MimResize(MilGrabImg->m_MilImage, MilOriginDisp->m_MilImage, (double)0.5, (double)0.5, M_DEFAULT);
 
+	//if(MilGrabImg && MilOriginDisp->m_MilImage)
+	//	MbufSave(sPath, MilOriginDisp->m_MilImage);
 	if(MilGrabImg && MilGrabImg->m_MilImage)
 		MbufSave(sPath, MilGrabImg->m_MilImage);
 	else
 	{
 		AfxMessageBox(_T("MbufSave() Fail !!"));
+		//if (MilOriginDisp)
+		//	delete MilOriginDisp;
+
 		if (MilGrabImg)
 			delete MilGrabImg;
 		m_cs.Unlock();
@@ -4105,6 +4110,8 @@ BOOL CVision::SaveMkImg(CString sPath)
 	//MilGrabImg->ChildBuffer2d(m_pIRayple->GetImgWidth() / 2 - 100, m_pIRayple->GetImgHeight() / 2 - 100, 200, 200);
 	//MbufSave(sPath, MilGrabImg->m_MilImageChild);
 
+	//if (MilOriginDisp)
+	//	delete MilOriginDisp;
 	if (MilGrabImg)
 		delete MilGrabImg;
 	m_cs.Unlock();

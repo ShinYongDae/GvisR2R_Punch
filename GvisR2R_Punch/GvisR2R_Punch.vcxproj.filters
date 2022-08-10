@@ -318,6 +318,21 @@
     <ClInclude Include="Global\Yield.h">
       <Filter>Global</Filter>
     </ClInclude>
+    <ClInclude Include="Device\AdoConnection.h">
+      <Filter>Device</Filter>
+    </ClInclude>
+    <ClInclude Include="Device\DataSource.h">
+      <Filter>Device</Filter>
+    </ClInclude>
+    <ClInclude Include="Device\Data.h">
+      <Filter>Device</Filter>
+    </ClInclude>
+    <ClInclude Include="Device\DataRow.h">
+      <Filter>Device</Filter>
+    </ClInclude>
+    <ClInclude Include="Device\Field.h">
+      <Filter>Device</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GvisR2R_Punch.cpp">
@@ -547,6 +562,21 @@
     </ClCompile>
     <ClCompile Include="Global\Yield.cpp">
       <Filter>Global</Filter>
+    </ClCompile>
+    <ClCompile Include="Device\AdoConnection.cpp">
+      <Filter>Device</Filter>
+    </ClCompile>
+    <ClCompile Include="Device\DataSource.cpp">
+      <Filter>Device</Filter>
+    </ClCompile>
+    <ClCompile Include="Device\Data.cpp">
+      <Filter>Device</Filter>
+    </ClCompile>
+    <ClCompile Include="Device\DataRow.cpp">
+      <Filter>Device</Filter>
+    </ClCompile>
+    <ClCompile Include="Device\Field.cpp">
+      <Filter>Device</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -35,6 +35,24 @@
 
 
 
+#include <afxdb.h>			// MFC ODBC database classes
+#import "C:\Program Files\Common Files\System\ado\msado28.tlb"  \
+	rename_namespace("AdoNS") rename("EOF","EndOfFile")
+
+// Resultset Status
+#define	VF_EMPTY_R				0
+#define VF_COMMITTED_R			1
+#define	VF_UPDATING_R			2
+#define	VF_INSERTING_R			4
+
+#define	VF_DEFAULT_R			31
+
+#define	VF_COMMIT				true
+#define	VF_NO_COMMIT			false
+#define VF_SCRIPT				true
+#define VF_NO_SCRIPT			false
+
+
 #include "../type_def.h"
 
 

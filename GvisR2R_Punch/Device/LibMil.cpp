@@ -620,7 +620,7 @@ void CLibMil::SetDrawColor(long lForegroundColor)
 BOOL CLibMil::OneshotGrab(MIL_ID MilDestImage, int nColor)// nColor -> 0: Color, 1: Red, 2: Green, 3:Blue
 {
 #ifdef _DEBUG
-	MbufSave(_T("C:\\OneshotGrab.TIF"), MilImage[0]->m_MilImage);
+	//MbufSave(_T("C:\\OneshotGrab.TIF"), MilImage[0]->m_MilImage);
 #endif
 
 	switch(nColor)
@@ -643,7 +643,7 @@ BOOL CLibMil::OneshotGrab(MIL_ID MilDestImage, int nColor)// nColor -> 0: Color,
 	}
 
 #ifdef _DEBUG
-	MbufSave(_T("C:\\OneshotGrab.TIF"), MilDestImage);
+	//MbufSave(_T("C:\\OneshotGrab.TIF"), MilDestImage);
 #endif
 	return TRUE;
 }
