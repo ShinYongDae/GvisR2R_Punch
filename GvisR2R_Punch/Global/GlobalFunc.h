@@ -17,6 +17,7 @@
 // #include "GlobalDefine.h"
 #include "MyData.h"
 #include "SafeLock.h"
+#include "MsgBoxTimeout.h"
 
 
 char* StringToChar(CString str);
@@ -82,7 +83,7 @@ BOOL GetIntersectPoint(FLINE3D fLine1,FLINE3D fLine2,FPOINT3D &fPt);
 double GetDistance(CfPoint3D FirstPoint,CfPoint3D SecondPoint); // 두점 사이의 거리를 얻는다 
 
 void SaveLog(CString strMsg, int nType = 0);
-
+BOOL DirectoryExists(LPCTSTR szPath);
 
 
 
@@ -130,17 +131,17 @@ BOOL SetCurrentDisplayMode(DEVMODE *devMode);
 // 현재 Display Setting을 얻어온다.
 BOOL GetCurrentDisplayMode(DEVMODE *devMode);
 
-#ifdef UNICODE
-    #define MessageBoxTimeout MessageBoxTimeoutW
-#else
-    #define MessageBoxTimeout MessageBoxTimeoutA
-#endif
+//#ifdef UNICODE
+//    #define MessageBoxTimeout MessageBoxTimeoutW
+//#else
+//    #define MessageBoxTimeout MessageBoxTimeoutA
+//#endif
 
 typedef int (__stdcall *MSGBOXAAPI)(IN HWND hWnd,IN LPCSTR lpText, IN LPCSTR lpCaption,IN UINT uType, IN WORD wLanguageId,IN DWORD dwMilliseconds);
 typedef int (__stdcall *MSGBOXWAPI)(IN HWND hWnd,IN LPCWSTR lpText, IN LPCWSTR lpCaption,IN UINT uType, IN WORD wLanguageId,IN DWORD dwMilliseconds);
 
-int MessageBoxTimeoutA(HWND hWnd, LPCSTR lpText,LPCSTR lpCaption, UINT uType, WORD wLanguageId,DWORD dwMilliseconds);
-int MessageBoxTimeoutW(HWND hWnd, LPCWSTR lpText,LPCWSTR lpCaption, UINT uType, WORD wLanguageId,DWORD dwMilliseconds);
+//int MessageBoxTimeoutA(HWND hWnd, LPCSTR lpText,LPCSTR lpCaption, UINT uType, WORD wLanguageId,DWORD dwMilliseconds);
+//int MessageBoxTimeoutW(HWND hWnd, LPCWSTR lpText,LPCWSTR lpCaption, UINT uType, WORD wLanguageId,DWORD dwMilliseconds);
 
 
 #endif // !defined(_GLOBAL_FUNC_)

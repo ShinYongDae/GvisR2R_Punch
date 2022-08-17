@@ -208,6 +208,7 @@
     <ClInclude Include="Device\Data.h" />
     <ClInclude Include="Device\DataRow.h" />
     <ClInclude Include="Device\DataSource.h" />
+    <ClInclude Include="Device\Dts.h" />
     <ClInclude Include="Device\Engrave.h" />
     <ClInclude Include="Device\EngraveDef.h" />
     <ClInclude Include="Device\Field.h" />
@@ -227,6 +228,7 @@
     <ClInclude Include="Device\NmcDevice.h" />
     <ClInclude Include="Device\NMC_Motion.h" />
     <ClInclude Include="Device\NMC_R2R.h" />
+    <ClInclude Include="Device\Query.h" />
     <ClInclude Include="Device\Render.h" />
     <ClInclude Include="Device\RGBConvert.h" />
     <ClInclude Include="Device\Rs232.h" />
@@ -238,6 +240,7 @@
     <ClInclude Include="Device\stdafx.h" />
     <ClInclude Include="Device\TcpIpClient.h" />
     <ClInclude Include="Device\Tool.h" />
+    <ClInclude Include="Device\User.h" />
     <ClInclude Include="Device\vic7defs.h" />
     <ClInclude Include="Device\Vicdefs.h" />
     <ClInclude Include="Device\Vision.h" />
@@ -276,10 +279,12 @@
     <ClInclude Include="Dialog\stdafx.h" />
     <ClInclude Include="Global\GlobalDefine.h" />
     <ClInclude Include="Global\GlobalFunc.h" />
+    <ClInclude Include="Global\MsgBoxTimeout.h" />
     <ClInclude Include="Global\MyData.h" />
     <ClInclude Include="Global\MySpec.h" />
     <ClInclude Include="Global\SafeLock.h" />
     <ClInclude Include="Global\stdafx.h" />
+    <ClInclude Include="Global\Token.h" />
     <ClInclude Include="Global\Yield.h" />
     <ClInclude Include="GvisR2R_Punch.h" />
     <ClInclude Include="GvisR2R_PunchDoc.h" />
@@ -311,6 +316,7 @@
     <ClCompile Include="Device\Data.cpp" />
     <ClCompile Include="Device\DataRow.cpp" />
     <ClCompile Include="Device\DataSource.cpp" />
+    <ClCompile Include="Device\Dts.cpp" />
     <ClCompile Include="Device\Engrave.cpp" />
     <ClCompile Include="Device\Field.cpp" />
     <ClCompile Include="Device\FileOperation.cpp" />
@@ -325,6 +331,7 @@
     <ClCompile Include="Device\MyFileErrMap.cpp" />
     <ClCompile Include="Device\NmcAxis.cpp" />
     <ClCompile Include="Device\NmcDevice.cpp" />
+    <ClCompile Include="Device\Query.cpp" />
     <ClCompile Include="Device\Render.cpp" />
     <ClCompile Include="Device\Rs232.cpp" />
     <ClCompile Include="Device\Smac.cpp" />
@@ -332,6 +339,7 @@
     <ClCompile Include="Device\Sr1000w.cpp" />
     <ClCompile Include="Device\TcpIpClient.cpp" />
     <ClCompile Include="Device\Tool.cpp" />
+    <ClCompile Include="Device\User.cpp" />
     <ClCompile Include="Device\Vision.cpp" />
     <ClCompile Include="Dialog\DlgClient.cpp" />
     <ClCompile Include="Dialog\DlgFrameHigh.cpp" />
@@ -366,6 +374,7 @@
     <ClCompile Include="Dialog\MyPic.cpp" />
     <ClCompile Include="Dialog\MyStatic.cpp" />
     <ClCompile Include="Global\GlobalFunc.cpp" />
+    <ClCompile Include="Global\MsgBoxTimeout.cpp" />
     <ClCompile Include="Global\MyData.cpp" />
     <ClCompile Include="Global\MySpec.cpp" />
     <ClCompile Include="Global\Yield.cpp" />

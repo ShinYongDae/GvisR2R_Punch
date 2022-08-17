@@ -236,37 +236,12 @@ END_MESSAGE_MAP()
 // CReelMap message handlers
 void CReelMap::LoadConfig()
 {
-	int k;
-	//char szData[200];
-	//char sep[] = {",;\r\n\t"};
 	TCHAR szData[200];
 	TCHAR sep[] = { _T(",;\r\n\t") };
-	CString sIdx, sVal;
-
-	for(k=1; k < MAX_DEF; k++)
-	{
-		sIdx.Format(_T("%d"), k);
-		if (0 < ::GetPrivateProfileString(_T("DEFECT"), sIdx, NULL, szData, sizeof(szData), PATH_CONFIG))
-		{
-			//sVal = strtok(szData,sep);
-			sVal = _tcstok(szData, sep);
-			m_sEngDef[k].Format(_T("%s"), sVal);
-			sVal = _tcstok(NULL,sep);
-			m_sKorDef[k].Format(_T("%s"), sVal);
-			sVal = _tcstok(NULL,sep);
-			m_cBigDef[k] = sVal.GetAt(0);
-			sVal = _tcstok(NULL,sep);
-			m_cSmallDef[k] = sVal.GetAt(0);
-			sVal = _tcstok(NULL,sep);
-			m_rgbDef[k] = (COLORREF)_tstoi(sVal);
-			sVal = _tcstok(NULL,sep);
-			m_nOdr[k] = _tstoi(sVal);
-		}
-	}
+	CString sVal;
 
 	if (0 < ::GetPrivateProfileString(_T("REELMAP"), _T("BackGround"), NULL, szData, sizeof(szData), PATH_CONFIG))
 	{
-		//sVal = strtok(szData,sep);
 		sVal = _tcstok(szData, sep);
 		m_nBkColor[0] = _tstoi(sVal);
 		sVal = _tcstok(NULL,sep);
@@ -274,6 +249,72 @@ void CReelMap::LoadConfig()
 		sVal = _tcstok(NULL,sep);
 		m_nBkColor[2] = _tstoi(sVal);
 	}
+
+	if (pView && pView->m_pDts)
+	{
+		if (pView->m_pDts->IsUseDts())
+		{
+			LoadDefectTableDB();
+			return;
+		}
+		else
+		{
+			LoadDefectTableIni();
+		}
+	}
+	else
+	{
+		LoadDefectTableIni();
+	}
+}
+
+BOOL CReelMap::LoadDefectTableDB()
+{
+	if (pView && pView->m_pDts)
+	{
+		COLORREF rgbDef[MAX_PATH];
+		int nDefCode[MAX_PATH], nMaxR, nMaxC;
+		CString sEngN[MAX_PATH], sKorN[MAX_PATH];
+
+		return pView->m_pDts->LoadDefectTable(nDefCode, rgbDef, sKorN, sEngN, &nMaxR, &nMaxC);
+	}
+
+	return FALSE;
+}
+
+BOOL CReelMap::LoadDefectTableIni()
+{
+	TCHAR szData[200];
+	TCHAR sep[] = { _T(",;\r\n\t") };
+	CString sIdx, sVal;
+	int k;
+
+	for(k=1; k < MAX_DEF; k++)
+	{
+		sIdx.Format(_T("%d"), k);
+		if (0 < ::GetPrivateProfileString(_T("DEFECT"), sIdx, NULL, szData, sizeof(szData), PATH_CONFIG))
+		{
+			sVal = _tcstok(szData, sep);
+			m_sEngDef[k].Format(_T("%s"), sVal);
+			sVal = _tcstok(NULL, sep);
+			m_sKorDef[k].Format(_T("%s"), sVal);
+			sVal = _tcstok(NULL, sep);
+			m_cBigDef[k] = sVal.GetAt(0);
+			sVal = _tcstok(NULL, sep);
+			m_cSmallDef[k] = sVal.GetAt(0);
+			sVal = _tcstok(NULL, sep);
+			m_rgbDef[k] = (COLORREF)_tstoi(sVal);
+			sVal = _tcstok(NULL, sep);
+			m_nOdr[k] = _tstoi(sVal);
+		}
+		else
+		{
+			AfxMessageBox(_T("Error - LoadDefectTableIni()"));
+			return FALSE;
+		}
+	}
+
+	return TRUE;
 }
 
 void CReelMap::SetRgbDef(int nDef, COLORREF rgbVal)

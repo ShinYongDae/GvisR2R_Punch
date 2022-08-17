@@ -376,6 +376,7 @@ CGvisR2R_PunchView::CGvisR2R_PunchView()
 
 	// client for engrave
 	m_pEngrave = NULL;
+	m_pDts = NULL;
 
 	m_bDestroyedView = FALSE;
 	m_bContEngraveF = FALSE;
@@ -816,6 +817,7 @@ void CGvisR2R_PunchView::OnTimer(UINT_PTR nIDEvent)
 			SetPlcParam();
 			GetPlcParam();
 			TcpIpInit();
+			DtsInit();
 			m_bTIM_DISP_STATUS = TRUE;
 			SetTimer(TIM_DISP_STATUS, 100, NULL);
 			break;
@@ -1325,6 +1327,15 @@ BOOL CGvisR2R_PunchView::TcpIpInit()
 	return TRUE;
 }
 
+void CGvisR2R_PunchView::DtsInit()
+{
+#ifdef USE_DTS
+	if (!m_pDts)
+	{
+		m_pDts = new CDts(this);
+	}
+#endif
+}
 
 BOOL CGvisR2R_PunchView::HwInit()
 {
@@ -1486,6 +1497,12 @@ void CGvisR2R_PunchView::HwKill()
 		m_pSr1000w->Close();
 		delete m_pSr1000w;
 		m_pSr1000w = NULL;
+	}
+
+	if (m_pDts)
+	{
+		delete m_pDts;
+		m_pDts = NULL;
 	}
 
 #ifdef USE_FLUCK

@@ -4990,7 +4990,7 @@ int CGvisR2R_PunchDoc::LoadPCRUp(int nSerial, BOOL bFromShare)	// return : 2(Fai
 			m_pPcr[0][nIdx]->m_pDefPcs[i] = _tstoi(strPieceID);
 			m_pPcr[0][nIdx]->m_pLayer[i] = 0; // Up
 
-											  // BadPointPosX
+			// BadPointPosX
 			nTemp = strFileData.Find(',', 0);
 			strBadPointPosX = strFileData.Left(nTemp);
 			strFileData.Delete(0, nTemp + 1);

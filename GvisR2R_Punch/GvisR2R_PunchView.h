@@ -23,6 +23,7 @@
 #include "Device/MpDevice.h"
 #include "Device/SR1000W.h"
 #include "Device/Engrave.h"
+#include "Device/Dts.h"
 
 #include "Process/PtAlign.h"
 #include "Process/ThreadTask.h"
@@ -195,6 +196,7 @@ class CGvisR2R_PunchView : public CFormView
 	void DelAllDlg();
 	BOOL HwInit();
 	BOOL TcpIpInit();
+	void DtsInit();
 	void InitPLC();
 	void HwKill();
 	void ThreadInit();
@@ -435,6 +437,7 @@ public:
 
 	CEngrave* m_pEngrave;
 	CSr1000w* m_pSr1000w;
+	CDts* m_pDts;
 
 	int m_nNewLot;
 	int m_nSaveMk0Img, m_nSaveMk1Img;

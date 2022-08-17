@@ -22,7 +22,8 @@ END_MESSAGE_MAP()
 
 CEngrave::CEngrave(CString sAddrCli, CString sAddrSvr, CString sPortSvr, CWnd* pParent /*=NULL*/)
 {
-	m_hParentWnd = pParent->GetSafeHwnd();
+	if(pParent)
+		m_hParentWnd = pParent->GetSafeHwnd();
 
 	m_pClient = NULL;
 	m_nServerID = ID_ENGRAVE;

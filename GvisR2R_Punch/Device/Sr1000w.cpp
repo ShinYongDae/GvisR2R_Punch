@@ -11,7 +11,8 @@ extern CGvisR2R_PunchView* pView;
 
 CSr1000w::CSr1000w(CString sAddrCli, CString sAddrSvr, CString sPortSvr, CWnd* pParent /*=NULL*/)
 {
-	m_hParentWnd = pParent->GetSafeHwnd();
+	if (pParent)
+		m_hParentWnd = pParent->GetSafeHwnd();
 	//m_strPortSvr = _T("2000");
 	//m_strAddrSvr = _T("");
 	//m_strAddrCli = _T("");

@@ -41,6 +41,7 @@
 	#define	USE_VISION
 	#define	USE_TCPIP
 	#define USE_ENGRAVE
+	#define USE_DTS
 
 	//#define USE_CAM_MASTER
 	//#define	USE_NMC
@@ -69,6 +70,7 @@
 // 	#define	USE_TCPIP
 // 	#define	USE_SR1000W
 //	#define USE_ENGRAVE
+//	#define USE_DTS
 
 	#define PATH_PIN_IMG			_T("C:\\R2RSet\\Pin\\Pin.TIF")
 	#define PATH_ALIGN0_IMG			_T("C:\\R2RSet\\Align\\Align0.TIF")

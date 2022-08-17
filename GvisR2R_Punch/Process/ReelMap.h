@@ -60,6 +60,8 @@ class CReelMap : public CWnd
 	BOOL WriteYield(int nSerial, CString sPath);
 	void ResetYield();
 	
+	BOOL LoadDefectTableIni();
+	BOOL LoadDefectTableDB();
 // Construction
 public:
 	CReelMap(int nLayer, int nPnl=0, int nPcs=0, int nDir=0);

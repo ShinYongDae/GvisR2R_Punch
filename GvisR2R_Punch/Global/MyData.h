@@ -1180,5 +1180,32 @@ Filter MODE=0
 */
 
 
+// The DRECT structure defines the coordinates of the upper-left and 
+// lower-right corners of a rectangle.
+typedef struct tagdRECT {
+	tagdRECT(double pleft = 0.0, double pbottom = 0.0, double pright = 0.0, double ptop = 0.0)
+	{
+		left = pleft;
+		bottom = pbottom;
+		right = pright;
+		top = ptop;
+	}
+	double left; // Specifies the x-coordinate of the upper-left corner of a rectangle.
+	double bottom; // Specifies the y-coordinate of the upper-left corner of a rectangle.
+	double right; // Specifies the x-coordinate of the lower-right corner of a rectangle.
+	double top; // Specifies the y-coordinate of the lower-right corner of a rectangle.
+}DRECT, *LPCDRECT;
+
+// The DPOINT structure defines the x- and y-coordinates of a point.
+typedef struct tagdPOINT {
+	tagdPOINT(double px = 0.0, double py = 0.0)
+	{
+		x = px;
+		y = py;
+	}
+	double x; // Specifies the x-coordinate of a point.
+	double y; // Specifies the y-coordinate of a point.
+} DPOINT;
+
 
 #endif // !defined(AFX_MYDATA_H__B8E4F205_0089_4CD3_A7D4_EB5CEF56B11D__INCLUDED_)

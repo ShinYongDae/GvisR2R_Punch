@@ -27,7 +27,9 @@ CDlgMyMsg::CDlgMyMsg(CWnd* pParent /*=NULL*/, int nIDD)
 	//}}AFX_DATA_INIT
 
 	m_pParent = pParent;
-	m_hParentWnd = pParent->GetSafeHwnd();
+	if (pParent)
+		m_hParentWnd = pParent->GetSafeHwnd();
+
 	m_pRect = NULL;
 
 	m_pDlgMyMsg = NULL;

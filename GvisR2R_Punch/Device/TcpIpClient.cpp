@@ -7,7 +7,8 @@ CTcpIpClient::CTcpIpClient(CWnd* pParent/*=NULL*/)
 	::InitializeCriticalSection(&m_sc);
 
 	m_pParent = pParent;
-	m_hParentWnd = pParent->GetSafeHwnd();
+	if (pParent)
+		m_hParentWnd = pParent->GetSafeHwnd();
 
 	m_pReceiveBuffer = new BYTE[16384]; // 1mb
 	m_nBufferId = 0;
@@ -39,7 +40,7 @@ void CTcpIpClient::OnEvent(UINT uEvent)
 	//	return;
 
 	//CWnd* pParent = m_pMsgCtrl->GetParent();
-	if (!::IsWindow(m_pParent->GetSafeHwnd()))
+	if (!m_pParent || !::IsWindow(m_pParent->GetSafeHwnd()))
 		return;
 
 	switch (uEvent)

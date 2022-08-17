@@ -333,6 +333,21 @@
     <ClInclude Include="Device\Field.h">
       <Filter>Device</Filter>
     </ClInclude>
+    <ClInclude Include="Device\Query.h">
+      <Filter>Device</Filter>
+    </ClInclude>
+    <ClInclude Include="Device\Dts.h">
+      <Filter>Device</Filter>
+    </ClInclude>
+    <ClInclude Include="Global\Token.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Global\MsgBoxTimeout.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Device\User.h">
+      <Filter>Device</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GvisR2R_Punch.cpp">
@@ -576,6 +591,18 @@
       <Filter>Device</Filter>
     </ClCompile>
     <ClCompile Include="Device\Field.cpp">
+      <Filter>Device</Filter>
+    </ClCompile>
+    <ClCompile Include="Device\Query.cpp">
+      <Filter>Device</Filter>
+    </ClCompile>
+    <ClCompile Include="Device\Dts.cpp">
+      <Filter>Device</Filter>
+    </ClCompile>
+    <ClCompile Include="Global\MsgBoxTimeout.cpp">
+      <Filter>Global</Filter>
+    </ClCompile>
+    <ClCompile Include="Device\User.cpp">
       <Filter>Device</Filter>
     </ClCompile>
   </ItemGroup>
