@@ -136,8 +136,8 @@ class CGvisR2R_PunchView : public CFormView
 	int m_nRtnMyMsgBoxIdx;
 
 	int m_nPrevStepAuto, m_nPrevMkStAuto;
-	int m_nStepMk[4], m_nMkPcs[4]; 	// [0] Auto-Left, [1] Auto-Right, [2] Manual-Left, [3] Manual-Right 
-	int m_nMkStrip[2][4]; // [nCam][nStrip]
+	int m_nStepMk[4], m_nMkPcs[4]; 	// [0] Auto-Left, [1] Auto-Right, [2] Manual-Left, [3] Manual-Right  ; m_nStepMk(마킹Sequence), nMkOrderIdx(마킹한 count)
+	int m_nMkStrip[2][4]; // [nCam][nStrip] - [좌/우][] : 스트립에 펀칭한 피스 수 count
 	int m_nErrCnt;
 	int m_nStepInitView;
 
@@ -169,7 +169,7 @@ class CGvisR2R_PunchView : public CFormView
 	BOOL m_bTIM_SAFTY_STOP;
 	CString m_sMyMsg; int m_nTypeMyMsg;
 	int m_nVsBufLastSerial[2];
-	BOOL m_bOpenShareUp, m_bOpenShareDn;
+	//BOOL m_bOpenShareUp, m_bOpenShareDn;
 
 	//	int m_nMsgShiftX, m_nMsgShiftY;
 
@@ -407,8 +407,9 @@ public:
 	BOOL m_bReAlign[2][4]; // [nCam][nPos] 
 	BOOL m_bSkipAlign[2][4]; // [nCam][nPos] 
 
-	BOOL m_bDoMk[2], m_bDoneMk[2]; // [nCam]
-	BOOL m_bReMark[2]; // [nCam]
+	BOOL m_bDoMk[2];			// [nCam] : TRUE(Punching), FALSE(Stop Punching)
+	BOOL m_bDoneMk[2];			// [nCam] : TRUE(Punching 완료), FALSE(Punching 미완료)
+	BOOL m_bReMark[2];			// [nCam] : TRUE(Punching 다시시작), FALSE(pass)
 
 	int m_nMonAlmF, m_nClrAlmF;
 	BOOL m_bMkSt, m_bLotEnd, m_bLastProc, m_bLastProcFromUp;
@@ -427,7 +428,7 @@ public:
 	BOOL m_bShowMyMsg;
 	CWnd *m_pMyMsgForeground;
 
-	BOOL m_bRejectDone[2][4]; // Shot[2], Strip[4]
+	BOOL m_bRejectDone[2][4]; // Shot[2], Strip[4] - [좌/우][] : 스트립에 펀칭한 피스 수 count가 스트립 폐기 설정수 완료 여부 
 
 	CString m_sDispSts[2];
 
@@ -627,7 +628,7 @@ public:
 	int GetBufferDn1(int *pPrevSerial = NULL);
 
 	//	BOOL ChkLotEnd(CString sPath);
-	BOOL ChkMkTmpStop();
+	BOOL ChkMkTmpStop(); // 사용하지않음.
 	BOOL IsMkTmpStop();
 	BOOL IsAuto();
 	void Marking();
@@ -761,10 +762,10 @@ public:
 	BOOL IsJogRtUp0();
 	BOOL IsJogRtDn1();
 	BOOL IsJogRtUp1();
-	void OpenShareUp(BOOL bOpen = TRUE);
-	void OpenShareDn(BOOL bOpen = TRUE);
-	BOOL IsOpenShareUp();
-	BOOL IsOpenShareDn();
+	//void OpenShareUp(BOOL bOpen = TRUE);
+	//void OpenShareDn(BOOL bOpen = TRUE);
+	//BOOL IsOpenShareUp();
+	//BOOL IsOpenShareDn();
 	void ResetMotion();
 	void ResetMotion(int nMsId);
 	unsigned long ChkDoor(); // 0: All Closed , Open Door Index : Doesn't all closed. (Bit3: F, Bit2: L, Bit1: R, Bit0; B)

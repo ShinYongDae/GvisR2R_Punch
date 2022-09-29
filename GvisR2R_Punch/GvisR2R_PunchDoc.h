@@ -48,7 +48,7 @@ public:
 
 	CReelMap* m_pReelMap;
 	CReelMap *m_pReelMapUp, *m_pReelMapDn, *m_pReelMapAllUp, *m_pReelMapAllDn;
-	CDataMarking* m_pPcr[MAX_PCR][MAX_PCR_PNL];					// [0]:AOI-Up , [1]:AOI-Dn , [2]:AOI-AllUp , [3]:AOI-AllDn
+	CDataMarking* m_pPcr[MAX_PCR][MAX_PCR_PNL];	//릴맵화면표시를 위한 데이터	// [0]:AOI-Up , [1]:AOI-Dn , [2]:AOI-AllUp , [3]:AOI-AllDn
 	CString *pMkInfo;
 
 	stMpeIoWrite m_pIo[TOT_M_IO];
@@ -115,7 +115,7 @@ public:
 
 	void SetReelmap(int nDir = ROT_NONE);
 	CString GetCamPxlRes();
-	int LoadPCR(int nSerial, BOOL bFromShare = FALSE);		// return : 2(Failed), 1(정상), -1(Align Error, 노광불량), -2(Lot End)
+//	int LoadPCR(int nSerial, BOOL bFromShare = FALSE);		// return : 2(Failed), 1(정상), -1(Align Error, 노광불량), -2(Lot End)
 	int LoadPCR0(int nSerial, BOOL bFromShare = FALSE);		// return : 2(Failed), 1(정상), -1(Align Error, 노광불량), -2(Lot End)
 	int LoadPCR1(int nSerial, BOOL bFromShare = FALSE);		// return : 2(Failed), 1(정상), -1(Align Error, 노광불량), -2(Lot End)
 	int LoadPCRUp(int nSerial, BOOL bFromShare = FALSE);	// return : 2(Failed), 1(정상), -1(Align Error, 노광불량), -2(Lot End)
@@ -124,8 +124,8 @@ public:
 	int LoadPCRAllDn(int nSerial, BOOL bFromShare = FALSE);	// return : 2(Failed), 1(정상), -1(Align Error, 노광불량), -2(Lot End)
 
 	int GetPcrIdx(int nSerial, BOOL bNewLot = FALSE);
-	int GetPcrIdx0(int nSerial, BOOL bNewLot = FALSE); // Up
-	int GetPcrIdx1(int nSerial, BOOL bNewLot = FALSE); // Dn
+	int GetPcrIdx0(int nSerial, BOOL bNewLot = FALSE); // Up - 릴맵화면 표시를 위한 Display buffer의 Shot 인덱스
+	int GetPcrIdx1(int nSerial, BOOL bNewLot = FALSE); // Dn - 릴맵화면 표시를 위한 Display buffer의 Shot 인덱스
 
 	BOOL LoadIoInfo();
 	BOOL LoadSignalInfo();
@@ -277,7 +277,7 @@ public:
 	BOOL MakeMkDirUp();
 	BOOL MakeMkDirDn();
 	BOOL Shift2Mk(int nSerial);
-	void SetLastSerial(int nSerial);
+	void SetLastSerial(int nSerial);								// 릴맵 텍스트 파일의 수율정보를 업데이트함.
 	void UpdateYield(int nSerial);
 	void SetCompletedSerial(int nSerial);
 	BOOL ChkLotEnd(CString sPath);
@@ -299,9 +299,9 @@ public:
 	CString GetMin(int nDlgId, int nCtrlId);
 	CString GetMax(int nDlgId, int nCtrlId);
 
-	int GetLastShotMk();
-	int GetLastShotUp();
-	int GetLastShotDn();
+	int GetLastShotMk();	// m_pDlgFrameHigh에서 얻거나 없으면, sPathOldFile폴더의 ReelMapDataDn.txt에서 _T("Info"), _T("Marked Shot") 찾음.
+	int GetLastShotUp();	// pView->m_pDlgFrameHigh->m_nAoiLastShot[0]
+	int GetLastShotDn();	// pView->m_pDlgFrameHigh->m_nAoiLastShot[1]
 
 	int Mirroring(int nPcsId);
 
