@@ -4487,7 +4487,7 @@ int CGvisR2R_PunchDoc::LoadPCRAllUp(int nSerial, BOOL bFromShare)	// return : 2(
 	return 0;
 #endif
 
-	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
+	BOOL bDualTest = WorkingInfo.LastJob.bDualTest;
 	if (!bDualTest)
 		return 0;
 
@@ -4504,7 +4504,7 @@ int CGvisR2R_PunchDoc::LoadPCRAllUp(int nSerial, BOOL bFromShare)	// return : 2(
 	{
 		str.Format(_T("PCR파일이 설정되지 않았습니다."));
 		pView->MsgBox(str);
-		// 		AfxMessageBox(strFileData);
+		//AfxMessageBox(strFileData);
 		return(2);
 	}
 
@@ -4512,13 +4512,13 @@ int CGvisR2R_PunchDoc::LoadPCRAllUp(int nSerial, BOOL bFromShare)	// return : 2(
 	{
 		str.Format(_T("PCR[2]관련 메모리가 할당되지 않았습니다."));
 		pView->MsgBox(str);
-		// 		AfxMessageBox(strFileData);
+		//AfxMessageBox(strFileData);
 		return(2);
 	}
 
 	int nIdx;
-	if (m_bNewLotShare[0] && (pDoc->WorkingInfo.LastJob.bLotSep || m_bDoneChgLot))
-		nIdx = GetPcrIdx0(nSerial, TRUE);
+	if (m_bNewLotShare[0] && (WorkingInfo.LastJob.bLotSep || m_bDoneChgLot))
+		nIdx = GetPcrIdx0(nSerial, TRUE); // 릴맵화면 표시 인덱스
 	else
 		nIdx = GetPcrIdx0(nSerial);
 
@@ -4547,19 +4547,18 @@ int CGvisR2R_PunchDoc::LoadPCRAllUp(int nSerial, BOOL bFromShare)	// return : 2(
 	// Lot
 	m_pPcr[2][nIdx]->m_sLot = m_pPcr[0][nIdx]->m_sLot;
 
-	int nTotDef[3];
-	nTotDef[0] = pDoc->m_pPcr[0][nIdx]->m_nTotDef;
-	nTotDef[1] = pDoc->m_pPcr[1][nIdx]->m_nTotDef;
-	//	nTotDef[2] = nTotDef[0] + nTotDef[1];
+	int nTotDef[3] = { 0 };									// [0]: 상면, [1]: 하면, [2]: 상/하면 Merge
+	nTotDef[0] = pDoc->m_pPcr[0][nIdx]->m_nTotDef;			// 상면 불량 피스 수
+	nTotDef[1] = pDoc->m_pPcr[1][nIdx]->m_nTotDef;			// 하면 불량 피스 수
 
 	int nTotPcs = m_Master[0].m_pPcsRgn->nTotPcs;
 	stPcrMerge *pPcrMgr = new stPcrMerge[nTotPcs];
 
-	int nComp, nPcsId;
-	if (nTotDef[0] > nTotDef[1])
-		nComp = nTotDef[0];
-	else
-		nComp = nTotDef[1];
+	//int nComp, nPcsId;
+	//if (nTotDef[0] > nTotDef[1])
+	//	nComp = nTotDef[0];
+	//else
+	//	nComp = nTotDef[1];
 
 	// 	for(i=0; i<nComp; i++)
 	// 	{
@@ -4577,94 +4576,96 @@ int CGvisR2R_PunchDoc::LoadPCRAllUp(int nSerial, BOOL bFromShare)	// return : 2(
 	// 		}
 	// 	}
 
-	for (i = 0; i < nTotDef[1]; i++)
+	int nPcsId;												// nPcsId : CamMaster Pcs Index
+															//pPcrMgr테이블의 nIdx에 하면의 불량을 먼저 기록하고 상면의 불량을 엎어서 최종 merge불량 테이블을 만듬.
+	for (i = 0; i < nTotDef[1]; i++)						// 하면 불량 피스 수
 	{
-		nPcsId = m_pPcr[1][nIdx]->m_pDefPcs[i];
-		pPcrMgr[nPcsId].nIdx = i;
-		pPcrMgr[nPcsId].nIdxDn = i; // Dn
+		nPcsId = m_pPcr[1][nIdx]->m_pDefPcs[i];				// nPcsId : CamMaster Pcs Index
+		pPcrMgr[nPcsId].nIdx = i;	// Up+Dn				// 상하면 Merge [nPcsId:CamMaster Pcs Index]의 nIdx (0~)는 불량표시순서임.
+		pPcrMgr[nPcsId].nIdxDn = i; // Dn					// 상하면 Merge [nPcsId:CamMaster Pcs Index]의 nIdxDn (0~)는 불량표시순서임.
 	}
-	for (i = 0; i < nTotDef[0]; i++)
+	for (i = 0; i < nTotDef[0]; i++)						// 상면 불량 피스 수
 	{
-		nPcsId = m_pPcr[0][nIdx]->m_pDefPcs[i];
-		pPcrMgr[nPcsId].nIdx = i;
-		pPcrMgr[nPcsId].nIdxUp = i;	// Up
+		nPcsId = m_pPcr[0][nIdx]->m_pDefPcs[i];				// nPcsId : CamMaster Pcs Index
+		pPcrMgr[nPcsId].nIdx = i;	// Up+Dn				// 상하면 Merge [nPcsId:CamMaster Pcs Index]의 nIdx (0~)는 불량표시순서임.
+		pPcrMgr[nPcsId].nIdxUp = i;	// Up					// 상하면 Merge [nPcsId:CamMaster Pcs Index]의 nIdxUp (0~)는 불량표시순서임.
 	}
 
 
 	nTotDef[2] = 0;
-	for (i = 0; i < nTotPcs; i++)
+	for (i = 0; i < nTotPcs; i++)							// Shot내 총 Piece수
 	{
-		if (pPcrMgr[i].nIdx > -1)
-			nTotDef[2]++;
+		if (pPcrMgr[i].nIdx > -1)	// Up+Dn				// 상하면 Merge [i:CamMaster Pcs Index]의 nIdx (0~)는 불량표시순서임.
+			nTotDef[2]++;									// 상 / 하면 Merge한 총 불량피스수.
 	}
 
-	m_pPcr[2][nIdx]->Init(nSerial, nTotDef[2]);
+	m_pPcr[2][nIdx]->Init(nSerial, nTotDef[2]);				// 제품시리얼, Shot내 총불량 피스수
 
-	int nId[2];
-	idx = 0;
-	if (nTotDef[2] > 0)
+	int nId[2], Ord; // [0]: 상면 0~불량피스순서, [1]: 하면 0~불량피스순서
+	idx = 0; // 마킹순서 0~불량피스수만큼 정하기위해 현시점의 idx를 초기화함.
+	if (nTotDef[2] > 0) // 상 / 하면 Merge한 총 불량피스수.
 	{
 		for (nPcsId = 0; nPcsId < nTotPcs; nPcsId++)
 		{
-			nId[0] = pPcrMgr[nPcsId].nIdxUp;
-			nId[1] = pPcrMgr[nPcsId].nIdxDn;
+			nId[0] = pPcrMgr[nPcsId].nIdxUp; // 상하면 Merge [nPcsId:CamMaster Pcs Index]의 nIdxUp (0~)는 불량표시순서 임. nId[0]: 상면에서의 PCR파일순서 인덱스
+			nId[1] = pPcrMgr[nPcsId].nIdxDn; // 상하면 Merge [nPcsId:CamMaster Pcs Index]의 nIdxDn (0~)는 불량표시순서 임. nId[1]: 하면에서의 PCR파일순서 인덱스
 
 			if (nId[0] > -1)
 			{
+				Ord = nId[0];
 				// Cam ID
 				m_pPcr[2][nIdx]->m_nCamId = m_pPcr[0][nIdx]->m_nCamId;
 				// Piece Number
-				m_pPcr[2][nIdx]->m_pDefPcs[idx] = m_pPcr[0][nIdx]->m_pDefPcs[nId[0]];
-				m_pPcr[2][nIdx]->m_pLayer[idx] = m_pPcr[0][nIdx]->m_pLayer[nId[0]];
+				m_pPcr[2][nIdx]->m_pDefPcs[idx] = m_pPcr[0][nIdx]->m_pDefPcs[Ord];
+				m_pPcr[2][nIdx]->m_pLayer[idx] = m_pPcr[0][nIdx]->m_pLayer[Ord];
 				// BadPointPosX
-				m_pPcr[2][nIdx]->m_pDefPos[idx].x = m_pPcr[0][nIdx]->m_pDefPos[nId[0]].x;
+				m_pPcr[2][nIdx]->m_pDefPos[idx].x = m_pPcr[0][nIdx]->m_pDefPos[Ord].x;
 				// BadPointPosY
-				m_pPcr[2][nIdx]->m_pDefPos[idx].y = m_pPcr[0][nIdx]->m_pDefPos[nId[0]].y;
+				m_pPcr[2][nIdx]->m_pDefPos[idx].y = m_pPcr[0][nIdx]->m_pDefPos[Ord].y;
 				// BadName
-				m_pPcr[2][nIdx]->m_pDefType[idx] = m_pPcr[0][nIdx]->m_pDefType[nId[0]];
+				m_pPcr[2][nIdx]->m_pDefType[idx] = m_pPcr[0][nIdx]->m_pDefType[Ord];
 				// CellNum
-				m_pPcr[2][nIdx]->m_pCell[idx] = m_pPcr[0][nIdx]->m_pCell[nId[0]];
+				m_pPcr[2][nIdx]->m_pCell[idx] = m_pPcr[0][nIdx]->m_pCell[Ord];
 				// ImageSize
-				m_pPcr[2][nIdx]->m_pImgSz[idx] = m_pPcr[0][nIdx]->m_pImgSz[nId[0]];
+				m_pPcr[2][nIdx]->m_pImgSz[idx] = m_pPcr[0][nIdx]->m_pImgSz[Ord];
 				// ImageNum
-				m_pPcr[2][nIdx]->m_pImg[idx] = m_pPcr[0][nIdx]->m_pImg[nId[0]];
+				m_pPcr[2][nIdx]->m_pImg[idx] = m_pPcr[0][nIdx]->m_pImg[Ord];
 				// strMarkingCode : -2 (NoMarking)
-				m_pPcr[2][nIdx]->m_pMk[idx] = m_pPcr[0][nIdx]->m_pMk[nId[0]];
+				m_pPcr[2][nIdx]->m_pMk[idx] = m_pPcr[0][nIdx]->m_pMk[Ord];
 
 				idx++;
 			}
 			else if (nId[1] > -1)
 			{
+				Ord = nId[1];
 				// Cam ID
 				m_pPcr[2][nIdx]->m_nCamId = m_pPcr[1][nIdx]->m_nCamId;
 				// Piece Number
-				m_pPcr[2][nIdx]->m_pDefPcs[idx] = m_pPcr[1][nIdx]->m_pDefPcs[nId[1]];
-				m_pPcr[2][nIdx]->m_pLayer[idx] = m_pPcr[1][nIdx]->m_pLayer[nId[1]];
+				m_pPcr[2][nIdx]->m_pDefPcs[idx] = m_pPcr[1][nIdx]->m_pDefPcs[Ord];
+				m_pPcr[2][nIdx]->m_pLayer[idx] = m_pPcr[1][nIdx]->m_pLayer[Ord];
 				// BadPointPosX
-				m_pPcr[2][nIdx]->m_pDefPos[idx].x = m_pPcr[1][nIdx]->m_pDefPos[nId[1]].x;
+				m_pPcr[2][nIdx]->m_pDefPos[idx].x = m_pPcr[1][nIdx]->m_pDefPos[Ord].x;
 				// BadPointPosY
-				m_pPcr[2][nIdx]->m_pDefPos[idx].y = m_pPcr[1][nIdx]->m_pDefPos[nId[1]].y;
+				m_pPcr[2][nIdx]->m_pDefPos[idx].y = m_pPcr[1][nIdx]->m_pDefPos[Ord].y;
 				// BadName
-				m_pPcr[2][nIdx]->m_pDefType[idx] = m_pPcr[1][nIdx]->m_pDefType[nId[1]];
+				m_pPcr[2][nIdx]->m_pDefType[idx] = m_pPcr[1][nIdx]->m_pDefType[Ord];
 				// CellNum
-				m_pPcr[2][nIdx]->m_pCell[idx] = m_pPcr[1][nIdx]->m_pCell[nId[1]];
+				m_pPcr[2][nIdx]->m_pCell[idx] = m_pPcr[1][nIdx]->m_pCell[Ord];
 				// ImageSize
-				m_pPcr[2][nIdx]->m_pImgSz[idx] = m_pPcr[1][nIdx]->m_pImgSz[nId[1]];
+				m_pPcr[2][nIdx]->m_pImgSz[idx] = m_pPcr[1][nIdx]->m_pImgSz[Ord];
 				// ImageNum
-				m_pPcr[2][nIdx]->m_pImg[idx] = m_pPcr[1][nIdx]->m_pImg[nId[1]];
+				m_pPcr[2][nIdx]->m_pImg[idx] = m_pPcr[1][nIdx]->m_pImg[Ord];
 				// strMarkingCode : -2 (NoMarking)
-				m_pPcr[2][nIdx]->m_pMk[idx] = m_pPcr[1][nIdx]->m_pMk[nId[1]];
+				m_pPcr[2][nIdx]->m_pMk[idx] = m_pPcr[1][nIdx]->m_pMk[Ord];
 
 				idx++;
 			}
 		}
 	}
-
 	delete[] pPcrMgr;
 
 	return (1); // 1(정상)
 }
-
 int CGvisR2R_PunchDoc::LoadPCRAllDn(int nSerial, BOOL bFromShare)	// return : 2(Failed), 1(정상), -1(Align Error, 노광불량), -2(Lot End)
 {
 	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
@@ -4772,7 +4773,7 @@ int CGvisR2R_PunchDoc::LoadPCRAllDn(int nSerial, BOOL bFromShare)	// return : 2(
 
 	m_pPcr[3][nIdx]->Init(nSerial, nTotDef[2]);
 
-	int nId[2];
+	int nId[2], Ord;
 	idx = 0;
 	if (nTotDef[2] > 0)
 	{
@@ -4783,49 +4784,51 @@ int CGvisR2R_PunchDoc::LoadPCRAllDn(int nSerial, BOOL bFromShare)	// return : 2(
 
 			if (nId[1] > -1)
 			{
+				Ord = nId[1];
 				// Cam ID
 				m_pPcr[3][nIdx]->m_nCamId = m_pPcr[1][nIdx]->m_nCamId;
 				// Piece Number
-				m_pPcr[3][nIdx]->m_pDefPcs[idx] = m_pPcr[1][nIdx]->m_pDefPcs[nId[1]];
-				m_pPcr[3][nIdx]->m_pLayer[idx] = m_pPcr[1][nIdx]->m_pLayer[nId[1]];
+				m_pPcr[3][nIdx]->m_pDefPcs[idx] = m_pPcr[1][nIdx]->m_pDefPcs[Ord];
+				m_pPcr[3][nIdx]->m_pLayer[idx] = m_pPcr[1][nIdx]->m_pLayer[Ord];
 				// BadPointPosX
-				m_pPcr[3][nIdx]->m_pDefPos[idx].x = m_pPcr[1][nIdx]->m_pDefPos[nId[1]].x;
+				m_pPcr[3][nIdx]->m_pDefPos[idx].x = m_pPcr[1][nIdx]->m_pDefPos[Ord].x;
 				// BadPointPosY
-				m_pPcr[3][nIdx]->m_pDefPos[idx].y = m_pPcr[1][nIdx]->m_pDefPos[nId[1]].y;
+				m_pPcr[3][nIdx]->m_pDefPos[idx].y = m_pPcr[1][nIdx]->m_pDefPos[Ord].y;
 				// BadName
-				m_pPcr[3][nIdx]->m_pDefType[idx] = m_pPcr[1][nIdx]->m_pDefType[nId[1]];
+				m_pPcr[3][nIdx]->m_pDefType[idx] = m_pPcr[1][nIdx]->m_pDefType[Ord];
 				// CellNum
-				m_pPcr[3][nIdx]->m_pCell[idx] = m_pPcr[1][nIdx]->m_pCell[nId[1]];
+				m_pPcr[3][nIdx]->m_pCell[idx] = m_pPcr[1][nIdx]->m_pCell[Ord];
 				// ImageSize
-				m_pPcr[3][nIdx]->m_pImgSz[idx] = m_pPcr[1][nIdx]->m_pImgSz[nId[1]];
+				m_pPcr[3][nIdx]->m_pImgSz[idx] = m_pPcr[1][nIdx]->m_pImgSz[Ord];
 				// ImageNum
-				m_pPcr[3][nIdx]->m_pImg[idx] = m_pPcr[1][nIdx]->m_pImg[nId[1]];
+				m_pPcr[3][nIdx]->m_pImg[idx] = m_pPcr[1][nIdx]->m_pImg[Ord];
 				// strMarkingCode : -2 (NoMarking)
-				m_pPcr[3][nIdx]->m_pMk[idx] = m_pPcr[1][nIdx]->m_pMk[nId[1]];
+				m_pPcr[3][nIdx]->m_pMk[idx] = m_pPcr[1][nIdx]->m_pMk[Ord];
 
 				idx++;
 			}
 			else if (nId[0] > -1)
 			{
+				Ord = nId[0];
 				// Cam ID
 				m_pPcr[3][nIdx]->m_nCamId = m_pPcr[0][nIdx]->m_nCamId;
 				// Piece Number
-				m_pPcr[3][nIdx]->m_pDefPcs[idx] = m_pPcr[0][nIdx]->m_pDefPcs[nId[0]];
-				m_pPcr[3][nIdx]->m_pLayer[idx] = m_pPcr[0][nIdx]->m_pLayer[nId[0]];
+				m_pPcr[3][nIdx]->m_pDefPcs[idx] = m_pPcr[0][nIdx]->m_pDefPcs[Ord];
+				m_pPcr[3][nIdx]->m_pLayer[idx] = m_pPcr[0][nIdx]->m_pLayer[Ord];
 				// BadPointPosX
-				m_pPcr[3][nIdx]->m_pDefPos[idx].x = m_pPcr[0][nIdx]->m_pDefPos[nId[0]].x;
+				m_pPcr[3][nIdx]->m_pDefPos[idx].x = m_pPcr[0][nIdx]->m_pDefPos[Ord].x;
 				// BadPointPosY
-				m_pPcr[3][nIdx]->m_pDefPos[idx].y = m_pPcr[0][nIdx]->m_pDefPos[nId[0]].y;
+				m_pPcr[3][nIdx]->m_pDefPos[idx].y = m_pPcr[0][nIdx]->m_pDefPos[Ord].y;
 				// BadName
-				m_pPcr[3][nIdx]->m_pDefType[idx] = m_pPcr[0][nIdx]->m_pDefType[nId[0]];
+				m_pPcr[3][nIdx]->m_pDefType[idx] = m_pPcr[0][nIdx]->m_pDefType[Ord];
 				// CellNum
-				m_pPcr[3][nIdx]->m_pCell[idx] = m_pPcr[0][nIdx]->m_pCell[nId[0]];
+				m_pPcr[3][nIdx]->m_pCell[idx] = m_pPcr[0][nIdx]->m_pCell[Ord];
 				// ImageSize
-				m_pPcr[3][nIdx]->m_pImgSz[idx] = m_pPcr[0][nIdx]->m_pImgSz[nId[0]];
+				m_pPcr[3][nIdx]->m_pImgSz[idx] = m_pPcr[0][nIdx]->m_pImgSz[Ord];
 				// ImageNum
-				m_pPcr[3][nIdx]->m_pImg[idx] = m_pPcr[0][nIdx]->m_pImg[nId[0]];
+				m_pPcr[3][nIdx]->m_pImg[idx] = m_pPcr[0][nIdx]->m_pImg[Ord];
 				// strMarkingCode : -2 (NoMarking)
-				m_pPcr[3][nIdx]->m_pMk[idx] = m_pPcr[0][nIdx]->m_pMk[nId[0]];
+				m_pPcr[3][nIdx]->m_pMk[idx] = m_pPcr[0][nIdx]->m_pMk[Ord];
 
 				idx++;
 			}
