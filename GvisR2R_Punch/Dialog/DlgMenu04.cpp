@@ -710,7 +710,7 @@ void CDlgMenu04::Disp()
 	str.Format(_T("%.1f"), _tstof(pDoc->WorkingInfo.Motion.sMkJogAcc));
 	myStcData[13].SetText(str);
 	str.Format(_T("%.1f"), _tstof(pDoc->WorkingInfo.LastJob.sFurgeNum));
-	myStcData[14].SetText(str);
+	myStcData[14].SetText(str); // IDC_STC_BUF_POS2
 
 	// KSH 141011
 	str.Format(_T("%.1f"), _tstof(pDoc->WorkingInfo.Motion.sAoiTq));

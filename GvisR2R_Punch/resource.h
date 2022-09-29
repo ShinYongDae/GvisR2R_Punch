@@ -425,6 +425,7 @@
 #define IDC_STC_GOOD_NUM_ALL            1152
 #define IDC_BTN_BUFF_UP                 1152
 #define IDC_STC_014                     1152
+#define IDC_STC_35                      1152
 #define IDC_STC_0015                    1153
 #define IDC_STC_GOOD_RATIO_ALL          1153
 #define IDC_BTN_BUFF_DN                 1153
@@ -794,12 +795,15 @@
 #define IDC_STC_12_22                   1245
 #define IDC_STC_76                      1245
 #define IDC_STC_UTIL04_14               1245
+#define IDC_STC_34                      1245
 #define IDC_CHK_18                      1246
 #define IDC_STC_77                      1246
 #define IDC_STC_UTIL04_15               1246
+#define IDC_STC_36                      1246
 #define IDC_STC_12_24                   1247
 #define IDC_STC_78                      1247
 #define IDC_STC_UTIL04_16               1247
+#define IDC_STC_37                      1247
 #define IDC_STC_12_23                   1248
 #define IDC_STC_79                      1248
 #define IDC_STC_UTIL04_17               1248
