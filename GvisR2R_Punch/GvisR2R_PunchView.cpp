@@ -163,6 +163,8 @@ CGvisR2R_PunchView::CGvisR2R_PunchView()
 	m_dwThreadTick[1] = 0;
 	m_bThread[2] = FALSE;
 	m_dwThreadTick[2] = 0;
+	m_bThread[3] = FALSE;
+	m_dwThreadTick[3] = 0;
 
 	m_bTIM_MPE_IO = FALSE;
 
@@ -192,6 +194,11 @@ CGvisR2R_PunchView::CGvisR2R_PunchView()
 
 	m_bTHREAD_DISP_DEF = FALSE;
 	m_nStepTHREAD_DISP_DEF = 0;
+
+	m_bTHREAD_UPDATAE_YIELD[0] = FALSE;
+	m_bTHREAD_UPDATAE_YIELD[1] = FALSE;
+	m_nSerialTHREAD_UPDATAE_YIELD[0] = 0;
+	m_nSerialTHREAD_UPDATAE_YIELD[1] = 0;
 
 	m_bTHREAD_MK[0] = FALSE;
 	m_bTHREAD_MK[1] = FALSE;
@@ -383,6 +390,8 @@ CGvisR2R_PunchView::CGvisR2R_PunchView()
 
 	m_nSaveMk0Img = 0;
 	m_nSaveMk1Img = 0;
+
+	m_bStopF_Verify = FALSE;
 }
 
 CGvisR2R_PunchView::~CGvisR2R_PunchView()
@@ -851,6 +860,10 @@ void CGvisR2R_PunchView::OnTimer(UINT_PTR nIDEvent)
 			// DispDefImg
 			if (!m_bThread[2])
 				m_Thread[2].Start(GetSafeHwnd(), this, ThreadProc2);
+
+			// UpdateYield
+			if (!m_bThread[3])
+				m_Thread[3].Start(GetSafeHwnd(), this, ThreadProc3);
 
 			MoveInitPos1();
 			Sleep(30);
@@ -2038,6 +2051,15 @@ void CGvisR2R_PunchView::ThreadKill()
 			Sleep(20);
 		}
 	}
+	if (m_bThread[3])
+	{
+		m_Thread[3].Stop();
+		Sleep(20);
+		while (m_bThread[3])
+		{
+			Sleep(20);
+		}
+	}
 }
 
 UINT CGvisR2R_PunchView::ThreadProc0(LPVOID lpContext)
@@ -2106,7 +2128,7 @@ UINT CGvisR2R_PunchView::ThreadProc1(LPVOID lpContext)
 		{
 			bLock = TRUE;
 
-			// 			pThread->ChkCollision();
+			//pThread->ChkCollision();
 			pThread->GetEnc();
 
 			if (!pThread->m_bTHREAD_MK[0] && !pThread->m_bTHREAD_MK[1] &&
@@ -2176,10 +2198,54 @@ UINT CGvisR2R_PunchView::ThreadProc2(LPVOID lpContext)
 			else
 				Sleep(30);
 
+			//{
+			//	if (pThread->m_bTHREAD_UPDATAE_YIELD)
+			//	{
+			//		pThread->DispDefImg();
+			//	}
+			//}
+			
+
 			bLock = FALSE;
 		}
 	}
 	pThread->m_bThread[2] = FALSE;
+
+	return 0;
+}
+
+UINT CGvisR2R_PunchView::ThreadProc3(LPVOID lpContext)
+{
+	// Turn the passed in 'this' pointer back into a CProgressMgr instance
+	CGvisR2R_PunchView* pThread = reinterpret_cast<CGvisR2R_PunchView*>(lpContext);
+
+	BOOL bLock = FALSE;
+	DWORD dwTick = GetTickCount();
+	DWORD dwShutdownEventCheckPeriod = 0; // thread shutdown event check period
+
+	pThread->m_bThread[3] = TRUE;
+	while (WAIT_OBJECT_0 != WaitForSingleObject(pThread->m_Thread[3].GetShutdownEvent(), dwShutdownEventCheckPeriod))
+	{
+		pThread->m_dwThreadTick[3] = GetTickCount() - dwTick;
+		dwTick = GetTickCount();
+
+		if (pThread->m_bTHREAD_UPDATAE_YIELD[0])
+		{
+			pThread->UpdateYield(pThread->m_nSerialTHREAD_UPDATAE_YIELD[0]);
+			pThread->m_bTHREAD_UPDATAE_YIELD[0] = FALSE;
+			Sleep(0);
+		}
+		else if(pThread->m_bTHREAD_UPDATAE_YIELD[1])
+		{
+			pThread->UpdateYield(pThread->m_nSerialTHREAD_UPDATAE_YIELD[1]);
+			pThread->m_bTHREAD_UPDATAE_YIELD[1] = FALSE;
+			Sleep(0);
+		}
+		else
+			Sleep(30);
+	}
+
+	pThread->m_bThread[3] = FALSE;
 
 	return 0;
 }
@@ -7512,6 +7578,10 @@ void CGvisR2R_PunchView::DispMain(CString sMsg, COLORREF rgb)
 	stDispMain stData(sMsg, rgb);
 	m_ArrayDispMain.Add(stData);
 	m_bDispMain = TRUE;
+
+	if (sMsg == _T("정 지"))
+		m_bStopF_Verify = TRUE;
+
 	sMsg.Empty();
 	m_csDispMain.Unlock();
 }
@@ -7707,7 +7777,10 @@ void CGvisR2R_PunchView::Shift2Mk()
 			nSerial = m_nBufDnSerial[0];
 			if (nSerial > 0 && (nSerial % 2))
 			{
-				pDoc->UpdateYield(nSerial);
+				//pDoc->UpdateYield(nSerial);
+				//m_nSerialTHREAD_UPDATAE_YIELD[0] = nSerial;
+				//m_bTHREAD_UPDATAE_YIELD[0] = TRUE;
+
 				pDoc->Shift2Mk(nSerial);	// Cam0
 				if (m_pDlgFrameHigh)
 					m_pDlgFrameHigh->SetMkLastShot(nSerial);
@@ -7720,9 +7793,16 @@ void CGvisR2R_PunchView::Shift2Mk()
 			{
 				if (nSerial > 0 && (nSerial % 2)) // First Shot number must be odd.
 				{
-					pDoc->UpdateYield(nSerial);
+					//pDoc->UpdateYield(nSerial);
+					//m_nSerialTHREAD_UPDATAE_YIELD[0] = nSerial;
+					//m_bTHREAD_UPDATAE_YIELD[0] = TRUE;
+
 					pDoc->Shift2Mk(nSerial);	// Cam0
-					pDoc->UpdateYield(nSerial + 1);
+
+					//pDoc->UpdateYield(nSerial + 1);
+					//m_nSerialTHREAD_UPDATAE_YIELD[1] = nSerial + 1;
+					//m_bTHREAD_UPDATAE_YIELD[1] = TRUE;
+
 					pDoc->Shift2Mk(nSerial + 1);	// Cam1
 					if (m_pDlgFrameHigh)
 						m_pDlgFrameHigh->SetMkLastShot(nSerial + 1);
@@ -7736,9 +7816,16 @@ void CGvisR2R_PunchView::Shift2Mk()
 			{
 				if (nSerial > 0)
 				{
-					pDoc->UpdateYield(nSerial);
+					//pDoc->UpdateYield(nSerial);
+					//m_nSerialTHREAD_UPDATAE_YIELD[0] = nSerial;
+					//m_bTHREAD_UPDATAE_YIELD[0] = TRUE;
+
 					pDoc->Shift2Mk(nSerial);	// Cam0
-					pDoc->UpdateYield(nSerial + 1);
+
+					//pDoc->UpdateYield(nSerial + 1);
+					//m_nSerialTHREAD_UPDATAE_YIELD[1] = nSerial + 1;
+					//m_bTHREAD_UPDATAE_YIELD[1] = TRUE;
+
 					pDoc->Shift2Mk(nSerial + 1);	// Cam1
 					if (m_pDlgFrameHigh)
 						m_pDlgFrameHigh->SetMkLastShot(nSerial + 1);
@@ -7759,7 +7846,10 @@ void CGvisR2R_PunchView::Shift2Mk()
 			{
 				if (nSerial > 0 && (nSerial % 2)) // First Shot number must be odd.
 				{
-					pDoc->UpdateYield(nSerial);
+					//pDoc->UpdateYield(nSerial);
+					//m_nSerialTHREAD_UPDATAE_YIELD[0] = nSerial;
+					//m_bTHREAD_UPDATAE_YIELD[0] = TRUE;
+
 					pDoc->Shift2Mk(nSerial);	// Cam0
 					if (m_pDlgFrameHigh)
 						m_pDlgFrameHigh->SetMkLastShot(nSerial);
@@ -7773,7 +7863,10 @@ void CGvisR2R_PunchView::Shift2Mk()
 			{
 				if (nSerial > 0)
 				{
-					pDoc->UpdateYield(nSerial);
+					//pDoc->UpdateYield(nSerial);
+					//m_nSerialTHREAD_UPDATAE_YIELD[0] = nSerial;
+					//m_bTHREAD_UPDATAE_YIELD[0] = TRUE;
+
 					pDoc->Shift2Mk(nSerial);	// Cam0
 					if (m_pDlgFrameHigh)
 						m_pDlgFrameHigh->SetMkLastShot(nSerial);
@@ -7791,9 +7884,16 @@ void CGvisR2R_PunchView::Shift2Mk()
 			{
 				if (nSerial > 0 && (nSerial % 2)) // First Shot number must be odd.
 				{
-					pDoc->UpdateYield(nSerial);
+					//pDoc->UpdateYield(nSerial);
+					//m_nSerialTHREAD_UPDATAE_YIELD[0] = nSerial;
+					//m_bTHREAD_UPDATAE_YIELD[0] = TRUE;
+
 					pDoc->Shift2Mk(nSerial);	// Cam0
-					pDoc->UpdateYield(nSerial + 1);
+
+					//pDoc->UpdateYield(nSerial + 1);
+					//m_nSerialTHREAD_UPDATAE_YIELD[1] = nSerial + 1;
+					//m_bTHREAD_UPDATAE_YIELD[1] = TRUE;
+
 					pDoc->Shift2Mk(nSerial + 1);	// Cam1
 					if (m_pDlgFrameHigh)
 						m_pDlgFrameHigh->SetMkLastShot(nSerial + 1);
@@ -7807,9 +7907,16 @@ void CGvisR2R_PunchView::Shift2Mk()
 			{
 				if (nSerial > 0)
 				{
-					pDoc->UpdateYield(nSerial);
+					//pDoc->UpdateYield(nSerial);
+					//m_nSerialTHREAD_UPDATAE_YIELD[0] = nSerial;
+					//m_bTHREAD_UPDATAE_YIELD[0] = TRUE;
+
 					pDoc->Shift2Mk(nSerial);	// Cam0
-					pDoc->UpdateYield(nSerial + 1);
+
+					//pDoc->UpdateYield(nSerial + 1);
+					//m_nSerialTHREAD_UPDATAE_YIELD[1] = nSerial + 1;
+					//m_bTHREAD_UPDATAE_YIELD[1] = TRUE;
+
 					pDoc->Shift2Mk(nSerial + 1);	// Cam1
 					if (m_pDlgFrameHigh)
 						m_pDlgFrameHigh->SetMkLastShot(nSerial + 1);
@@ -8303,7 +8410,9 @@ void CGvisR2R_PunchView::Stop()
 BOOL CGvisR2R_PunchView::IsStop()
 {
 	if (m_sDispMain == _T("정 지"))
+	{
 		return TRUE;
+	}
 	return FALSE;
 
 	// 	BOOL bOn=FALSE;
@@ -9655,6 +9764,12 @@ void CGvisR2R_PunchView::InitAuto(BOOL bInit)
 		m_pDlgMenu01->ResetSerial();
 		m_pDlgMenu01->ResetLastProc();
 	}
+
+
+	m_bTHREAD_UPDATAE_YIELD[0] = FALSE;
+	m_bTHREAD_UPDATAE_YIELD[1] = FALSE;
+	m_nSerialTHREAD_UPDATAE_YIELD[0] = 0;
+	m_nSerialTHREAD_UPDATAE_YIELD[1] = 0;
 
 	// 	if(pDoc->m_pReelMap)
 	// 		pDoc->m_pReelMap->ClrFixPcs();
@@ -12087,6 +12202,17 @@ BOOL CGvisR2R_PunchView::IsChkTmpStop()
 BOOL CGvisR2R_PunchView::IsVerify()
 {
 	BOOL bVerify = FALSE;
+	int nSerial0 = m_nBufUpSerial[0];
+	int nSerial1 = m_nBufUpSerial[1];
+	int nPeriod = pDoc->WorkingInfo.LastJob.nVerifyPeriod;
+	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
+
+	if (bDualTest)
+	{
+		nSerial0 = m_nBufDnSerial[0];
+		nSerial1 = m_nBufDnSerial[1];
+	}
+
 
 	if (pDoc->WorkingInfo.LastJob.bVerify)
 	{
@@ -12094,7 +12220,18 @@ BOOL CGvisR2R_PunchView::IsVerify()
 		double dVerifyLen = _tstof(pDoc->WorkingInfo.LastJob.sVerifyLen)*1000.0;
 		// 		if(dFdLen >= dVerifyLen && dFdLen < dVerifyLen+pDoc->m_pReelMap->m_dPnlLen)
 		if (dFdLen < dVerifyLen)
-			bVerify = TRUE;
+		{
+			if (nSerial0 == 1 || nPeriod == 0 || nPeriod == 1 || nPeriod == 2 || m_bStopF_Verify)
+			{
+				m_bStopF_Verify = FALSE;
+				bVerify = TRUE;
+			}
+			else
+			{
+				if(!(nSerial0 % nPeriod) || !(nSerial1 % nPeriod))
+					bVerify = TRUE;
+			}
+		}
 		else
 		{
 			pDoc->WorkingInfo.LastJob.bVerify = FALSE;
@@ -15210,8 +15347,10 @@ void CGvisR2R_PunchView::DoAuto()
 	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
 
 	// LotEnd Start
-	if(DoAutoGetLotEndSignal())
+	if (DoAutoGetLotEndSignal())
+	{
 		return;
+	}
 
 	// 마킹시작 신호를 확인
 	DoAtuoGetMkStSignal();
@@ -15241,6 +15380,8 @@ void CGvisR2R_PunchView::DoAuto()
 
 BOOL CGvisR2R_PunchView::DoAutoGetLotEndSignal()
 {
+	int nSerial;
+
 	if (m_pDlgMenu01)
 	{
 		if (m_pDlgMenu01->m_bLotEnd && m_nStepAuto < LOT_END)
@@ -15252,9 +15393,13 @@ BOOL CGvisR2R_PunchView::DoAutoGetLotEndSignal()
 
 	if (m_bLotEnd)
 	{
+		nSerial = pDoc->GetLastShotMk();
+
 		switch (m_nLotEndAuto)
 		{
 		case LOT_END:
+			ReloadRst(nSerial);
+			UpdateRst();
 			m_nLotEndAuto++;
 			break;
 		case LOT_END + 1:
@@ -17276,7 +17421,11 @@ void CGvisR2R_PunchView::Mk2PtDoMarking()
 			if (IsNoMk() || IsShowLive())
 				ShowLive(FALSE);
 
-			m_nMkStAuto++;
+			if (!m_bTHREAD_UPDATAE_YIELD[0] && !m_bTHREAD_UPDATAE_YIELD[1])
+			{
+				UpdateYield();
+				m_nMkStAuto++;
+			}
 			break;
 
 		case MK_ST + (Mk2PtIdx::DoneMk) + 3:
@@ -22174,4 +22323,138 @@ BOOL CGvisR2R_PunchView::IsPinPos1()
 	return TRUE;
 }
 
+void CGvisR2R_PunchView::UpdateYield(int nSerial)
+{
+	pDoc->UpdateYield(nSerial);
+}
+
+
+void CGvisR2R_PunchView::UpdateYield()
+{
+	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
+	int nSerial;
+
+	if (bDualTest)
+	{
+		if (m_bLastProc && m_nBufDnSerial[0] == m_nLotEndSerial)
+		{
+			nSerial = m_nBufDnSerial[0];
+			if (nSerial > 0 && (nSerial % 2))
+			{
+				//pDoc->UpdateYield(nSerial);
+				m_nSerialTHREAD_UPDATAE_YIELD[0] = nSerial;
+				m_bTHREAD_UPDATAE_YIELD[0] = TRUE;
+			}
+		}
+		else
+		{
+			nSerial = m_nBufDnSerial[0];
+			if (!m_bCont)
+			{
+				if (nSerial > 0 && (nSerial % 2)) // First Shot number must be odd.
+				{
+					//pDoc->UpdateYield(nSerial);
+					m_nSerialTHREAD_UPDATAE_YIELD[0] = nSerial;
+					m_bTHREAD_UPDATAE_YIELD[0] = TRUE;
+
+					//pDoc->UpdateYield(nSerial + 1);
+					m_nSerialTHREAD_UPDATAE_YIELD[1] = nSerial + 1;
+					m_bTHREAD_UPDATAE_YIELD[1] = TRUE;
+				}
+				else
+				{
+					Stop();
+				}
+			}
+			else
+			{
+				if (nSerial > 0)
+				{
+					//pDoc->UpdateYield(nSerial);
+					m_nSerialTHREAD_UPDATAE_YIELD[0] = nSerial;
+					m_bTHREAD_UPDATAE_YIELD[0] = TRUE;
+
+					//pDoc->UpdateYield(nSerial + 1);
+					m_nSerialTHREAD_UPDATAE_YIELD[1] = nSerial + 1;
+					m_bTHREAD_UPDATAE_YIELD[1] = TRUE;
+				}
+				else
+				{
+					Stop();
+				}
+			}
+		}
+	}
+	else
+	{
+		if (m_bLastProc && m_nBufUpSerial[0] == m_nLotEndSerial)
+		{
+			nSerial = m_nBufUpSerial[0];
+			if (!m_bCont)
+			{
+				if (nSerial > 0 && (nSerial % 2)) // First Shot number must be odd.
+				{
+					//pDoc->UpdateYield(nSerial);
+					m_nSerialTHREAD_UPDATAE_YIELD[0] = nSerial;
+					m_bTHREAD_UPDATAE_YIELD[0] = TRUE;
+				}
+				else
+				{
+					Stop();
+				}
+			}
+			else
+			{
+				if (nSerial > 0)
+				{
+					//pDoc->UpdateYield(nSerial);
+					m_nSerialTHREAD_UPDATAE_YIELD[0] = nSerial;
+					m_bTHREAD_UPDATAE_YIELD[0] = TRUE;
+				}
+				else
+				{
+					Stop();
+				}
+			}
+		}
+		else
+		{
+			nSerial = m_nBufUpSerial[0];
+			if (!m_bCont)
+			{
+				if (nSerial > 0 && (nSerial % 2)) // First Shot number must be odd.
+				{
+					//pDoc->UpdateYield(nSerial);
+					m_nSerialTHREAD_UPDATAE_YIELD[0] = nSerial;
+					m_bTHREAD_UPDATAE_YIELD[0] = TRUE;
+
+					//pDoc->UpdateYield(nSerial + 1);
+					m_nSerialTHREAD_UPDATAE_YIELD[1] = nSerial + 1;
+					m_bTHREAD_UPDATAE_YIELD[1] = TRUE;
+				}
+				else
+				{
+					Stop();
+				}
+			}
+			else
+			{
+				if (nSerial > 0)
+				{
+					//pDoc->UpdateYield(nSerial);
+					m_nSerialTHREAD_UPDATAE_YIELD[0] = nSerial;
+					m_bTHREAD_UPDATAE_YIELD[0] = TRUE;
+
+					//pDoc->UpdateYield(nSerial + 1);
+					m_nSerialTHREAD_UPDATAE_YIELD[1] = nSerial + 1;
+					m_bTHREAD_UPDATAE_YIELD[1] = TRUE;
+				}
+				else
+				{
+					Stop();
+				}
+			}
+		}
+	}
+}
 

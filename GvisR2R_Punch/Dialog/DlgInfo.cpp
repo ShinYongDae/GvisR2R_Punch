@@ -93,6 +93,7 @@ BEGIN_MESSAGE_MAP(CDlgInfo, CDialog)
 	ON_BN_CLICKED(IDC_CHK_85, &CDlgInfo::OnBnClickedChk85)
 	ON_BN_CLICKED(IDC_CHK_1187, &CDlgInfo::OnBnClickedChk1187)
 	ON_BN_CLICKED(IDC_CHK_1188, &CDlgInfo::OnBnClickedChk1188)
+	ON_STN_CLICKED(IDC_STC_36, &CDlgInfo::OnStnClickedStc36)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -390,6 +391,10 @@ void CDlgInfo::InitStcTitle()
 	myStcTitle[57].SubclassDlgItem(IDC_STC_182, this); //양품율
 	myStcTitle[58].SubclassDlgItem(IDC_STC_184, this); //%
 
+	myStcTitle[59].SubclassDlgItem(IDC_STC_34, this); //불량 확인
+	myStcTitle[60].SubclassDlgItem(IDC_STC_35, this); //Period
+	myStcTitle[61].SubclassDlgItem(IDC_STC_37, this); //Shot
+
 	for(int i=0; i<MAX_INFO_STC; i++)
 	{
 		myStcTitle[i].SetFontName(_T("Arial"));
@@ -462,6 +467,8 @@ void CDlgInfo::InitStcData()
 	myStcData[13].SubclassDlgItem(IDC_STC_32, this); // 초음파세정기 동작 검사시작 후 시작시간 [초]
 	myStcData[14].SubclassDlgItem(IDC_STC_183, this); // 고객출하수율
 
+	myStcData[15].SubclassDlgItem(IDC_STC_36, this); // 불량 확인 Period [Shot]
+
 	for(int i=0; i<MAX_INFO_STC_DATA; i++)
 	{
 		myStcData[i].SetFontName(_T("Arial"));
@@ -529,6 +536,8 @@ void CDlgInfo::Disp()
  	myStcData[12].SetText(pDoc->WorkingInfo.LastJob.sSampleTestShotNum);
 	myStcData[13].SetText(pDoc->WorkingInfo.LastJob.sUltraSonicCleannerStTim);
 	myStcData[14].SetText(pDoc->WorkingInfo.LastJob.sCustomNeedRatio);
+	str.Format(_T("%d"), pDoc->WorkingInfo.LastJob.nVerifyPeriod);
+	myStcData[15].SetText(str);
 
 	if(pDoc->WorkingInfo.LastJob.bLotSep)
 		myBtn[1].SetCheck(TRUE);
@@ -1559,4 +1568,26 @@ void CDlgInfo::OnBnClickedChk1188()
 void CDlgInfo::UpdateData()
 {
 	Disp();
+}
+
+
+void CDlgInfo::OnStnClickedStc36()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	myStcData[15].SetBkColor(RGB_RED);
+	myStcData[15].RedrawWindow();
+
+	CPoint pt;	CRect rt;
+	GetDlgItem(IDC_STC_36)->GetWindowRect(&rt);
+	pt.x = rt.right; pt.y = rt.bottom;
+	ShowKeypad(IDC_STC_36, pt, TO_BOTTOM | TO_RIGHT);
+
+	myStcData[15].SetBkColor(RGB_WHITE);
+	myStcData[15].RedrawWindow();
+
+	CString sVal;
+	GetDlgItem(IDC_STC_36)->GetWindowText(sVal);
+	pDoc->WorkingInfo.LastJob.nVerifyPeriod = _ttoi(sVal);
+
+	::WritePrivateProfileString(_T("Last Job"), _T("Verify Period"), sVal, PATH_WORKING_INFO);
 }
