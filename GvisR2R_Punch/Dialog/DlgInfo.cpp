@@ -1403,13 +1403,49 @@ void CDlgInfo::OnChkSampleTest()
 void CDlgInfo::OnChkOneMetal() 
 {
 	// TODO: Add your control notification handler code here
-	SetTwoMetal(FALSE);
+	//SetTwoMetal(FALSE);
+	//BOOL bOn = myBtn[15].GetCheck();
+	BOOL bOn = !pDoc->WorkingInfo.LastJob.bOneMetal;
+	if (bOn)
+	{
+		pDoc->WorkingInfo.LastJob.bOneMetal = TRUE;
+#ifdef USE_MPE
+		pView->m_pMpe->Write(_T("MB44017D"), 1);
+#endif
+		::WritePrivateProfileString(_T("Last Job"), _T("One Metal On"), _T("1"), PATH_WORKING_INFO);// IDC_CHK_ONE_METAL - Recoiler\r沥规氢 CW : FALSE
+	}
+	else
+	{
+		pDoc->WorkingInfo.LastJob.bOneMetal = FALSE;
+#ifdef USE_MPE
+		pView->m_pMpe->Write(_T("MB44017D"), 0);
+#endif
+		::WritePrivateProfileString(_T("Last Job"), _T("One Metal On"), _T("0"), PATH_WORKING_INFO);// IDC_CHK_ONE_METAL - Recoiler\r沥规氢 CW : FALSE
+	}
 }
 
 void CDlgInfo::OnChkTwoMetal() 
 {
 	// TODO: Add your control notification handler code here
-	SetTwoMetal(TRUE);
+	//SetTwoMetal(TRUE);
+	//BOOL bOn = myBtn[16].GetCheck();
+	BOOL bOn = !pDoc->WorkingInfo.LastJob.bTwoMetal;
+	if(bOn)
+	{
+		pDoc->WorkingInfo.LastJob.bTwoMetal = TRUE;
+#ifdef USE_MPE
+		pView->m_pMpe->Write(_T("MB44017C"), 1);
+#endif
+		::WritePrivateProfileString(_T("Last Job"), _T("Two Metal On"), _T("1"), PATH_WORKING_INFO);// IDC_CHK_TWO_METAL - Uncoiler\r开规氢 ON : TRUE	
+	}
+	else
+	{
+		pDoc->WorkingInfo.LastJob.bTwoMetal = FALSE;
+#ifdef USE_MPE
+		pView->m_pMpe->Write(_T("MB44017C"), 0);
+#endif
+		::WritePrivateProfileString(_T("Last Job"), _T("Two Metal On"), _T("0"), PATH_WORKING_INFO);// IDC_CHK_TWO_METAL - Uncoiler\r开规氢 ON : TRUE	
+	}
 }
 
 void CDlgInfo::OnStc181() 
