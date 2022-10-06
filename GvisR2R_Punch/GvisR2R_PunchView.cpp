@@ -13926,6 +13926,12 @@ void CGvisR2R_PunchView::DoMark0()
 		}
 		break;
 	case 7:
+
+		if (bDualTest)
+			nSerial = m_nBufDnSerial[0];//GetBuffer0();
+		else
+			nSerial = m_nBufUpSerial[0];//GetBuffer0();
+
 		if (!WaitDelay0(1))		// F:Done, T:On Waiting....		// Delay후에
 		{
 			m_nMkPcs[0] = 0;
@@ -13942,8 +13948,13 @@ void CGvisR2R_PunchView::DoMark0()
 				}
 				else											// Review가 아니면
 				{
-					m_nMkPcs[0] = GetTotDefPcs0(nSerial);
-					m_nStepMk[0] = MK_END;
+					if (m_bReview)
+					{
+						m_nMkPcs[0] = GetTotDefPcs0(nSerial);
+						m_nStepMk[0] = MK_END;
+					}
+					else
+						m_nStepMk[0]++;
 				}
 			}
 		}
@@ -14616,6 +14627,13 @@ void CGvisR2R_PunchView::DoMark1()
 		}
 		break;
 	case 7:
+
+		if (bDualTest)
+			nSerial = m_nBufDnSerial[1];//GetBuffer1();
+		else
+			nSerial = m_nBufUpSerial[1];//GetBuffer1();
+
+
 		if (!WaitDelay1(6))		// F:Done, T:On Waiting....
 		{
 			m_nMkPcs[1] = 0;

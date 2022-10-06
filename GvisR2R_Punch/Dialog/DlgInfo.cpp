@@ -615,7 +615,7 @@ void CDlgInfo::Disp()
 	{
 		myBtn[15].SetCheck(TRUE);
 		myBtn[15].SetWindowText(_T("Recoiler\r开规氢"));	
-		myBtn[15].SetTextColor(RGB_DARKRED);
+		myBtn[15].SetTextColor(RGB_BLUE);
 	}
 	else
 	{
@@ -628,7 +628,7 @@ void CDlgInfo::Disp()
 	{
 		myBtn[16].SetCheck(TRUE);
 		myBtn[16].SetWindowText(_T("Uncoiler\r开规氢"));
-		myBtn[16].SetTextColor(RGB_DARKRED);
+		myBtn[16].SetTextColor(RGB_BLUE);
 	}
 	else
 	{
@@ -1296,7 +1296,7 @@ void CDlgInfo::SetTwoMetal(BOOL bOn)
 	{
 		if(bChk[1])
 		{
-			myBtn[16].SetTextColor(RGB_DARKRED);
+			myBtn[16].SetTextColor(RGB_BLUE);
 			myBtn[16].SetWindowText(_T("Uncoiler\r开规氢"));
 		}
 		else
@@ -1316,7 +1316,7 @@ void CDlgInfo::SetTwoMetal(BOOL bOn)
 	{
 		if(bChk[0])
 		{
-			myBtn[15].SetTextColor(RGB_DARKRED);
+			myBtn[15].SetTextColor(RGB_BLUE);
 			myBtn[15].SetWindowText(_T("Recoiler\r开规氢"));
 		}
 		else
@@ -1413,6 +1413,9 @@ void CDlgInfo::OnChkOneMetal()
 		pView->m_pMpe->Write(_T("MB44017D"), 1);
 #endif
 		::WritePrivateProfileString(_T("Last Job"), _T("One Metal On"), _T("1"), PATH_WORKING_INFO);// IDC_CHK_ONE_METAL - Recoiler\r沥规氢 CW : FALSE
+		myBtn[15].SetCheck(TRUE);
+		myBtn[15].SetWindowText(_T("Recoiler\r开规氢"));
+		myBtn[15].SetTextColor(RGB_BLUE);
 	}
 	else
 	{
@@ -1421,6 +1424,9 @@ void CDlgInfo::OnChkOneMetal()
 		pView->m_pMpe->Write(_T("MB44017D"), 0);
 #endif
 		::WritePrivateProfileString(_T("Last Job"), _T("One Metal On"), _T("0"), PATH_WORKING_INFO);// IDC_CHK_ONE_METAL - Recoiler\r沥规氢 CW : FALSE
+		myBtn[15].SetCheck(FALSE);
+		myBtn[15].SetWindowText(_T("Recoiler\r沥规氢"));
+		myBtn[15].SetTextColor(RGB_BLUE);
 	}
 }
 
@@ -1437,6 +1443,9 @@ void CDlgInfo::OnChkTwoMetal()
 		pView->m_pMpe->Write(_T("MB44017C"), 1);
 #endif
 		::WritePrivateProfileString(_T("Last Job"), _T("Two Metal On"), _T("1"), PATH_WORKING_INFO);// IDC_CHK_TWO_METAL - Uncoiler\r开规氢 ON : TRUE	
+		myBtn[16].SetCheck(TRUE);
+		myBtn[16].SetWindowText(_T("Uncoiler\r开规氢"));
+		myBtn[16].SetTextColor(RGB_BLUE);
 	}
 	else
 	{
@@ -1445,6 +1454,9 @@ void CDlgInfo::OnChkTwoMetal()
 		pView->m_pMpe->Write(_T("MB44017C"), 0);
 #endif
 		::WritePrivateProfileString(_T("Last Job"), _T("Two Metal On"), _T("0"), PATH_WORKING_INFO);// IDC_CHK_TWO_METAL - Uncoiler\r开规氢 ON : TRUE	
+		myBtn[16].SetCheck(FALSE);
+		myBtn[16].SetWindowText(_T("Uncoiler\r沥规氢"));
+		myBtn[16].SetTextColor(RGB_BLUE);
 	}
 }
 
