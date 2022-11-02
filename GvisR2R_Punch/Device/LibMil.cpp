@@ -20,10 +20,13 @@ extern CGvisR2R_PunchView* pView;
 /////////////////////////////////////////////////////////////////////////////
 // CLibMil
 
-CLibMil::CLibMil(int nIdx, MIL_ID &MilSysId, HWND *hCtrl, CWnd* pParent /*=NULL*/)
+CLibMil::CLibMil(int nIdx, MIL_ID &MilSysId, HWND *hCtrl, int nCamWidth, int nCamHeight, CWnd* pParent /*=NULL*/)
 {
 	m_nIdx = nIdx;
 	m_pParent = pParent;
+
+	m_nCamWidth = nCamWidth;
+	m_nCamHeight = nCamHeight;
 
 	m_lFontName = M_FONT_DEFAULT_SMALL;
 	m_dFontScaleX = 1.0;
@@ -249,11 +252,11 @@ int CLibMil::OnCreate(LPCREATESTRUCT lpCreateStruct)
 // 	TRACE("System allocation successful.\n\n");
 // 	TRACE("     \"Welcome to MIL !!!\"\n\n");
 #ifdef USE_IRAYPLE
-	MbufAllocColor(MilSystem, 1, 720, 540, 8L + M_UNSIGNED, M_IMAGE + M_DISP + M_PROC, &MilImageCam);
+	MbufAllocColor(MilSystem, 1, m_nCamWidth, m_nCamHeight, 8L + M_UNSIGNED, M_IMAGE + M_DISP + M_PROC, &MilImageCam);
 	MbufClear(MilImageCam, 0);
-	MbufAllocColor(MilSystem, 1, 720, 540, 8L + M_UNSIGNED, M_IMAGE + M_DISP + M_PROC, &MilImageCamRotate);
+	MbufAllocColor(MilSystem, 1, m_nCamWidth, m_nCamHeight, 8L + M_UNSIGNED, M_IMAGE + M_DISP + M_PROC, &MilImageCamRotate);
 	MbufClear(MilImageCamRotate, 0);
-	MbufAllocColor(MilSystem, 1, 720, 540, 8L + M_UNSIGNED, M_IMAGE + M_DISP + M_PROC, &MilImageCamFlip);
+	MbufAllocColor(MilSystem, 1, m_nCamWidth, m_nCamHeight, 8L + M_UNSIGNED, M_IMAGE + M_DISP + M_PROC, &MilImageCamFlip);
 	MbufClear(MilImageCamFlip, 0);
 #else
 	MbufAllocColor(MilSystem, 3, 640, 480, 8L+M_UNSIGNED, M_IMAGE+M_DISP+M_PROC, &MilImageCam);
@@ -270,8 +273,8 @@ int CLibMil::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		{
 			MilDisplay[i] = new CLibMilDisp(MilSystem);			    /* Display identifier.				*/
 #ifdef USE_IRAYPLE
-			MilImage[i] = new CLibMilBuf(MilSystem, 1, 720, 540, 8L+M_UNSIGNED, M_IMAGE+M_DISP+M_PROC);				/* Image buffer identifier.			*/
-			DisplaySelect(MilDisplay[i], MilImage[i], UserWindowHandle[i], 720, 540, DISPLAY_FIT_MODE_CENTERVIEW);
+			MilImage[i] = new CLibMilBuf(MilSystem, 1, m_nCamWidth, m_nCamHeight, 8L+M_UNSIGNED, M_IMAGE+M_DISP+M_PROC);				/* Image buffer identifier.			*/
+			DisplaySelect(MilDisplay[i], MilImage[i], UserWindowHandle[i], m_nCamWidth, m_nCamHeight, DISPLAY_FIT_MODE_CENTERVIEW);
 #else
 			//MilImage[i] = new CLibMilBuf(MilSystem, 3, 640, 480, 8L+M_UNSIGNED, M_IMAGE+M_DISP+M_PROC);				/* Image buffer identifier.			*/
 			MilImage[i] = new CLibMilBuf(MilSystem, 1, 640, 480, 8L+M_UNSIGNED, M_IMAGE+M_DISP+M_PROC);				/* Image buffer identifier.			*/

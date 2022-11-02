@@ -281,6 +281,7 @@ class CGvisR2R_PunchView : public CFormView
 	//BOOL ChkXmpCollision();
 	void DispStsMainMsg(int nIdx = 0);
 	void SetPlcParam();
+	void GetPlcParam();
 
 	BOOL DoElecChk(CString &sRst);  // TRUE: bDone , FALSE: Doing
 
@@ -382,6 +383,7 @@ public:
 	BOOL m_bChkBufIdx[2];
 	BOOL m_bBufHomeDone, m_bReadyDone;
 	BOOL m_bCollision[2], m_bPriority[4];
+	BOOL m_bEngBufHomeDone;
 
 	unsigned long m_Flag;
 	unsigned long m_AoiLdRun;
@@ -521,6 +523,7 @@ public:
 	CString GetTime(int &nHour, int &nMinute, int &nSec);
 	int GetTime(int nSel);
 	void SetBufInitPos(double dPos);
+	void SetEngBufInitPos(double dPos);
 	void SetBufHomeParam(double dVel, double dAcc);
 	void DispLotStTime();
 	void SetListBuf();
@@ -910,7 +913,6 @@ public:
 
 	void UpdateYield();
 	void UpdateYield(int nSerial);
-	void GetPlcParam();
 
 // 재정의입니다.
 public:

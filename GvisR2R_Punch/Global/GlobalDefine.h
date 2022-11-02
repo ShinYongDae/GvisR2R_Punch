@@ -64,13 +64,16 @@
 //	#define	USE_SONY
 //	#define	USE_IDS
 //	#define USE_CREVIS
+
+	#define	USE_TCPIP
+// 	#define	USE_SR1000W
+	#define USE_ENGRAVE
+//	#define USE_DTS
+
+
+
 //	#define	USE_FLUCK
 //	#define	USE_XMP
-
-// 	#define	USE_TCPIP
-// 	#define	USE_SR1000W
-//	#define USE_ENGRAVE
-//	#define USE_DTS
 
 	#define PATH_PIN_IMG			_T("C:\\R2RSet\\Pin\\Pin.TIF")
 	#define PATH_ALIGN0_IMG			_T("C:\\R2RSet\\Align\\Align0.TIF")
@@ -691,7 +694,7 @@ struct stLastJob
 	BOOL bVerify, bReview;
 	int nVerifyPeriod;
 	CString sVerifyLen;
-	// 	CString sDistAoiMk;
+	//CString sDistAoiMk;
 	CString sFurgeNum, sFurgeRun;
 	CString sMkLastShot;
 	CString sAoiLastShot[2]; // [Up/Dn]
@@ -733,7 +736,7 @@ struct stLastJob
 		bVerify = FALSE; bReview = FALSE;
 		sVerifyLen = _T("");
 		nVerifyPeriod = 0;
-		// 		sDistAoiMk = _T("");
+		//sDistAoiMk = _T("");
 		sFurgeNum = _T(""); sFurgeRun = _T("");
 		sMkLastShot = _T("0");
 		sAoiLastShot[0] = _T("0");

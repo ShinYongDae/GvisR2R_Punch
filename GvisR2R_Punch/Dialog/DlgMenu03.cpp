@@ -57,6 +57,9 @@ CDlgMenu03::CDlgMenu03(CWnd* pParent /*=NULL*/)
 	m_bVMoveAoiFdVac = FALSE;
 
 	m_bTIM_CHK_DONE_ENGRAVE = FALSE;
+
+	m_bTIM_CHK_DONE_ENG_BUF_HOME = FALSE;
+	m_bTIM_CHK_DONE_ENG_BUF_INIT = FALSE;
 }
 
 CDlgMenu03::~CDlgMenu03()
@@ -75,6 +78,9 @@ CDlgMenu03::~CDlgMenu03()
 	m_bTIM_SW_UC_RELATION = FALSE;
 
 	m_bTIM_CHK_DONE_ENGRAVE = FALSE;
+
+	m_bTIM_CHK_DONE_ENG_BUF_HOME = FALSE;
+	m_bTIM_CHK_DONE_ENG_BUF_INIT = FALSE;
 
 	DelImg();
 	if(m_pRect)
@@ -1064,7 +1070,6 @@ void CDlgMenu03::InitStatic()
 
 void CDlgMenu03::Disp()
 {
-	pView->GetPlcParam();
 	DispMain();
 	DispRecoiler();
 	DispPunch();
@@ -1744,6 +1749,68 @@ void CDlgMenu03::OnTimer(UINT_PTR nIDEvent)//(UINT nIDEvent)
 		if (m_bTIM_CHK_DONE_ENGRAVE)
 			SetTimer(TIM_CHK_DONE_ENGRAVE, 100, NULL);
 	}
+
+
+
+	if (nIDEvent == TIM_CHK_DONE_ENG_BUF_HOME)
+	{
+		KillTimer(TIM_CHK_DONE_ENG_BUF_HOME);
+
+#ifdef USE_MPE
+		if (pDoc->m_pMpeSignal[6] & (0x01 << 2))	// 각인부 버퍼롤러 홈동작 ON (PLC가 홈동작 완료 후 OFF)
+		{
+			pView->GetDispMsg(strMsg, strTitle);
+			if (strMsg != _T("Searching Engrave Buffer Home Position...") || strTitle != _T("Homming"))
+				pView->DispMsg(_T("Searching Engrave Buffer Home Position..."), _T("Homming"), RGB_GREEN, DELAY_TIME_MSG);
+		}
+		else
+		{
+			m_bTIM_CHK_DONE_ENG_BUF_HOME = FALSE;
+			pView->m_bEngBufHomeDone = TRUE;
+			pView->ClrDispMsg();
+
+#ifdef USE_ENGRAVE
+			if (pView && pView->m_pEngrave)
+			{
+				pDoc->WorkingInfo.Motion.bEngBuffHommingDone = TRUE;
+				pView->m_pEngrave->SetEngBuffHomeDone();	//_SigInx::_EngBuffOrgMvDone // 각인부 버퍼롤러 홈동작 ON (PLC가 홈동작 완료 후 OFF)
+			}
+#endif
+		}
+#endif
+		if (m_bTIM_CHK_DONE_ENG_BUF_HOME)
+			SetTimer(TIM_CHK_DONE_ENG_BUF_HOME, 100, NULL);
+	}
+
+	if (nIDEvent == TIM_CHK_DONE_ENG_BUF_INIT)
+	{
+		KillTimer(TIM_CHK_DONE_ENG_BUF_INIT);
+
+#ifdef USE_MPE
+		if (pDoc->m_pMpeSignal[6] & (0x01 << 10))	// 각인부 버퍼 초기위치 이동(PC가 ON, PLC가 OFF)
+		{
+			pView->GetDispMsg(strMsg, strTitle);
+			if (strMsg != _T("Searching Engrave Buffer Initial Position...") || strTitle != _T("Moving"))
+				pView->DispMsg(_T("Searching Engrave Buffer Initial Position..."), _T("Moving"), RGB_GREEN, DELAY_TIME_MSG);
+		}
+		else
+		{
+			m_bTIM_CHK_DONE_ENG_BUF_INIT = FALSE;
+			pView->ClrDispMsg();
+
+#ifdef USE_ENGRAVE
+			if (pView && pView->m_pEngrave)
+			{
+				pDoc->WorkingInfo.Motion.bEngBuffInitMvDone = TRUE;
+				pView->m_pEngrave->SetEngBuffInitMoveDone();	//_SigInx::_EngBuffInitPosMvDone // 각인부 버퍼 초기위치 이동(PC가 ON, PLC가 OFF)
+			}
+#endif
+		}
+#endif
+		if (m_bTIM_CHK_DONE_ENG_BUF_INIT)
+			SetTimer(TIM_CHK_DONE_ENG_BUF_INIT, 100, NULL);
+	}
+
 
 	CDialog::OnTimer(nIDEvent);
 }
@@ -4878,4 +4945,23 @@ void CDlgMenu03::UpdateData()
 void CDlgMenu03::UpdateSignal()
 {
 	Disp();
+}
+
+
+void CDlgMenu03::ChkEngBufHomeDone()
+{
+	if (!m_bTIM_CHK_DONE_ENG_BUF_HOME)
+	{
+		m_bTIM_CHK_DONE_ENG_BUF_HOME = TRUE;
+		SetTimer(TIM_CHK_DONE_ENG_BUF_HOME, 100, NULL);
+	}
+}
+
+void CDlgMenu03::ChkEngBufInitDone()
+{
+	if (!m_bTIM_CHK_DONE_ENG_BUF_INIT)
+	{
+		m_bTIM_CHK_DONE_ENG_BUF_INIT = TRUE;
+		SetTimer(TIM_CHK_DONE_ENG_BUF_INIT, 100, NULL);
+	}
 }

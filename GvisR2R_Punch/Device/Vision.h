@@ -55,6 +55,8 @@
 #pragma comment(lib, "lib/FreeImage_x64")
 
 #define MAX_TRIG	1
+#define CAMERA_WIDTH	640
+#define CAMERA_HEIGHT	480
 
 typedef struct stPtMtRst
 {

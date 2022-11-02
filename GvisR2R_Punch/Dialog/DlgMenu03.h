@@ -28,10 +28,13 @@
 #define TIM_CHK_DONE_READY			311
 #define TIM_CHK_DONE_BUF_HOME		312
 #define TIM_CHK_DONE_BUF_INIT		313
-// #define TIM_CHK_SOL_MK				312
-// #define TIM_CHK_SOL_AOI				313
+// #define TIM_CHK_SOL_MK			312
+// #define TIM_CHK_SOL_AOI			313
 
 #define TIM_CHK_DONE_ENGRAVE		314
+
+#define TIM_CHK_DONE_ENG_BUF_HOME	315
+#define TIM_CHK_DONE_ENG_BUF_INIT	316
 
 /////////////////////////////////////////////////////////////////////////////
 // CDlgMenu03 dialog
@@ -61,6 +64,8 @@ class CDlgMenu03 : public CDialog
 	BOOL m_bBufInitPosMove;
 
 	BOOL m_bTIM_CHK_DONE_ENGRAVE;
+	BOOL m_bTIM_CHK_DONE_ENG_BUF_HOME;
+	BOOL m_bTIM_CHK_DONE_ENG_BUF_INIT;
 
 
 	void AtDlgShow();
@@ -135,6 +140,9 @@ public:
 	void DoManual();
 	void DoAuto();
 	void InitRelation();
+
+	void ChkEngBufHomeDone();
+	void ChkEngBufInitDone();
 
 	afx_msg LRESULT OnMyBtnDown(WPARAM wPara, LPARAM lPara);
 	afx_msg LRESULT OnMyBtnUp(WPARAM wPara, LPARAM lPara);

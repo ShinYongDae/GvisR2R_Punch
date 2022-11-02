@@ -35,8 +35,6 @@ class CCamIRayple : public CWnd
 	double		m_dFrameRateEdit;
 	double		m_dExposureEdit;
 	double		m_dGainEdit;
-	long		m_lCamWidth;
-	long		m_lCamHeight;
 
 
 	FrameBuffer* getConvertedImage();
@@ -73,6 +71,7 @@ public:
 	void StopLive();
 	int GetImgWidth();
 	int GetImgHeight();
+	BOOL GetImgSize(int &nWidth, int &nHeight);
 	void SetTriggermode(CString sTriggerMode);
 
 	BOOL OneshotGrab();

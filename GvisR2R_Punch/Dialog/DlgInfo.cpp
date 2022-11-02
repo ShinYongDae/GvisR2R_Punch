@@ -615,7 +615,7 @@ void CDlgInfo::Disp()
 	{
 		myBtn[15].SetCheck(TRUE);
 		myBtn[15].SetWindowText(_T("Recoiler\r역방향"));	
-		myBtn[15].SetTextColor(RGB_BLUE);
+		myBtn[15].SetTextColor(RGB_DARKRED);
 	}
 	else
 	{
@@ -628,7 +628,7 @@ void CDlgInfo::Disp()
 	{
 		myBtn[16].SetCheck(TRUE);
 		myBtn[16].SetWindowText(_T("Uncoiler\r역방향"));
-		myBtn[16].SetTextColor(RGB_BLUE);
+		myBtn[16].SetTextColor(RGB_DARKRED);
 	}
 	else
 	{
@@ -658,7 +658,7 @@ void CDlgInfo::Disp()
 		myBtn[22].SetCheck(FALSE);
 }
 
-void CDlgInfo::OnStc0008() 
+void CDlgInfo::OnStc0008()
 {
 	// TODO: Add your control notification handler code here
 	myStcData[1].SetBkColor(RGB_RED);
@@ -667,20 +667,15 @@ void CDlgInfo::OnStc0008()
 	CPoint pt;	CRect rt;
 	GetDlgItem(IDC_STC_0008)->GetWindowRect(&rt);
 	pt.x = rt.right; pt.y = rt.bottom;
-	ShowKeypad(IDC_STC_0008, pt, TO_BOTTOM|TO_RIGHT);
+	ShowKeypad(IDC_STC_0008, pt, TO_BOTTOM | TO_RIGHT);
 
 	myStcData[1].SetBkColor(RGB_WHITE);
 	myStcData[1].RedrawWindow();
-	
+
 	CString sVal;
 	GetDlgItem(IDC_STC_0008)->GetWindowText(sVal);
 
- 	pDoc->SetTotalReelDist(_tstoi(sVal));		
-// 
-// 	pDoc->WorkingInfo.LastJob.sReelTotLen = sVal;
-// 	if(pDoc->m_pReelMap)
-// 		pDoc->m_pReelMap->m_dTotLen = _tstof(sVal) * 1000.0;
-// 	::WritePrivateProfileString(_T("Last Job"), _T("Reel Total Length", sVal, PATH_WORKING_INFO);
+	pDoc->SetTotalReelDist(_tstoi(sVal));
 }
 
 void CDlgInfo::OnStc0012() 
@@ -749,6 +744,11 @@ void CDlgInfo::OnStc0020()
 	CString sVal;
 	GetDlgItem(IDC_STC_0020)->GetWindowText(sVal);
 	pDoc->SetCuttingDist(_tstof(sVal));
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetLotCutLen();	//_ItemInx::_LotCutLen
+#endif
 }
 
 void CDlgInfo::OnStc0024() 
@@ -776,6 +776,11 @@ void CDlgInfo::OnStc0024()
 // 
 // 	//pView->IoWrite(_T("ML45006", long(_tstof(sVal)*1000.0));	// 일시정지 길이 (단위 M * 1000)
 // 	pView->m_pMpe->Write(_T("ML45006", long(_tstof(sVal)*1000.0));
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetLotCutPosLen();	//_ItemInx::_LotCutPosLen
+#endif
 }
 
 void CDlgInfo::OnStc0030() 
@@ -796,6 +801,11 @@ void CDlgInfo::OnStc0030()
 	GetDlgItem(IDC_STC_0030)->GetWindowText(sVal);
 	pDoc->WorkingInfo.LastJob.sLmtTotYld = sVal;
 	::WritePrivateProfileString(_T("Last Job"), _T("Limit Total Yield"), sVal, PATH_WORKING_INFO);	
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetLmtTotYld();	//_ItemInx::_LmtTotYld
+#endif
 }
 
 void CDlgInfo::OnStc0034() 
@@ -816,6 +826,11 @@ void CDlgInfo::OnStc0034()
 	GetDlgItem(IDC_STC_0034)->GetWindowText(sVal);
 	pDoc->WorkingInfo.LastJob.sLmtPatlYld = sVal;
 	::WritePrivateProfileString(_T("Last Job"), _T("Limit Partial Yield"), sVal, PATH_WORKING_INFO);	
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetLmtPatlYld();	//_ItemInx::_LmtPatlYld
+#endif
 }
 
 void CDlgInfo::OnStc0037() 
@@ -836,6 +851,11 @@ void CDlgInfo::OnStc0037()
 	GetDlgItem(IDC_STC_0037)->GetWindowText(sVal);
 	pDoc->WorkingInfo.LastJob.sNumContFixDef = sVal;
 	::WritePrivateProfileString(_T("Last Job"), _T("Number of Continuous Fix Defect"), sVal, PATH_WORKING_INFO);	
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetNumContFixDef();	//_ItemInx::_NumContFixDef
+#endif
 }
 
 void CDlgInfo::OnStc32()
@@ -866,21 +886,34 @@ void CDlgInfo::OnStc32()
 		pView->m_pMpe->Write(_T("MW05942"), (long)nTime);	// AOI_Up (단위 [초] * 100) : 1 is 10 mSec.
 	}
 #endif
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetUltraSonicStTim();	//_ItemInx::_UltraSonicStTim
+#endif
 }
 
 void CDlgInfo::OnChk000() 
 {
 	// TODO: Add your control notification handler code here
-	pView->ClrDispMsg();
+	if (pView)
+		pView->ClrDispMsg();
+
 	CDlgUser Dlg;
 	Dlg.DoModal();
 
 	myStcData[0].SetText(pDoc->WorkingInfo.LastJob.sSelUserName);
 	myBtn[0].SetCheck(FALSE);
 
-	if(pDoc->m_pReelMap)
+	if(pDoc && pDoc->m_pReelMap)
 		pDoc->m_pReelMap->m_sUser = pDoc->WorkingInfo.LastJob.sSelUserName;
-	::WritePrivateProfileString(_T("Last Job"), _T("Operator Name"), pDoc->WorkingInfo.LastJob.sSelUserName, PATH_WORKING_INFO);
+	if(pDoc)
+		::WritePrivateProfileString(_T("Last Job"), _T("Operator Name"), pDoc->WorkingInfo.LastJob.sSelUserName, PATH_WORKING_INFO);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetOpName();	//_ItemInx::_OpName
+#endif
 }
 
 void CDlgInfo::OnChk001() 
@@ -911,6 +944,11 @@ void CDlgInfo::OnChk001()
 
 	CString sData = bUse ? _T("1") : _T("0");
 	::WritePrivateProfileString(_T("Last Job"), _T("Use Lot seperate"), sData, PATH_WORKING_INFO);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetLotCut();	//_ItemInx::_LotCut
+#endif
 }
 
 void CDlgInfo::OnChk002() 
@@ -952,6 +990,11 @@ void CDlgInfo::OnChk002()
 
 	CString sData = bUse ? _T("1") : _T("0");
 	::WritePrivateProfileString(_T("Last Job"), _T("Use Temporary Pause"), sData, PATH_WORKING_INFO);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetTempPause();	//_stSigInx::_TempPause
+#endif
 }
 
 void CDlgInfo::OnChk003() 
@@ -964,6 +1007,11 @@ void CDlgInfo::OnChk003()
 
 	CString sData = pDoc->WorkingInfo.LastJob.bContFixDef ? _T("1") : _T("0");
 	::WritePrivateProfileString(_T("Last Job"), _T("Use Continuous Fix Defect"), sData, PATH_WORKING_INFO);	
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetFixDef();	//_stSigInx::_FixDef
+#endif
 }
 
 void CDlgInfo::OnChk004() 
@@ -982,6 +1030,11 @@ void CDlgInfo::OnChk004()
 
 	CString sData = pDoc->WorkingInfo.LastJob.bRclDrSen ? _T("1") : _T("0");
 	::WritePrivateProfileString(_T("Last Job"), _T("Use Recoiler Door Sensor"), sData, PATH_WORKING_INFO);	
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetDoorRecoiler();	//_stSigInx::_DoorRecoiler
+#endif
 }
 
 void CDlgInfo::OnChk005() 
@@ -1002,6 +1055,11 @@ void CDlgInfo::OnChk005()
 
 	CString sData = pDoc->WorkingInfo.LastJob.bAoiUpDrSen ? _T("1") : _T("0");
 	::WritePrivateProfileString(_T("Last Job"), _T("Use AoiUp Door Sensor"), sData, PATH_WORKING_INFO);	
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetDoorAoiUp();	//_stSigInx::_DoorAoiUp
+#endif
 }
 
 void CDlgInfo::OnChk006() 
@@ -1020,6 +1078,11 @@ void CDlgInfo::OnChk006()
 
 	CString sData = pDoc->WorkingInfo.LastJob.bMkDrSen ? _T("1") : _T("0");
 	::WritePrivateProfileString(_T("Last Job"), _T("Use Marking Door Sensor"), sData, PATH_WORKING_INFO);	
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetDoorMk();	//_stSigInx::_DoorMk
+#endif
 }
 
 void CDlgInfo::OnChk007() 
@@ -1038,6 +1101,11 @@ void CDlgInfo::OnChk007()
 
 	CString sData = pDoc->WorkingInfo.LastJob.bUclDrSen ? _T("1") : _T("0");
 	::WritePrivateProfileString(_T("Last Job"), _T("Use Uncoiler Door Sensor"), sData, PATH_WORKING_INFO);	
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetDoorUncoiler();	//_stSigInx::_DoorUncoiler
+#endif
 }
 
 // void CDlgInfo::OnChk008() 
@@ -1080,6 +1148,11 @@ void CDlgInfo::OnChk009()
 	CString sData = pDoc->WorkingInfo.LastJob.bEngvDrSen ? _T("1") : _T("0");
 	::WritePrivateProfileString(_T("Last Job"), _T("Use Engrave Door Sensor"), sData, PATH_WORKING_INFO);
 
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetDoorEngrave();	//_stSigInx::_DoorEngrave
+#endif
+
 	//if(myBtn[9].GetCheck())
 	//	pDoc->WorkingInfo.LastJob.bStopFixDef = TRUE;
 	//else
@@ -1099,6 +1172,11 @@ void CDlgInfo::OnChk010()
 
 	CString sData = pDoc->WorkingInfo.LastJob.bMkSftySen ? _T("1") : _T("0");
 	::WritePrivateProfileString(_T("Last Job"), _T("Use Marking Safty Sensor"), sData, PATH_WORKING_INFO);	
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetSaftyMk();	//_stSigInx::_SaftyMk
+#endif
 }
 
 void CDlgInfo::OnChk011() 
@@ -1119,6 +1197,11 @@ void CDlgInfo::OnChk011()
 
 	CString sData = pDoc->WorkingInfo.LastJob.bAoiDnDrSen ? _T("1") : _T("0");
 	::WritePrivateProfileString(_T("Last Job"), _T("Use AoiDn Door Sensor"), sData, PATH_WORKING_INFO);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetDoorAoiDn();	//_stSigInx::_DoorAoiDn
+#endif
 
 
 	//if(myBtn[11].GetCheck())
@@ -1157,6 +1240,11 @@ void CDlgInfo::OnStc174()
 	GetDlgItem(IDC_STC_174)->GetWindowText(sVal);
 	pDoc->WorkingInfo.LastJob.sStripOutRatio = sVal;
 	::WritePrivateProfileString(_T("Last Job"), _T("Strip Out Ratio"), sVal, PATH_WORKING_INFO);	
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetStripOutRatio();	//_ItemInx::_StripOutRatio
+#endif
 }
 
 void CDlgInfo::OnStc183() 
@@ -1177,7 +1265,13 @@ void CDlgInfo::OnStc183()
 	GetDlgItem(IDC_STC_183)->GetWindowText(sVal);
 	pDoc->WorkingInfo.LastJob.sCustomNeedRatio = sVal;
 	::WritePrivateProfileString(_T("Last Job"), _T("Custom Need Ratio"), sVal, PATH_WORKING_INFO);	
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetCustomNeedRatio();	//_ItemInx::_CustomNeedRatio
+#endif
 }
+
 void CDlgInfo::OnStc178() 
 {
 	// TODO: Add your control notification handler code here
@@ -1196,6 +1290,11 @@ void CDlgInfo::OnStc178()
 	GetDlgItem(IDC_STC_178)->GetWindowText(sVal);
 	pDoc->WorkingInfo.LastJob.sPartialSpd = sVal;
 	::WritePrivateProfileString(_T("Last Job"), _T("Partial Speed"), sVal, PATH_WORKING_INFO);	
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetPartVel();	//_ItemInx::_PartVel
+#endif
 }
 
 HBRUSH CDlgInfo::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor) 
@@ -1230,7 +1329,12 @@ void CDlgInfo::OnStc61()
 	GetDlgItem(IDC_STC_61)->GetWindowText(sVal);
 	pDoc->WorkingInfo.LastJob.sNumRangeFixDef = sVal;
 	::WritePrivateProfileString(_T("Last Job"), _T("Shot Num of Range in Fix Defect"), sVal, PATH_WORKING_INFO);	
-	
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetNumContFixDef();	//_ItemInx::_NumContFixDef
+#endif
+
 }
 
 
@@ -1241,6 +1345,11 @@ void CDlgInfo::SetTestMode(int nMode)
 	CString sData;
 	sData.Format(_T("%d"), nMode);
 	::WritePrivateProfileString(_T("Last Job"), _T("Test Mode"), sData, PATH_WORKING_INFO);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetTestMode();	//_ItemInx::_TestMode
+#endif
 
 	switch (nMode)
 	{
@@ -1284,6 +1393,11 @@ void CDlgInfo::SetDualTest(BOOL bOn)
 	pDoc->WorkingInfo.System.sMaxDispDefImg = sData;
 	::WritePrivateProfileString(_T("System"), _T("MAX_DISP_DEF_IMAGE"), sData, PATH_WORKING_INFO);
 	pView->SetDualTest(bOn);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetDualTest();	//_stSigInx::_DualTest
+#endif
 }
 
 void CDlgInfo::SetTwoMetal(BOOL bOn)
@@ -1296,7 +1410,7 @@ void CDlgInfo::SetTwoMetal(BOOL bOn)
 	{
 		if(bChk[1])
 		{
-			myBtn[16].SetTextColor(RGB_BLUE);
+			myBtn[16].SetTextColor(RGB_DARKRED);
 			myBtn[16].SetWindowText(_T("Uncoiler\r역방향"));
 		}
 		else
@@ -1316,7 +1430,7 @@ void CDlgInfo::SetTwoMetal(BOOL bOn)
 	{
 		if(bChk[0])
 		{
-			myBtn[15].SetTextColor(RGB_BLUE);
+			myBtn[15].SetTextColor(RGB_DARKRED);
 			myBtn[15].SetWindowText(_T("Recoiler\r역방향"));
 		}
 		else
@@ -1398,6 +1512,11 @@ void CDlgInfo::OnChkSampleTest()
 #ifdef USE_MPE
 	pView->m_pMpe->Write(_T("MB44017B"), (pDoc->WorkingInfo.LastJob.bSampleTest)?1:0);		// Sample 검사 On
 #endif
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetSampleTest();	//_stSigInx::_SampleTest
+#endif
 }
 
 void CDlgInfo::OnChkOneMetal() 
@@ -1413,9 +1532,6 @@ void CDlgInfo::OnChkOneMetal()
 		pView->m_pMpe->Write(_T("MB44017D"), 1);
 #endif
 		::WritePrivateProfileString(_T("Last Job"), _T("One Metal On"), _T("1"), PATH_WORKING_INFO);// IDC_CHK_ONE_METAL - Recoiler\r정방향 CW : FALSE
-		myBtn[15].SetCheck(TRUE);
-		myBtn[15].SetWindowText(_T("Recoiler\r역방향"));
-		myBtn[15].SetTextColor(RGB_BLUE);
 	}
 	else
 	{
@@ -1424,10 +1540,12 @@ void CDlgInfo::OnChkOneMetal()
 		pView->m_pMpe->Write(_T("MB44017D"), 0);
 #endif
 		::WritePrivateProfileString(_T("Last Job"), _T("One Metal On"), _T("0"), PATH_WORKING_INFO);// IDC_CHK_ONE_METAL - Recoiler\r정방향 CW : FALSE
-		myBtn[15].SetCheck(FALSE);
-		myBtn[15].SetWindowText(_T("Recoiler\r정방향"));
-		myBtn[15].SetTextColor(RGB_BLUE);
 	}
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetRecoilerCcw();	//_stSigInx::_RecoilerCcw
+#endif
 }
 
 void CDlgInfo::OnChkTwoMetal() 
@@ -1443,9 +1561,6 @@ void CDlgInfo::OnChkTwoMetal()
 		pView->m_pMpe->Write(_T("MB44017C"), 1);
 #endif
 		::WritePrivateProfileString(_T("Last Job"), _T("Two Metal On"), _T("1"), PATH_WORKING_INFO);// IDC_CHK_TWO_METAL - Uncoiler\r역방향 ON : TRUE	
-		myBtn[16].SetCheck(TRUE);
-		myBtn[16].SetWindowText(_T("Uncoiler\r역방향"));
-		myBtn[16].SetTextColor(RGB_BLUE);
 	}
 	else
 	{
@@ -1454,10 +1569,12 @@ void CDlgInfo::OnChkTwoMetal()
 		pView->m_pMpe->Write(_T("MB44017C"), 0);
 #endif
 		::WritePrivateProfileString(_T("Last Job"), _T("Two Metal On"), _T("0"), PATH_WORKING_INFO);// IDC_CHK_TWO_METAL - Uncoiler\r역방향 ON : TRUE	
-		myBtn[16].SetCheck(FALSE);
-		myBtn[16].SetWindowText(_T("Uncoiler\r정방향"));
-		myBtn[16].SetTextColor(RGB_BLUE);
 	}
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetUncoilerCcw();	//_stSigInx::_UncoilerCcw
+#endif
 }
 
 void CDlgInfo::OnStc181() 
@@ -1483,6 +1600,11 @@ void CDlgInfo::OnStc181()
 #ifdef USE_MPE
 	pView->m_pMpe->Write(_T("ML45126"), lData);	// 샘플검사 Shot수
 #endif
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetSampleShotNum();	//_stSigInx::_SampleShotNum
+#endif
 }
 
 
@@ -1502,6 +1624,11 @@ void CDlgInfo::OnBnClickedChk2PointAlign()
 	{
 		myBtn[17].SetCheck(TRUE);
 	}
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetAlignMethode();	//_stSigInx::_AlignMethode  // TWO_POINT, FOUR_POINT
+#endif
 }
 
 
@@ -1521,6 +1648,11 @@ void CDlgInfo::OnBnClickedChk4PointAlign()
 	{
 		myBtn[18].SetCheck(TRUE);
 	}
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetAlignMethode();	//_stSigInx::_AlignMethode  // TWO_POINT, FOUR_POINT
+#endif
 }
 
 void CDlgInfo::OnBnClickedChk85()
@@ -1543,6 +1675,11 @@ void CDlgInfo::OnBnClickedChk85()
 
 	CString sData = pDoc->WorkingInfo.LastJob.bUseAoiDnCleanRoler ? _T("1") : _T("0");
 	::WritePrivateProfileString(_T("Last Job"), _T("Use Dn Aoi CleanRoler"), sData, PATH_WORKING_INFO);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetCleannerAoiDn();	//_stSigInx::_CleannerAoiDn
+#endif
 }
 
 void CDlgInfo::OnBnClickedChk86()
@@ -1565,6 +1702,11 @@ void CDlgInfo::OnBnClickedChk86()
 
 	CString sData = pDoc->WorkingInfo.LastJob.bUseAoiUpCleanRoler ? _T("1") : _T("0");
 	::WritePrivateProfileString(_T("Last Job"), _T("Use Up Aoi CleanRoler"), sData, PATH_WORKING_INFO);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetCleannerAoiUp();	//_stSigInx::_CleannerAoiUp
+#endif
 }
 
 
@@ -1587,7 +1729,12 @@ void CDlgInfo::OnBnClickedChk1187()
 	}
 
 	CString sData = pDoc->WorkingInfo.LastJob.bUseAoiDnCleanner ? _T("1") : _T("0");
-	::WritePrivateProfileString(_T("Last Job"), _T("Use AoiDn Cleanner"), sData, PATH_WORKING_INFO);
+	::WritePrivateProfileString(_T("Last Job"), _T("Use AoiDn Cleanner"), sData, PATH_WORKING_INFO); //AOI초음파세정기
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetUltraSonicAoiDn();	//_stSigInx::_UltraSonicAoiDn
+#endif
 }
 
 
@@ -1611,6 +1758,11 @@ void CDlgInfo::OnBnClickedChk1188()
 
 	CString sData = pDoc->WorkingInfo.LastJob.bUseEngraveCleanner ? _T("1") : _T("0");
 	::WritePrivateProfileString(_T("Last Job"), _T("Use Engrave Cleanner"), sData, PATH_WORKING_INFO);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetUltraSonicEngrave();	//_stSigInx::_UltraSonicEngrave
+#endif
 }
 
 void CDlgInfo::UpdateData()

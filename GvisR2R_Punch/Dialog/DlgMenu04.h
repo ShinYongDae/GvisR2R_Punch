@@ -29,6 +29,9 @@ class CDlgMenu04 : public CDialog
 	BOOL m_bLoadImg;
 	BOOL m_bTIM_BUF_ENC;
 
+	BOOL m_bEngBuffJogCwF, m_bEngBuffJogCcwF, m_bEngBuffHommingF;
+	BOOL m_bEngBuffHommingDoneF, m_bEngBuffInitMvF, m_bEngBuffInitMvDoneF, m_bEngBuffInitPosSaveF;
+
 	void LoadImg();
 	void DelImg();
 
@@ -61,6 +64,7 @@ public:
 	afx_msg LRESULT OnMyBtnUp(WPARAM wPara, LPARAM lPara);
 
 	void UpdateData();
+	void EngBuffInitPosSave();
 
 // Dialog Data
 	//{{AFX_DATA(CDlgMenu04)

@@ -439,10 +439,12 @@ int CVision::OnCreate(LPCREATESTRUCT lpCreateStruct)
 #ifdef USE_IRAYPLE
 	m_pIRayple = new CCamIRayple(m_nIdx, m_hCtrl[0], this);
 
+	int nCamWidht = CAMERA_WIDTH, nCamHeight = CAMERA_HEIGHT;
+
 #ifdef USE_MIL
 	HWND hCtrl[4] = { 0 };
 	hCtrl[0] = m_hCtrl[0];
-	m_pMil = new CLibMil(m_nIdx, m_MilSysId, hCtrl, this);
+	m_pMil = new CLibMil(m_nIdx, m_MilSysId, hCtrl, nCamWidht, nCamHeight, this);
 #endif
 
 	Sleep(100);

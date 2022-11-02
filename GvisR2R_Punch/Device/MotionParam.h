@@ -142,7 +142,7 @@ typedef struct stMotionMotion
 	CString sPinPosX[2], sPinPosY[2];
 	CString sStPosX[2], sStPosY[2];
 	CString sMkEdPosX[2], sMkEdPosY[2];
-	CString sStBufPos, sBufHomeSpd, sBufHomeAcc, sEngraveStBufPos;
+	CString sStBufPos, sBufHomeSpd, sBufHomeAcc, sEngraveStBufPos, sStEngBufPos;
 	CString sMkFdLead, sAoiFdLead, sEngraveFdLead;
 	CString sFdMkAoiInitDist, sFdAoiAoiDistShot, sFdEngraveAoiInitDist;//, sBufStdPosDist;
 	CString sMkFdBarcodeOffset, sAoiFdBarcodeOffset, sEngraveFdBarcodeOffset;
@@ -158,6 +158,8 @@ typedef struct stMotionMotion
 	CString s2DEngLen, s2DAoiLen, s2DMkLen, s2DMoveVel, s2DMoveAcc, s2DOneShotRemainLen;
 	CString sEngAoiLen, sEngFdDiffMax, sEngFdDiffRng, sEngFdDiffNum;
 	CString sEngBuffInitPos, sEngBuffCurrPos;
+	BOOL bEngBuffJogCw, bEngBuffJogCcw, bEngBuffHomming, bEngBuffHommingDone;
+	BOOL bEngBuffInitMv, bEngBuffInitMvDone, bEngBuffInitPosSave;
 
 	stMotionMotion()
 	{
@@ -180,7 +182,7 @@ typedef struct stMotionMotion
 		sStPosX[1] = _T(""); sStPosY[1] = _T("");
 		sMkEdPosX[0] = _T(""); sMkEdPosY[0] = _T("");
 		sMkEdPosX[1] = _T(""); sMkEdPosY[1] = _T("");
-		sStBufPos = _T(""); sBufHomeSpd = _T(""); sBufHomeAcc = _T(""); sEngraveStBufPos = _T("");
+		sStBufPos = _T(""); sBufHomeSpd = _T(""); sBufHomeAcc = _T(""); sEngraveStBufPos = _T(""); sStEngBufPos = _T("");
 		sMkFdLead = _T(""); sAoiFdLead = _T(""); sEngraveFdLead = _T("");
 		sFdMkAoiInitDist = _T(""); sFdAoiAoiDistShot = _T(""); sFdEngraveAoiInitDist = _T("");//sBufStdPosDist="";
 		sMkFdBarcodeOffset = _T(""); sAoiFdBarcodeOffset = _T(""); sEngraveFdBarcodeOffset = _T("");
@@ -194,6 +196,8 @@ typedef struct stMotionMotion
 		sSafeZone = _T("");
 		sCollisionLength = _T("");
 		sCollisionMargin = _T("");
+		bEngBuffJogCw = FALSE; bEngBuffJogCcw = FALSE; bEngBuffHomming = FALSE; bEngBuffHommingDone = FALSE;
+		bEngBuffInitMv = FALSE; bEngBuffInitMvDone = FALSE; bEngBuffInitPosSave = FALSE;
 
 		for (int k = 0; k < 2; k++)
 		{
@@ -209,7 +213,6 @@ typedef struct stMotionMotion
 		s2DEngLen = _T(""); s2DAoiLen = _T(""); s2DMkLen = _T(""); s2DMoveVel = _T(""); s2DMoveAcc = _T(""); s2DOneShotRemainLen = _T("");
 		sEngAoiLen = _T(""); sEngFdDiffMax = _T(""); sEngFdDiffRng = _T(""); sEngFdDiffNum = _T("");
 		sEngBuffInitPos = _T(""); sEngBuffCurrPos = _T("");
-
 	}
 
 }MotionMotion;

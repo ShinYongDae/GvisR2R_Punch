@@ -159,6 +159,7 @@ public:
 	int GetFdErrNum();
 	void SetBufInitPos(double dPos);
 	void SetBufInitPos(double dVel, double dAcc);
+	void SetEngBufInitPos(double dPos);
 	double GetBuffInitPos();
 	void SetAoiMkDist(double dPos);
 	double GetAoiMkDist();

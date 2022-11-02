@@ -32,6 +32,13 @@ CDlgMenu04::CDlgMenu04(CWnd* pParent /*=NULL*/)
 	m_pRect = NULL;
 	m_bLoadImg = FALSE;
 	m_bTIM_BUF_ENC = FALSE;
+	m_bEngBuffJogCwF = FALSE;
+	m_bEngBuffJogCcwF = FALSE;
+	m_bEngBuffHommingF = FALSE;
+	m_bEngBuffHommingDoneF = FALSE;
+	m_bEngBuffInitMvF = FALSE;
+	m_bEngBuffInitMvDoneF = FALSE;
+	m_bEngBuffInitPosSaveF = FALSE;
 }
 
 CDlgMenu04::~CDlgMenu04()
@@ -836,6 +843,11 @@ void CDlgMenu04::OnStc004()
 	GetDlgItem(IDC_STC_004)->GetWindowText(sData);
 	pDoc->SetOnePnlLen(_tstof(sData));
 	pView->SetLotLastShot();
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetOnePnlLen();	//_ItemInx::_OnePnlLen
+#endif
 }
 
 void CDlgMenu04::OnStc007() 
@@ -855,6 +867,11 @@ void CDlgMenu04::OnStc007()
 	CString sData;
 	GetDlgItem(IDC_STC_007)->GetWindowText(sData);
 	pDoc->SetOnePnlVel(_tstof(sData));
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetOnePnlVel();	//_ItemInx::_OnePnlVel
+#endif
 }
 
 void CDlgMenu04::OnStc010() 
@@ -874,6 +891,11 @@ void CDlgMenu04::OnStc010()
 	CString sData;
 	GetDlgItem(IDC_STC_010)->GetWindowText(sData);
 	pDoc->SetOnePnlAcc(_tstof(sData));
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetOnePnlAcc();	//_ItemInx::_OnePnlAcc
+#endif
 }
 
 void CDlgMenu04::OnStc014() 
@@ -893,6 +915,11 @@ void CDlgMenu04::OnStc014()
 	CString sData;
 	GetDlgItem(IDC_STC_014)->GetWindowText(sData);
 	pView->SetAoiFdPitch(_tstof(sData));	
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetAoiLeadPitch();	//_ItemInx::_AoiLeadPitch
+#endif
 }
 
 void CDlgMenu04::OnStc22() 
@@ -912,6 +939,11 @@ void CDlgMenu04::OnStc22()
 	CString sData;
 	GetDlgItem(IDC_STC_22)->GetWindowText(sData);
 	pView->SetMkFdPitch(_tstof(sData));	
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkLeadPitch();	//_ItemInx::_MkLeadPitch
+#endif
 }
 
 void CDlgMenu04::OnStc018() 
@@ -931,6 +963,11 @@ void CDlgMenu04::OnStc018()
 	CString sData;
 	GetDlgItem(IDC_STC_018)->GetWindowText(sData);
 	pDoc->SetFdErrLmt(_tstof(sData));
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetFdDiffMax();	//_ItemInx::_FdDiffMax
+#endif
 }
 
 void CDlgMenu04::OnStc021() 
@@ -950,6 +987,11 @@ void CDlgMenu04::OnStc021()
 	CString sData;
 	GetDlgItem(IDC_STC_021)->GetWindowText(sData);
 	pDoc->SetFdErrRng(_tstof(sData));
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetFdDiffRng();	//_ItemInx::_FdDiffRng
+#endif
 }
 
 void CDlgMenu04::OnStc024() 
@@ -969,6 +1011,11 @@ void CDlgMenu04::OnStc024()
 	CString sData;
 	GetDlgItem(IDC_STC_024)->GetWindowText(sData);
 	pDoc->SetFdErrNum(_tstoi(sData));
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetFdDiffNum();	//_ItemInx::_FdDiffNum
+#endif
 }
 
 void CDlgMenu04::OnStc104() 
@@ -990,6 +1037,11 @@ void CDlgMenu04::OnStc104()
 	GetDlgItem(IDC_STC_104)->GetWindowText(sData);
 	pDoc->WorkingInfo.Motion.sAoiFdVacOff = sData;
 	::WritePrivateProfileString(_T("Motion"), _T("AOI_FEEDING_VACUUM_OFF"), sData, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetAoiPushOffLen();	//_ItemInx::_AoiPushOffLen
+#endif
 
 // 	pDoc->WorkingInfo.Motion.sAoiTq = sData;
 // 	::WritePrivateProfileString(_T("Motion"), _T("AOI_TENSION_SERVO_TORQUE"), sData, sPath);
@@ -1020,6 +1072,11 @@ void CDlgMenu04::OnStc108()
 	pDoc->WorkingInfo.Motion.sMkFdVacOff = sData;
 	::WritePrivateProfileString(_T("Motion"), _T("MARKING_FEEDING_VACUUM_OFF"), sData, sPath);
 
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkPushOffLen();	//_ItemInx::_MkPushOffLen
+#endif
+
 // 	pDoc->WorkingInfo.Motion.sMkTq = sData;
 // 	::WritePrivateProfileString(_T("Motion"), _T("MARKING_TENSION_SERVO_TORQUE"), sData, sPath);
 // 	
@@ -1046,6 +1103,11 @@ void CDlgMenu04::OnStc204()
 	CString sData;
 	GetDlgItem(IDC_STC_204)->GetWindowText(sData);
 	pDoc->SetBufInitPos(_tstoi(sData));
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkBuffInitPos();	//_ItemInx::_MkBuffInitPos
+#endif
 }
 
 void CDlgMenu04::OnStc209() 
@@ -1065,6 +1127,11 @@ void CDlgMenu04::OnStc209()
 	CString sData;
 	GetDlgItem(IDC_STC_209)->GetWindowText(sData);
 	pDoc->SetAoiMkDist(_tstof(sData));
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetAoiMkLen();	//_ItemInx::_AoiMkLen
+#endif
 }
 
 void CDlgMenu04::OnStc25() 
@@ -1084,6 +1151,11 @@ void CDlgMenu04::OnStc25()
 	CString sData;
 	GetDlgItem(IDC_STC_25)->GetWindowText(sData);
 	pDoc->SetFdJogVel(_tstof(sData));
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetFdVel();	//_ItemInx::_FdVel
+#endif
 }
 
 void CDlgMenu04::OnStc28() 
@@ -1103,6 +1175,11 @@ void CDlgMenu04::OnStc28()
 	CString sData;
 	GetDlgItem(IDC_STC_28)->GetWindowText(sData);
 	pDoc->SetFdJogAcc(_tstof(sData));
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetFdAcc();	//_ItemInx::_FdAcc
+#endif
 }
 
 BOOL CDlgMenu04::PreTranslateMessage(MSG* pMsg) 
@@ -1144,6 +1221,85 @@ void CDlgMenu04::DispBufEnc()
 	double dBufEnc = (double)pDoc->m_pMpeData[0][1]	/ 1000.0;	// 마킹부 버퍼 엔코더 값(단위 mm * 1000)
 	str.Format(_T("%.1f"), dBufEnc);
 	myStcData[14].SetText(str);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+	{
+		pView->m_pEngrave->SetEngBuffCurrPos();	//_ItemInx::_EngBuffCurrPos (Engrave)
+
+		if (pDoc->WorkingInfo.Motion.bEngBuffJogCw && !m_bEngBuffJogCwF)
+		{
+			m_bEngBuffJogCwF = TRUE;
+#ifdef USE_MPE
+			if (pView->m_pMpe)
+				pView->m_pMpe->Write(_T("MB005513"), 1);		// 각인부 피딩 정회전 스위치
+#endif
+		}
+		else if (!pDoc->WorkingInfo.Motion.bEngBuffJogCw && m_bEngBuffJogCwF)
+		{
+			m_bEngBuffJogCwF = FALSE;
+#ifdef USE_MPE
+			if (pView->m_pMpe)
+				pView->m_pMpe->Write(_T("MB005513"), 0);		// 각인부 피딩 정회전 스위치
+#endif
+		}
+
+		if (pDoc->WorkingInfo.Motion.bEngBuffJogCcw && !m_bEngBuffJogCcwF)
+		{
+			m_bEngBuffJogCcwF = TRUE;
+#ifdef USE_MPE
+			if (pView->m_pMpe)
+				pView->m_pMpe->Write(_T("MB005513"), 1);		// 각인부 피딩 역회전 스위치
+#endif
+		}
+		else if (!pDoc->WorkingInfo.Motion.bEngBuffJogCcw && m_bEngBuffJogCcwF)
+		{
+			m_bEngBuffJogCcwF = FALSE;
+#ifdef USE_MPE
+			if (pView->m_pMpe)
+				pView->m_pMpe->Write(_T("MB005513"), 0);		// 각인부 피딩 역회전 스위치
+#endif
+		}
+
+		if (pDoc->WorkingInfo.Motion.bEngBuffHomming && !m_bEngBuffHommingF)
+		{
+			m_bEngBuffHommingF = TRUE;
+#ifdef USE_MPE
+			if (pView->m_pMpe)
+				pView->m_pMpe->Write(_T("MB440172"), 1);		// 각인부 버퍼롤러 홈동작 ON (PLC가 홈동작 완료 후 OFF)
+#endif
+		}
+		else if (!pDoc->WorkingInfo.Motion.bEngBuffHomming && m_bEngBuffHommingF)
+		{
+			m_bEngBuffHommingF = FALSE;							// 각인부 버퍼롤러 홈동작 ON (PLC가 홈동작 완료 후 OFF)
+		}
+
+		if (pDoc->WorkingInfo.Motion.bEngBuffInitMv && !m_bEngBuffInitMvF)
+		{
+			m_bEngBuffInitMvF = TRUE;
+#ifdef USE_MPE
+			if (pView->m_pMpe)
+				pView->m_pMpe->Write(_T("MB44017A"), 1);		// 각인부 버퍼 초기위치 이동(PC가 ON, PLC가 OFF)
+#endif
+		}
+		else if (!pDoc->WorkingInfo.Motion.bEngBuffInitMv && m_bEngBuffInitMvF)
+		{
+			m_bEngBuffInitMvF = FALSE;
+		}
+
+		if (pDoc->WorkingInfo.Motion.bEngBuffInitPosSave && !m_bEngBuffInitPosSaveF)
+		{
+			m_bEngBuffInitPosSaveF = TRUE;
+			EngBuffInitPosSave();
+		}
+		else if (!pDoc->WorkingInfo.Motion.bEngBuffInitPosSave && m_bEngBuffInitPosSaveF)
+		{
+			m_bEngBuffInitPosSaveF = FALSE;
+		}
+
+	}
+
+#endif
 }
 
 void CDlgMenu04::OnTimer(UINT_PTR nIDEvent)//(UINT nIDEvent)
@@ -1152,9 +1308,9 @@ void CDlgMenu04::OnTimer(UINT_PTR nIDEvent)//(UINT nIDEvent)
 	if(nIDEvent == TIM_BUF_ENC_)
 	{
 		KillTimer(TIM_BUF_ENC_);
-//		DispBufEnc();
-// 		if(m_bTIM_BUF_ENC)
-// 			SetTimer(TIM_BUF_ENC_, 100, NULL);
+		DispBufEnc();
+		if (m_bTIM_BUF_ENC)
+			SetTimer(TIM_BUF_ENC_, 100, NULL);
 	}
 	
 	CDialog::OnTimer(nIDEvent);
@@ -1205,6 +1361,7 @@ void CDlgMenu04::SwMyBtnDown(int nCtrlID)
 // 		if(pView->m_pMotion)
 // 			pView->m_pMotion->VMove(MS_MKFD, M_CW);
 		break;
+
 	case IDC_BTN_BUFF_DN2:
 #ifdef USE_MPE
 		if(pView->m_pMpe)
@@ -1293,6 +1450,9 @@ void CDlgMenu04::ResetMotion(int nMsId)
 void CDlgMenu04::OnBtnBuffHome2() 
 {
 	// TODO: Add your control notification handler code here
+	if (!pDoc)
+		return;
+
 	if(pDoc->WorkingInfo.Motion.bBufHomming)
 	{
 		pView->DispMsg(_T("Homming"),_T("Searching Buffer Home Position..."),RGB_GREEN,2000,TRUE);
@@ -1389,6 +1549,11 @@ void CDlgMenu04::OnStc48()
 	pDoc->SetWaitPos1(_tstof(sData));
 
 	pView->m_pVoiceCoil[0]->SetMarkShiftData(0);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkInitPosLf();	//_ItemInx::_MkInitPosLf
+#endif
 }
 
 void CDlgMenu04::OnStc52() 
@@ -1410,6 +1575,11 @@ void CDlgMenu04::OnStc52()
 	pDoc->SetWaitVel1(_tstof(sData));
 
 	pView->m_pVoiceCoil[0]->SetMarkShiftData(0);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkInitVelLf();	//_ItemInx::_MkInitVelLf
+#endif
 }
 
 void CDlgMenu04::OnStc55() 
@@ -1431,6 +1601,11 @@ void CDlgMenu04::OnStc55()
 	pDoc->SetWaitAcc1(_tstof(sData));	
 
 	pView->m_pVoiceCoil[0]->SetMarkShiftData(0);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkInitAccLf();	//_ItemInx::_MkInitAccLf
+#endif
 }
 
 void CDlgMenu04::OnStc58() 
@@ -1452,6 +1627,11 @@ void CDlgMenu04::OnStc58()
 	pDoc->SetMarkingPos1(_tstof(sData));	
 	
 	pView->m_pVoiceCoil[0]->SetMarkFinalData(0);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkFnlPosLf();	//_ItemInx::_MkFnlPosLf
+#endif
 }
 
 void CDlgMenu04::OnStc62() 
@@ -1473,6 +1653,11 @@ void CDlgMenu04::OnStc62()
 	pDoc->SetMarkingVel1(_tstof(sData));
 
 	pView->m_pVoiceCoil[0]->SetMarkFinalData(0);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkFnlVelLf();	//_ItemInx::_MkFnlVelLf
+#endif
 }
 
 void CDlgMenu04::OnStc65() 
@@ -1494,6 +1679,11 @@ void CDlgMenu04::OnStc65()
 	pDoc->SetMarkingAcc1(_tstof(sData));
 	
 	pView->m_pVoiceCoil[0]->SetMarkFinalData(0);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkFnlAccLf();	//_ItemInx::_MkFnlAccLf
+#endif
 }
 
 void CDlgMenu04::OnStc68() 
@@ -1515,6 +1705,11 @@ void CDlgMenu04::OnStc68()
 	pDoc->SetMarkingToq1(_tstof(sData));
 
 	pView->m_pVoiceCoil[0]->SetMarkFinalData(0);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkFnlTqLf();	//_ItemInx::_MkFnlTqLf
+#endif
 }
 
 void CDlgMenu04::OnStc71() 
@@ -1534,6 +1729,11 @@ void CDlgMenu04::OnStc71()
 	CString sData;
 	GetDlgItem(IDC_STC_71)->GetWindowText(sData);
 	pDoc->SetPosX1_1(_tstof(sData));	
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosX1Lf();	//_ItemInx::_MkHgtPosX1Lf
+#endif
 }
 
 void CDlgMenu04::OnStc86() 
@@ -1553,6 +1753,11 @@ void CDlgMenu04::OnStc86()
 	CString sData;
 	GetDlgItem(IDC_STC_86)->GetWindowText(sData);
 	pDoc->SetPosY1_1(_tstof(sData));	
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosY1Lf();	//_ItemInx::_MkHgtPosY1Lf
+#endif
 }
 
 void CDlgMenu04::OnStc75() 
@@ -1572,6 +1777,11 @@ void CDlgMenu04::OnStc75()
 	CString sData;
 	GetDlgItem(IDC_STC_75)->GetWindowText(sData);
 	pDoc->SetPosX1_2(_tstof(sData));		
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosX2Lf();	//_ItemInx::_MkHgtPosX2Lf
+#endif
 }
 
 void CDlgMenu04::OnStc87() 
@@ -1591,6 +1801,11 @@ void CDlgMenu04::OnStc87()
 	CString sData;
 	GetDlgItem(IDC_STC_87)->GetWindowText(sData);
 	pDoc->SetPosY1_2(_tstof(sData));		
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosY2Lf();	//_ItemInx::_MkHgtPosY2Lf
+#endif
 }
 
 void CDlgMenu04::OnStc78() 
@@ -1610,6 +1825,11 @@ void CDlgMenu04::OnStc78()
 	CString sData;
 	GetDlgItem(IDC_STC_78)->GetWindowText(sData);
 	pDoc->SetPosX1_3(_tstof(sData));		
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosX3Lf();	//_ItemInx::_MkHgtPosX3Lf
+#endif
 }
 
 void CDlgMenu04::OnStc88() 
@@ -1629,6 +1849,11 @@ void CDlgMenu04::OnStc88()
 	CString sData;
 	GetDlgItem(IDC_STC_88)->GetWindowText(sData);
 	pDoc->SetPosY1_3(_tstof(sData));		
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosY3Lf();	//_ItemInx::_MkHgtPosY3Lf
+#endif
 }
 
 void CDlgMenu04::OnStc81() 
@@ -1648,6 +1873,11 @@ void CDlgMenu04::OnStc81()
 	CString sData;
 	GetDlgItem(IDC_STC_81)->GetWindowText(sData);
 	pDoc->SetPosX1_4(_tstof(sData));		
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosX4Lf();	//_ItemInx::_MkHgtPosX4Lf
+#endif
 }
 
 void CDlgMenu04::OnStc89() 
@@ -1667,6 +1897,11 @@ void CDlgMenu04::OnStc89()
 	CString sData;
 	GetDlgItem(IDC_STC_89)->GetWindowText(sData);
 	pDoc->SetPosY1_4(_tstof(sData));			
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosY4Lf();	//_ItemInx::_MkHgtPosY4Lf
+#endif
 }
 
 void CDlgMenu04::OnStc84() 
@@ -1686,6 +1921,11 @@ void CDlgMenu04::OnStc84()
 	CString sData;
 	GetDlgItem(IDC_STC_84)->GetWindowText(sData);
  	pDoc->SetAverDist1(_tstoi(sData));		
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtAvgPosLf();	//_ItemInx::_MkHgtAvgPosLf
+#endif
 }
 
 void CDlgMenu04::OnStc93() 
@@ -1707,6 +1947,11 @@ void CDlgMenu04::OnStc93()
 	pDoc->SetWaitPos2(_tstof(sData));	
 	
 	pView->m_pVoiceCoil[1]->SetMarkShiftData(1);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkInitPosRt();	//_ItemInx::_MkInitPosRt
+#endif
 }
 
 void CDlgMenu04::OnStc97() 
@@ -1728,6 +1973,11 @@ void CDlgMenu04::OnStc97()
 	pDoc->SetWaitVel2(_tstof(sData));	
 
 	pView->m_pVoiceCoil[1]->SetMarkShiftData(1);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkInitVelRt();	//_ItemInx::_MkInitVelRt
+#endif
 }
 
 void CDlgMenu04::OnStc110() 
@@ -1749,6 +1999,11 @@ void CDlgMenu04::OnStc110()
 	pDoc->SetWaitAcc2(_tstof(sData));	
 	
 	pView->m_pVoiceCoil[1]->SetMarkShiftData(1);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkInitAccRt();	//_ItemInx::_MkInitAccRt
+#endif
 }
 
 void CDlgMenu04::OnStc113() 
@@ -1770,6 +2025,11 @@ void CDlgMenu04::OnStc113()
 	pDoc->SetMarkingPos2(_tstof(sData));
 	
 	pView->m_pVoiceCoil[1]->SetMarkFinalData(1);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkFnlPosRt();	//_ItemInx::_MkFnlPosRt
+#endif
 }
 
 void CDlgMenu04::OnStc117() 
@@ -1791,6 +2051,11 @@ void CDlgMenu04::OnStc117()
 	pDoc->SetMarkingVel2(_tstof(sData));
 	
 	pView->m_pVoiceCoil[1]->SetMarkFinalData(1);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkFnlVelRt();	//_ItemInx::_MkFnlVelRt
+#endif
 }
 
 void CDlgMenu04::OnStc120() 
@@ -1812,6 +2077,11 @@ void CDlgMenu04::OnStc120()
 	pDoc->SetMarkingAcc2(_tstof(sData));
 	
 	pView->m_pVoiceCoil[1]->SetMarkFinalData(1);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkFnlAccRt();	//_ItemInx::_MkFnlAccRt
+#endif
 }
 
 void CDlgMenu04::OnStc123() 
@@ -1833,6 +2103,11 @@ void CDlgMenu04::OnStc123()
 	pDoc->SetMarkingToq2(_tstof(sData));
 	
 	pView->m_pVoiceCoil[1]->SetMarkFinalData(1);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkFnlTqRt();	//_ItemInx::_MkFnlTqRt
+#endif
 }
 
 void CDlgMenu04::OnStc126() 
@@ -1852,6 +2127,11 @@ void CDlgMenu04::OnStc126()
 	CString sData;
 	GetDlgItem(IDC_STC_126)->GetWindowText(sData);
 	pDoc->SetPosX2_1(_tstof(sData));	
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosX1Rt();	//_ItemInx::_MkHgtPosX1Rt
+#endif
 }
 
 void CDlgMenu04::OnStc141() 
@@ -1871,6 +2151,11 @@ void CDlgMenu04::OnStc141()
 	CString sData;
 	GetDlgItem(IDC_STC_141)->GetWindowText(sData);
 	pDoc->SetPosY2_1(_tstof(sData));		
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosY1Rt();	//_ItemInx::_MkHgtPosY1Rt
+#endif
 }
 
 void CDlgMenu04::OnStc130() 
@@ -1890,6 +2175,11 @@ void CDlgMenu04::OnStc130()
 	CString sData;
 	GetDlgItem(IDC_STC_130)->GetWindowText(sData);
 	pDoc->SetPosX2_2(_tstof(sData));	
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosX2Rt();	//_ItemInx::_MkHgtPosX2Rt
+#endif
 }
 
 void CDlgMenu04::OnStc142() 
@@ -1909,6 +2199,11 @@ void CDlgMenu04::OnStc142()
 	CString sData;
 	GetDlgItem(IDC_STC_142)->GetWindowText(sData);
 	pDoc->SetPosY2_2(_tstof(sData));	
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosY2Rt();	//_ItemInx::_MkHgtPosY2Rt
+#endif
 }
 
 void CDlgMenu04::OnStc133() 
@@ -1928,6 +2223,11 @@ void CDlgMenu04::OnStc133()
 	CString sData;
 	GetDlgItem(IDC_STC_133)->GetWindowText(sData);
 	pDoc->SetPosX2_3(_tstof(sData));		
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosX3Rt();	//_ItemInx::_MkHgtPosX3Rt
+#endif
 }
 
 void CDlgMenu04::OnStc143() 
@@ -1947,6 +2247,11 @@ void CDlgMenu04::OnStc143()
 	CString sData;
 	GetDlgItem(IDC_STC_143)->GetWindowText(sData);
 	pDoc->SetPosY2_3(_tstof(sData));	
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosY3Rt();	//_ItemInx::_MkHgtPosY3Rt
+#endif
 }
 
 void CDlgMenu04::OnStc136() 
@@ -1966,6 +2271,11 @@ void CDlgMenu04::OnStc136()
 	CString sData;
 	GetDlgItem(IDC_STC_136)->GetWindowText(sData);
 	pDoc->SetPosX2_4(_tstof(sData));		
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosX4Rt();	//_ItemInx::_MkHgtPosX4Rt
+#endif
 }
 
 void CDlgMenu04::OnStc144() 
@@ -1985,6 +2295,11 @@ void CDlgMenu04::OnStc144()
 	CString sData;
 	GetDlgItem(IDC_STC_144)->GetWindowText(sData);
 	pDoc->SetPosY2_4(_tstof(sData));	
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosY4Rt();	//_ItemInx::_MkHgtPosY4Rt
+#endif
 }
 
 void CDlgMenu04::OnStc139() 
@@ -2003,7 +2318,12 @@ void CDlgMenu04::OnStc139()
 
 	CString sData;
 	GetDlgItem(IDC_STC_139)->GetWindowText(sData);
- 	pDoc->SetAverDist2(_tstoi(sData));		
+ 	pDoc->SetAverDist2(_tstof(sData));
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtAvgPosRt();	//_ItemInx::_MkHgtAvgPosRt
+#endif
 }
 
 void CDlgMenu04::OnStc148() 
@@ -2022,7 +2342,12 @@ void CDlgMenu04::OnStc148()
 
 	CString sData;
 	GetDlgItem(IDC_STC_148)->GetWindowText(sData);
- 	pDoc->SetAOIToq(_tstoi(sData));		
+ 	pDoc->SetAOIToq(_tstof(sData));
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetAoiTqVal();	//_ItemInx::_AoiTqVal
+#endif
 }
 
 void CDlgMenu04::OnStc152() 
@@ -2041,7 +2366,12 @@ void CDlgMenu04::OnStc152()
 
 	CString sData;
 	GetDlgItem(IDC_STC_152)->GetWindowText(sData);
- 	pDoc->SetMarkingToq(_tstoi(sData));	
+ 	pDoc->SetMarkingToq(_tstof(sData));
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkTqVal();	//_ItemInx::_MkTqVal
+#endif
 }
 
 void CDlgMenu04::OnStc158() 
@@ -2060,7 +2390,7 @@ void CDlgMenu04::OnStc158()
 
 	CString sData;
 	GetDlgItem(IDC_STC_158)->GetWindowText(sData);
- 	pDoc->SetTotalReelDist(_tstoi(sData));		
+ 	pDoc->SetTotalReelDist(_tstof(sData));
 }
 
 void CDlgMenu04::OnStc162() 
@@ -2079,7 +2409,7 @@ void CDlgMenu04::OnStc162()
 
 	CString sData;
 	GetDlgItem(IDC_STC_162)->GetWindowText(sData);
- 	pDoc->SetSeparateDist(_tstoi(sData));	
+ 	pDoc->SetSeparateDist(_tstof(sData));
 	pView->SetLotLastShot();
 }
 
@@ -2099,7 +2429,7 @@ void CDlgMenu04::OnStc165()
 
 	CString sData;
 	GetDlgItem(IDC_STC_165)->GetWindowText(sData);
- 	pDoc->SetCuttingDist(_tstoi(sData));		
+ 	pDoc->SetCuttingDist(_tstof(sData));
 }
 
 void CDlgMenu04::OnStc170() 
@@ -2118,7 +2448,12 @@ void CDlgMenu04::OnStc170()
 
 	CString sData;
 	GetDlgItem(IDC_STC_170)->GetWindowText(sData);
- 	pDoc->SetStopDist(_tstoi(sData));	
+ 	pDoc->SetStopDist(_tstof(sData));
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetTempStopLen();	//_ItemInx::_TempStopLen
+#endif
 }
 
 void CDlgMenu04::OnStc212() 
@@ -2138,6 +2473,11 @@ void CDlgMenu04::OnStc212()
 	CString sData;
 	GetDlgItem(IDC_STC_212)->GetWindowText(sData);
 	pDoc->SetAoiAoiDist(_tstoi(sData));
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetAoiBuffShotNum();	//_ItemInx::_AoiBuffShotNum
+#endif
 }
 
 void CDlgMenu04::OnStc221() 
@@ -2157,6 +2497,11 @@ void CDlgMenu04::OnStc221()
 	CString sData;
 	GetDlgItem(IDC_STC_221)->GetWindowText(sData);
 	pDoc->SetMkLimitL(_tstoi(sData));	
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkMaxNumLf();	//_ItemInx::_MkMaxNumLf
+#endif
 }
 
 void CDlgMenu04::OnStc222() 
@@ -2176,6 +2521,11 @@ void CDlgMenu04::OnStc222()
 	CString sData;
 	GetDlgItem(IDC_STC_222)->GetWindowText(sData);
 	pDoc->SetMkLimitR(_tstoi(sData));		
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkMaxNumRt();	//_ItemInx::_MkMaxNumRt
+#endif
 }
 
 void CDlgMenu04::OnBtnResetMkL() 
@@ -2186,6 +2536,11 @@ void CDlgMenu04::OnBtnResetMkL()
 	{
 		pDoc->SetMkCntL(0);
 		GetDlgItem(IDC_STC_215)->SetWindowText(_T("0"));
+
+#ifdef USE_ENGRAVE
+		if (pView && pView->m_pEngrave)
+			pView->m_pEngrave->SetMkNumLf();	//_ItemInx::_MkNumLf
+#endif
 	}
 }
 
@@ -2197,7 +2552,12 @@ void CDlgMenu04::OnBtnResetMkR()
 	{
 		pDoc->SetMkCntR(0);
 		GetDlgItem(IDC_STC_220)->SetWindowText(_T("0"));
-	}	
+
+#ifdef USE_ENGRAVE
+		if (pView && pView->m_pEngrave)
+			pView->m_pEngrave->SetMkNumRt();	//_ItemInx::_MkNumRt
+#endif
+	}
 }
 
 
@@ -2263,3 +2623,15 @@ void CDlgMenu04::UpdateData()
 	Disp();
 }
 
+
+void CDlgMenu04::EngBuffInitPosSave()
+{
+	// TODO: Add your control notification handler code here
+	if (!pView || !pDoc || !pDoc->m_pMpeData)
+		return;
+
+#ifdef USE_MPE
+	double dBufEnc = (double)pDoc->m_pMpeData[1][1] / 1000.0;	// 각인부 버퍼 엔코더 값(단위 mm * 1000)
+	pView->SetEngBufInitPos(dBufEnc);								// ML44054	,	각인부 버퍼 관련 설정 롤러 초기위치(단위 mm * 1000)
+#endif
+}

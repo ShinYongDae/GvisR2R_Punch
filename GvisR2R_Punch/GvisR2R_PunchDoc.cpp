@@ -5967,6 +5967,11 @@ void CGvisR2R_PunchDoc::SetOnePnlLen(double dLen)
 	long lData = (long)(dLen * 1000.0);
 	pView->m_pMpe->Write(_T("ML45032"), lData);	// 한 판넬 길이 (단위 mm * 1000)
 #endif
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetOnePnlLen();	//_ItemInx::_OnePnlLen
+#endif
 }
 
 double CGvisR2R_PunchDoc::GetOnePnlLen()
@@ -6141,6 +6146,18 @@ void CGvisR2R_PunchDoc::SetBufInitPos(double dPos)
 #endif
 }
 
+void CGvisR2R_PunchDoc::SetEngBufInitPos(double dPos)
+{
+	CString sData, sPath = PATH_WORKING_INFO;
+	sData.Format(_T("%.3f"), dPos);
+	WorkingInfo.Motion.sStEngBufPos = sData;
+	::WritePrivateProfileString(_T("Motion"), _T("START_ENG_BUFFER_POSITION"), sData, sPath);
+#ifdef USE_MPE
+	long lData = (long)(dPos * 1000.0);
+	pView->m_pMpe->Write(_T("ML45022"), lData);	// 각인부 버퍼 관련 설정 롤러 초기위치(단위 mm * 1000)
+#endif
+}
+
 void CGvisR2R_PunchDoc::SetBufInitPos(double dVel, double dAcc)
 {
 	CString sData, sPath = PATH_WORKING_INFO;
@@ -6151,6 +6168,7 @@ void CGvisR2R_PunchDoc::SetBufInitPos(double dVel, double dAcc)
 	WorkingInfo.Motion.sBufHomeAcc = sData;
 	::WritePrivateProfileString(_T("Motion"), _T("BUFFER_HOME_ACC"), sData, sPath);
 }
+
 
 double CGvisR2R_PunchDoc::GetBuffInitPos()
 {
@@ -6633,14 +6651,20 @@ void CGvisR2R_PunchDoc::SetTotalReelDist(double dDist)
 	::WritePrivateProfileString(_T("Lot"), _T("LOT_TOTAL_REEL_DIST"), sData, sPath);
 
 
-	pDoc->WorkingInfo.LastJob.sReelTotLen = sData;
-	if (pDoc->m_pReelMap)
-		pDoc->m_pReelMap->m_dTotLen = _tstof(sData) * 1000.0;
+	WorkingInfo.LastJob.sReelTotLen = sData;
+	if (m_pReelMap)
+		m_pReelMap->m_dTotLen = _tstof(sData) * 1000.0;
 	::WritePrivateProfileString(_T("Last Job"), _T("Reel Total Length"), sData, PATH_WORKING_INFO);
 
 #ifdef USE_MPE
 	long lData = (long)(dDist * 1000.0);
-	pView->m_pMpe->Write(_T("ML45000"), lData);	// 전체 Reel 길이 (단위 M * 1000)
+	if(pView && pView->m_pMpe)
+		pView->m_pMpe->Write(_T("ML45000"), lData);	// 전체 Reel 길이 (단위 M * 1000)
+#endif
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetTotReelLen();	//_ItemInx::_TotReelLen
 #endif
 }
 
@@ -6664,6 +6688,11 @@ void CGvisR2R_PunchDoc::SetSeparateDist(double dDist)
 #ifdef USE_MPE
 	long lData = (long)(dDist * 1000.0);
 	pView->m_pMpe->Write(_T("ML45002"), lData);	// Lot 분리 길이 (단위 M * 1000)
+#endif
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetLotCutLen();	//_ItemInx::_SetData
 #endif
 }
 
@@ -6690,6 +6719,11 @@ void CGvisR2R_PunchDoc::SetCuttingDist(double dDist)
 
 	long lData = (long)(dDist * 1000.0);
 	pView->m_pMpe->Write(_T("ML45004"), lData);	// Lot 분리 후 절단위치 (단위 M * 1000)
+#endif
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetLotCutPosLen();	//_ItemInx::_LotCutPosLen
 #endif
 }
 

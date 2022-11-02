@@ -87,14 +87,13 @@ CCamIRayple::CCamIRayple(int nIdx, HWND hCtrl, CWnd* pParent /*=NULL*/)
 	m_dFrameRateEdit = 0.0;
 	m_dGainEdit = 0.0;
 	m_dDisplayInterval = 0.0;
-	m_lCamWidth = 640;
-	m_lCamHeight = 480;
 
 	setDisplayFPS(30);   // Default display 30 frames
 
 	IMV_DeviceList deviceInfoList;
 	if (IMV_OK != IMV_EnumDevices(&deviceInfoList, interfaceTypeAll))
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Enum devices failed!"));
 		return;
 	}
@@ -108,7 +107,10 @@ CCamIRayple::CCamIRayple(int nIdx, HWND hCtrl, CWnd* pParent /*=NULL*/)
 	}
 
 	if (m_sCameraKey.IsEmpty())
+	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Error - Camera serial number setting."));
+	}
 
 	m_Render.setHandle(m_hWndDisplay);
 
@@ -250,20 +252,14 @@ BOOL CCamIRayple::OneshotGrab()
 	if (NULL != pConvertedImage)
 	{
 #ifdef USE_MIL
-		//if (((CVision*)m_pParent)->m_pMil)
-		//{
-		//	if (m_nIdxCam == 0)
-		//		((CVision*)m_pParent)->m_pMil->BufPutColor2d0((int)m_lCamWidth, (int)m_lCamHeight, (TCHAR*)frame.pData);
-		//	else if (m_nIdxCam == 1)
-		//		((CVision*)m_pParent)->m_pMil->BufPutColor2d1((int)m_lCamWidth, (int)m_lCamHeight, (TCHAR*)frame.pData);
-		//}
-
+		m_nWidth = (int)pConvertedImage->Width();
+		m_nHeight = (int)pConvertedImage->Height();
 		if (((CVision*)m_pParent)->m_pMil)
 		{
 			if (m_nIdxCam == 0)
-				((CVision*)m_pParent)->m_pMil->BufPutColor2d0((int)pConvertedImage->Width(), (int)pConvertedImage->Height(), (TCHAR*)pConvertedImage->bufPtr());
+				((CVision*)m_pParent)->m_pMil->BufPutColor2d0(m_nWidth, m_nHeight, (TCHAR*)pConvertedImage->bufPtr());
 			else if (m_nIdxCam == 1)
-				((CVision*)m_pParent)->m_pMil->BufPutColor2d1((int)pConvertedImage->Width(), (int)pConvertedImage->Height(), (TCHAR*)pConvertedImage->bufPtr());
+				((CVision*)m_pParent)->m_pMil->BufPutColor2d1(m_nWidth, m_nHeight, (TCHAR*)pConvertedImage->bufPtr());
 		}
 #endif
 		delete pConvertedImage;
@@ -271,6 +267,7 @@ BOOL CCamIRayple::OneshotGrab()
 	}
 	else
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Get frame failed!"));
 		return FALSE;
 	}
@@ -296,15 +293,15 @@ void CCamIRayple::displayProc()
 
 		if (NULL != pConvertedImage)
 		{
-			m_lCamWidth = pConvertedImage->Width();
-			m_lCamHeight = pConvertedImage->Height();
+			m_nWidth = (int)pConvertedImage->Width();
+			m_nHeight = (int)pConvertedImage->Height();
 #ifdef USE_MIL
 			if(((CVision*)m_pParent)->m_pMil)
 			{ 
 				if(m_nIdxCam == 0)
-					((CVision*)m_pParent)->m_pMil->BufPutColor2d0((int)m_lCamWidth, (int)m_lCamHeight, (TCHAR*)pConvertedImage->bufPtr());
+					((CVision*)m_pParent)->m_pMil->BufPutColor2d0(m_nWidth, m_nHeight, (TCHAR*)pConvertedImage->bufPtr());
 				else if(m_nIdxCam == 1)
-					((CVision*)m_pParent)->m_pMil->BufPutColor2d1((int)m_lCamWidth, (int)m_lCamHeight, (TCHAR*)pConvertedImage->bufPtr());
+					((CVision*)m_pParent)->m_pMil->BufPutColor2d1(m_nWidth, m_nHeight, (TCHAR*)pConvertedImage->bufPtr());
 			}
 #else
 			m_Render.display(pConvertedImage->bufPtr(), (int)pConvertedImage->Width(), (int)pConvertedImage->Height(), pConvertedImage->PixelFormat());
@@ -341,6 +338,7 @@ void CCamIRayple::deviceLinkNotifyProc(IMV_SConnectArg connectArg)
 		// Close camera 
 		if (IMV_OK != IMV_Close(m_devHandle))
 		{
+			pView->ClrDispMsg();
 			AfxMessageBox(_T("Close camera failed!"));
 			return;
 		}
@@ -353,6 +351,7 @@ void CCamIRayple::deviceLinkNotifyProc(IMV_SConnectArg connectArg)
 		// Device connection status event callback function again
 		if (IMV_OK != IMV_SubscribeConnectArg(m_devHandle, OnConnect, this))
 		{
+			pView->ClrDispMsg();
 			AfxMessageBox(_T("Subscribe connect Failed!"));
 			return;
 		}
@@ -536,12 +535,14 @@ void CCamIRayple::Connect(BOOL bConnect)
 
 		if (IMV_OK != IMV_CreateHandle(&m_devHandle, modeByCameraKey, (void*)cameraKey))
 		{
+			pView->ClrDispMsg();
 			AfxMessageBox(_T("Create handle Failed!"));
 			return;
 		}
 
 		if (IMV_OK != IMV_Open(m_devHandle))
 		{
+			pView->ClrDispMsg();
 			AfxMessageBox(_T("Open camera Failed!"));
 			return;
 		}
@@ -551,6 +552,7 @@ void CCamIRayple::Connect(BOOL bConnect)
 		// Device connection status event callback function
 		if (IMV_OK != IMV_SubscribeConnectArg(m_devHandle, OnConnect, this))
 		{
+			pView->ClrDispMsg();
 			AfxMessageBox(_T("Subscribe connect Failed!"));
 			return;
 		}
@@ -566,6 +568,7 @@ void CCamIRayple::Connect(BOOL bConnect)
 
 		if ((NULL != m_devHandle) && (IMV_OK != IMV_Close(m_devHandle)))
 		{
+			pView->ClrDispMsg();
 			AfxMessageBox(_T("Close camera Failed!"));
 		}
 
@@ -591,6 +594,7 @@ void CCamIRayple::initTriggerModeParamProperty()
 	int ret = IMV_GetEnumFeatureSymbol(m_devHandle, "TriggerMode", &triggerModeSymbol);
 	if (IMV_OK != ret)
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Get TriggerMode symbol value failed!"));
 		return;
 	}
@@ -602,6 +606,7 @@ void CCamIRayple::initTriggerModeParamProperty()
 	ret = IMV_GetEnumFeatureEntryNum(m_devHandle, "TriggerMode", &nEntryNum);
 	if (IMV_OK != ret)
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Get TriggerMode settable enumeration number failed!"));
 		return;
 	}
@@ -611,6 +616,7 @@ void CCamIRayple::initTriggerModeParamProperty()
 	enumEntryList.pEnumEntryInfo = (IMV_EnumEntryInfo*)malloc(sizeof(IMV_EnumEntryInfo) * nEntryNum);
 	if (NULL == enumEntryList.pEnumEntryInfo)
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Malloc pEnumEntryInfo failed!"));
 		return;
 	}
@@ -619,6 +625,7 @@ void CCamIRayple::initTriggerModeParamProperty()
 	{
 		free(enumEntryList.pEnumEntryInfo);
 		enumEntryList.pEnumEntryInfo = NULL;
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Get TriggerMode settable enumeration value list failed!"));
 		return;
 	}
@@ -640,6 +647,7 @@ void CCamIRayple::initPixelFormatParamProperty()
 	int ret = IMV_GetEnumFeatureSymbol(m_devHandle, "PixelFormat", &pixelFormatSymbol);
 	if (IMV_OK != ret)
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Get PixelFormat symbol value failed!"));
 		return;
 	}
@@ -651,6 +659,7 @@ void CCamIRayple::initPixelFormatParamProperty()
 	ret = IMV_GetEnumFeatureEntryNum(m_devHandle, "PixelFormat", &nEntryNum);
 	if (IMV_OK != ret)
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Get PixelFormat settable enumeration number failed!"));
 		return;
 	}
@@ -660,6 +669,7 @@ void CCamIRayple::initPixelFormatParamProperty()
 	enumEntryList.pEnumEntryInfo = (IMV_EnumEntryInfo*)malloc(sizeof(IMV_EnumEntryInfo) * nEntryNum);
 	if (NULL == enumEntryList.pEnumEntryInfo)
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Malloc pEnumEntryInfo failed!"));
 		return;
 	}
@@ -668,6 +678,7 @@ void CCamIRayple::initPixelFormatParamProperty()
 	{
 		free(enumEntryList.pEnumEntryInfo);
 		enumEntryList.pEnumEntryInfo = NULL;
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Get PixelFormat settable enumeration value list failed!"));
 		return;
 	}
@@ -688,18 +699,21 @@ void CCamIRayple::initParamProperty()
 {
 	if (IMV_OK != IMV_GetDoubleFeatureValue(m_devHandle, "AcquisitionFrameRate", &m_dFrameRateEdit))
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Get AcquisitionFrameRate value failed!"));
 		return;
 	}
 
 	if (IMV_OK != IMV_GetDoubleFeatureValue(m_devHandle, "ExposureTime", &m_dExposureEdit))
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Get ExposureTime value failed!"));
 		return;
 	}
 
 	if (IMV_OK != IMV_GetDoubleFeatureValue(m_devHandle, "GainRaw", &m_dGainEdit))
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Get GainRaw value failed!"));
 		return;
 	}
@@ -715,27 +729,32 @@ void CCamIRayple::SetParamProperty()
 		StringToChar(m_sFormat, pixelFormat);
 		if (IMV_OK != IMV_SetEnumFeatureSymbol(m_devHandle, "PixelFormat", pixelFormat))
 		{
+			pView->ClrDispMsg();
 			AfxMessageBox(_T("Set PixelFormat symbol value failed!"));
 		}
 	}
 
 	if (IMV_OK != IMV_SetBoolFeatureValue(m_devHandle, "AcquisitionFrameRateEnable", true))
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Set AcquisitionFrameRateEnable value failed!"));
 	}
 
 	if (IMV_OK != IMV_SetDoubleFeatureValue(m_devHandle, "AcquisitionFrameRate", m_dFrameRateEdit))
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Set AcquisitionFrameRate value failed!"));
 	}
 
 	if (IMV_OK != IMV_SetDoubleFeatureValue(m_devHandle, "ExposureTime", m_dExposureEdit))
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Set PixelFormat value failed!"));
 	}
 
 	if (IMV_OK != IMV_SetDoubleFeatureValue(m_devHandle, "GainRaw", m_dGainEdit))
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Set PixelFormat value failed!"));
 	}
 }
@@ -791,6 +810,7 @@ BOOL CCamIRayple::StartStreamGrabbing(bool bResumeConnect)
 
 	if (IMV_OK != IMV_AttachGrabbing(m_devHandle, onGetFrame, this))
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Attach grabbing Failed!"));
 		return false;
 	}
@@ -855,6 +875,7 @@ BOOL CCamIRayple::StopStreamGrabbing(bool bResumeConnect)
 
 	if (IMV_OK != IMV_StopGrabbing(m_devHandle))
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Start Grabbing Failed!"));
 		return false;
 	}
@@ -873,6 +894,7 @@ void CCamIRayple::SetTriggermode(CString sTriggerMode)
 
 	if (IMV_OK != IMV_SetEnumFeatureSymbol(m_devHandle, "TriggerSelector", "FrameStart"))
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Set TriggerSelector Failed!"));
 		return;
 	}
@@ -883,6 +905,7 @@ void CCamIRayple::SetTriggermode(CString sTriggerMode)
 	//if (IMV_OK != IMV_SetEnumFeatureSymbol(m_devHandle, "TriggerMode", triggermode.c_str()))
 	if (IMV_OK != IMV_SetEnumFeatureSymbol(m_devHandle, "TriggerMode", triggermode))
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Set TriggerMode Failed!"));
 	}
 
@@ -903,4 +926,27 @@ int CCamIRayple::GetImgWidth()
 int CCamIRayple::GetImgHeight()
 {
 	return m_nHeight;
+}
+
+BOOL CCamIRayple::GetImgSize(int &nWidth, int &nHeight)
+{
+	nWidth = m_nWidth;
+	nHeight = m_nHeight;
+
+	FrameBuffer* pConvertedImage = getConvertedImage();
+
+	if (NULL != pConvertedImage)
+	{
+		m_nWidth = pConvertedImage->Width();
+		m_nHeight = pConvertedImage->Height();
+
+		nWidth = m_nWidth;
+		nHeight = m_nHeight;
+
+		delete pConvertedImage;
+		pConvertedImage = NULL;
+		return TRUE;
+	}
+
+	return FALSE;
 }
