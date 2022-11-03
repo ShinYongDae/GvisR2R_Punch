@@ -3011,6 +3011,11 @@ void CGvisR2R_PunchDoc::SetMkCntL(int nNum) // 1[year] = 31536000[sec]
 	sData.Format(_T("%d"), nNum);
 	WorkingInfo.Marking[0].nMkCnt = nNum;
 	::WritePrivateProfileString(_T("Marking0"), _T("Marking Count"), sData, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkNumLf();	//_ItemInx::_MkNumLf
+#endif
 }
 
 int CGvisR2R_PunchDoc::GetMkLimitL() // 1[year] = 31536000[sec]
@@ -3024,6 +3029,11 @@ void CGvisR2R_PunchDoc::SetMkLimitL(int nNum) // 1[year] = 31536000[sec]
 	sData.Format(_T("%d"), nNum);
 	WorkingInfo.Marking[0].nMkLimit = nNum;
 	::WritePrivateProfileString(_T("Marking0"), _T("Marking Limit"), sData, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkMaxNumLf();	//_ItemInx::_MkMaxNumLf
+#endif
 }
 
 int CGvisR2R_PunchDoc::GetMkCntR() // 1[year] = 31536000[sec]
@@ -3050,6 +3060,11 @@ void CGvisR2R_PunchDoc::SetMkCntR(int nNum) // 1[year] = 31536000[sec]
 	sData.Format(_T("%d"), nNum);
 	WorkingInfo.Marking[1].nMkCnt = nNum;
 	::WritePrivateProfileString(_T("Marking1"), _T("Marking Count"), sData, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkNumRt();	//_ItemInx::_MkNumRt
+#endif
 }
 
 int CGvisR2R_PunchDoc::GetMkLimitR() // 1[year] = 31536000[sec]
@@ -3063,6 +3078,11 @@ void CGvisR2R_PunchDoc::SetMkLimitR(int nNum) // 1[year] = 31536000[sec]
 	sData.Format(_T("%d"), nNum);
 	WorkingInfo.Marking[1].nMkLimit = nNum;
 	::WritePrivateProfileString(_T("Marking1"), _T("Marking Limit"), sData, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkMaxNumRt();	//_ItemInx::_MkMaxNumRt
+#endif
 }
 
 void CGvisR2R_PunchDoc::SaveWorkingInfo()
@@ -4685,6 +4705,7 @@ int CGvisR2R_PunchDoc::LoadPCRAllUp(int nSerial, BOOL bFromShare)	// return : 2(
 			}
 		}
 	}
+
 	delete[] pPcrMgr;
 
 	return (1); // 1(정상)
@@ -6005,6 +6026,11 @@ void CGvisR2R_PunchDoc::SetFdJogVel(double dVel)
 	long lData = (long)(dVel * 1000.0);
 	pView->m_pMpe->Write(_T("ML45038"), lData);	// 연속공급 속도 (단위 mm/sec * 1000)
 #endif
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetFdVel();	//_ItemInx::_FdVel
+#endif
 }
 
 void CGvisR2R_PunchDoc::SetFdJogAcc(double dVel)
@@ -6018,6 +6044,11 @@ void CGvisR2R_PunchDoc::SetFdJogAcc(double dVel)
 #ifdef USE_MPE
 	long lData = (long)(dVel * 1000.0);
 	pView->m_pMpe->Write(_T("ML45040"), lData);	// 연속공급 가속도 (단위 mm/s^2 * 1000)
+#endif
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetFdAcc();	//_ItemInx::_FdAcc
 #endif
 }
 
@@ -6047,6 +6078,11 @@ void CGvisR2R_PunchDoc::SetOnePnlAcc(double dAcc)
 #ifdef USE_MPE
 	long lData = (long)(dAcc * 1000.0);
 	pView->m_pMpe->Write(_T("ML45036"), lData);	// 한 판넬 Feeding 가속도 (단위 mm/s^2 * 1000)
+#endif
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetOnePnlAcc();	//_ItemInx::_OnePnlAcc
 #endif
 }
 
@@ -6099,6 +6135,11 @@ void CGvisR2R_PunchDoc::SetFdErrLmt(double dLmt)
 	sVal.Format(_T("%.3f"), dLmt);
 	WorkingInfo.Motion.sLmtFdErr = sVal;
 	::WritePrivateProfileString(_T("Motion"), _T("ADJUST_LIMIT_FEEDING_ERROR_VAL"), sVal, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetFdDiffMax();	//_ItemInx::_FdDiffMax
+#endif
 }
 
 double CGvisR2R_PunchDoc::GetFdErrLmt()
@@ -6113,6 +6154,11 @@ void CGvisR2R_PunchDoc::SetFdErrRng(double dRng)
 	sVal.Format(_T("%.3f"), dRng);
 	WorkingInfo.Motion.sLmtFdAdjOffSet = sVal;
 	::WritePrivateProfileString(_T("Motion"), _T("ADJUST_LIMIT_FEEDING_OFFSET"), sVal, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetFdDiffRng();	//_ItemInx::_FdDiffRng
+#endif
 }
 
 double CGvisR2R_PunchDoc::GetFdErrRng()
@@ -6127,6 +6173,11 @@ void CGvisR2R_PunchDoc::SetFdErrNum(int nNum)
 	sVal.Format(_T("%d"), nNum);
 	WorkingInfo.Motion.sLmtFdOvrNum = sVal;
 	::WritePrivateProfileString(_T("Motion"), _T("ADJUST_LIMIT_FEEDING_OVER_NUM"), sVal, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetFdDiffNum();	//_ItemInx::_FdDiffNum
+#endif
 }
 
 int CGvisR2R_PunchDoc::GetFdErrNum()
@@ -6143,6 +6194,11 @@ void CGvisR2R_PunchDoc::SetBufInitPos(double dPos)
 #ifdef USE_MPE
 	long lData = (long)(dPos * 1000.0);
 	pView->m_pMpe->Write(_T("ML45016"), lData);	// 버퍼 관련 설정 롤러 초기위치(단위 mm * 1000)
+#endif
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkBuffInitPos();	//_ItemInx::_MkBuffInitPos
 #endif
 }
 
@@ -6186,6 +6242,11 @@ void CGvisR2R_PunchDoc::SetAoiMkDist(double dLen)
 	long lData = (long)(dLen * 1000.0);
 	pView->m_pMpe->Write(_T("ML45008"), lData);	// AOI(하)에서 마킹까지 거리 (단위 mm * 1000)
 #endif
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetAoiMkLen();	//_ItemInx::_AoiMkLen
+#endif
 }
 
 void CGvisR2R_PunchDoc::SetAoiAoiDist(int nShot)
@@ -6197,6 +6258,11 @@ void CGvisR2R_PunchDoc::SetAoiAoiDist(int nShot)
 #ifdef USE_MPE
 	long lData = (long)(nShot * 1000);
 	pView->m_pMpe->Write(_T("ML45010"), lData);	// AOI(상)에서 AOI(하) Shot수 (단위 Shot수 * 1000)
+#endif
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetAoiBuffShotNum();	//_ItemInx::_AoiBuffShotNum
 #endif
 }
 
@@ -6316,6 +6382,11 @@ void CGvisR2R_PunchDoc::SetPosX1_1(double dPosX)
 	sData.Format(_T("%.3f"), dPosX);
 	WorkingInfo.Marking[0].sMeasurePosX[0] = sData;
 	::WritePrivateProfileString(_T("Marking0"), _T("MARKING_MEASURE_POSX1"), sData, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosX1Lf();	//_ItemInx::_MkHgtPosX1Lf
+#endif
 }
 
 double CGvisR2R_PunchDoc::GetPosX1_1()
@@ -6329,6 +6400,11 @@ void CGvisR2R_PunchDoc::SetPosY1_1(double dPosY)
 	sData.Format(_T("%.3f"), dPosY);
 	WorkingInfo.Marking[0].sMeasurePosY[0] = sData;
 	::WritePrivateProfileString(_T("Marking0"), _T("MARKING_MEASURE_POSY1"), sData, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosY1Lf();	//_ItemInx::_MkHgtPosY1Lf
+#endif
 }
 
 double CGvisR2R_PunchDoc::GetPosY1_1()
@@ -6342,6 +6418,11 @@ void CGvisR2R_PunchDoc::SetPosX1_2(double dPosX)
 	sData.Format(_T("%.3f"), dPosX);
 	WorkingInfo.Marking[0].sMeasurePosX[1] = sData;
 	::WritePrivateProfileString(_T("Marking0"), _T("MARKING_MEASURE_POSX2"), sData, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosX2Lf();	//_ItemInx::_MkHgtPosX2Lf
+#endif
 }
 
 double CGvisR2R_PunchDoc::GetPosX1_2()
@@ -6355,6 +6436,11 @@ void CGvisR2R_PunchDoc::SetPosY1_2(double dPosY)
 	sData.Format(_T("%.3f"), dPosY);
 	WorkingInfo.Marking[0].sMeasurePosY[1] = sData;
 	::WritePrivateProfileString(_T("Marking0"), _T("MARKING_MEASURE_POSY2"), sData, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosY2Lf();	//_ItemInx::_MkHgtPosY2Lf
+#endif
 }
 
 double CGvisR2R_PunchDoc::GetPosY1_2()
@@ -6368,6 +6454,11 @@ void CGvisR2R_PunchDoc::SetPosX1_3(double dPosX)
 	sData.Format(_T("%.3f"), dPosX);
 	WorkingInfo.Marking[0].sMeasurePosX[2] = sData;
 	::WritePrivateProfileString(_T("Marking0"), _T("MARKING_MEASURE_POSX3"), sData, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosX3Lf();	//_ItemInx::_MkHgtPosX3Lf
+#endif
 }
 
 double CGvisR2R_PunchDoc::GetPosX1_3()
@@ -6381,6 +6472,11 @@ void CGvisR2R_PunchDoc::SetPosY1_3(double dPosY)
 	sData.Format(_T("%.3f"), dPosY);
 	WorkingInfo.Marking[0].sMeasurePosY[2] = sData;
 	::WritePrivateProfileString(_T("Marking0"), _T("MARKING_MEASURE_POSY3"), sData, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosY3Lf();	//_ItemInx::_MkHgtPosY3Lf
+#endif
 }
 
 double CGvisR2R_PunchDoc::GetPosY1_3()
@@ -6394,6 +6490,11 @@ void CGvisR2R_PunchDoc::SetPosX1_4(double dPosX)
 	sData.Format(_T("%.3f"), dPosX);
 	WorkingInfo.Marking[0].sMeasurePosX[3] = sData;
 	::WritePrivateProfileString(_T("Marking0"), _T("MARKING_MEASURE_POSX4"), sData, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosX4Lf();	//_ItemInx::_MkHgtPosX4Lf
+#endif
 }
 
 double CGvisR2R_PunchDoc::GetPosX1_4()
@@ -6407,6 +6508,11 @@ void CGvisR2R_PunchDoc::SetPosY1_4(double dPosY)
 	sData.Format(_T("%.3f"), dPosY);
 	WorkingInfo.Marking[0].sMeasurePosY[3] = sData;
 	::WritePrivateProfileString(_T("Marking0"), _T("MARKING_MEASURE_POSY4"), sData, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosY4Lf();	//_ItemInx::_MkHgtPosY4Lf
+#endif
 }
 
 double CGvisR2R_PunchDoc::GetPosY1_4()
@@ -6420,6 +6526,11 @@ void CGvisR2R_PunchDoc::SetAverDist1(double dDist)
 	sData.Format(_T("%.3f"), dDist);
 	WorkingInfo.Marking[0].sAverDist = sData;
 	::WritePrivateProfileString(_T("Marking0"), _T("MARKING_AVER_DIST"), sData, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtAvgPosLf();	//_ItemInx::_MkHgtAvgPosLf
+#endif
 }
 
 double CGvisR2R_PunchDoc::GetAverDist1()
@@ -6532,6 +6643,11 @@ void CGvisR2R_PunchDoc::SetPosX2_1(double dPosX)
 	sData.Format(_T("%.3f"), dPosX);
 	WorkingInfo.Marking[1].sMeasurePosX[0] = sData;
 	::WritePrivateProfileString(_T("Marking1"), _T("MARKING_MEASURE_POSX1"), sData, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosX1Rt();	//_ItemInx::_MkHgtPosX1Rt
+#endif
 }
 
 double CGvisR2R_PunchDoc::GetPosX2_1()
@@ -6545,6 +6661,11 @@ void CGvisR2R_PunchDoc::SetPosY2_1(double dPosY)
 	sData.Format(_T("%.3f"), dPosY);
 	WorkingInfo.Marking[1].sMeasurePosY[0] = sData;
 	::WritePrivateProfileString(_T("Marking1"), _T("MARKING_MEASURE_POSY1"), sData, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosY1Rt();	//_ItemInx::_MkHgtPosY1Rt
+#endif
 }
 
 double CGvisR2R_PunchDoc::GetPosY2_1()
@@ -6558,6 +6679,11 @@ void CGvisR2R_PunchDoc::SetPosX2_2(double dPosX)
 	sData.Format(_T("%.3f"), dPosX);
 	WorkingInfo.Marking[1].sMeasurePosX[1] = sData;
 	::WritePrivateProfileString(_T("Marking1"), _T("MARKING_MEASURE_POSX2"), sData, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosX2Rt();	//_ItemInx::_MkHgtPosX2Rt
+#endif
 }
 
 double CGvisR2R_PunchDoc::GetPosX2_2()
@@ -6571,6 +6697,11 @@ void CGvisR2R_PunchDoc::SetPosY2_2(double dPosY)
 	sData.Format(_T("%.3f"), dPosY);
 	WorkingInfo.Marking[1].sMeasurePosY[1] = sData;
 	::WritePrivateProfileString(_T("Marking1"), _T("MARKING_MEASURE_POSY2"), sData, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosY2Rt();	//_ItemInx::_MkHgtPosY2Rt
+#endif
 }
 
 double CGvisR2R_PunchDoc::GetPosY2_2()
@@ -6584,6 +6715,11 @@ void CGvisR2R_PunchDoc::SetPosX2_3(double dPosX)
 	sData.Format(_T("%.3f"), dPosX);
 	WorkingInfo.Marking[1].sMeasurePosX[2] = sData;
 	::WritePrivateProfileString(_T("Marking1"), _T("MARKING_MEASURE_POSX3"), sData, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosX3Rt();	//_ItemInx::_MkHgtPosX3Rt
+#endif
 }
 
 double CGvisR2R_PunchDoc::GetPosX2_3()
@@ -6597,6 +6733,11 @@ void CGvisR2R_PunchDoc::SetPosY2_3(double dPosY)
 	sData.Format(_T("%.3f"), dPosY);
 	WorkingInfo.Marking[1].sMeasurePosY[2] = sData;
 	::WritePrivateProfileString(_T("Marking1"), _T("MARKING_MEASURE_POSY3"), sData, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosY3Rt();	//_ItemInx::_MkHgtPosY3Rt
+#endif
 }
 
 double CGvisR2R_PunchDoc::GetPosY2_3()
@@ -6610,6 +6751,11 @@ void CGvisR2R_PunchDoc::SetPosX2_4(double dPosX)
 	sData.Format(_T("%.3f"), dPosX);
 	WorkingInfo.Marking[1].sMeasurePosX[3] = sData;
 	::WritePrivateProfileString(_T("Marking1"), _T("MARKING_MEASURE_POSX4"), sData, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosX4Rt();	//_ItemInx::_MkHgtPosX4Rt
+#endif
 }
 
 double CGvisR2R_PunchDoc::GetPosX2_4()
@@ -6623,6 +6769,11 @@ void CGvisR2R_PunchDoc::SetPosY2_4(double dPosY)
 	sData.Format(_T("%.3f"), dPosY);
 	WorkingInfo.Marking[1].sMeasurePosY[3] = sData;
 	::WritePrivateProfileString(_T("Marking1"), _T("MARKING_MEASURE_POSY4"), sData, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtPosY4Rt();	//_ItemInx::_MkHgtPosY4Rt
+#endif
 }
 
 double CGvisR2R_PunchDoc::GetPosY2_4()
@@ -6636,6 +6787,11 @@ void CGvisR2R_PunchDoc::SetAverDist2(double dDist)
 	sData.Format(_T("%.3f"), dDist);
 	WorkingInfo.Marking[1].sAverDist = sData;
 	::WritePrivateProfileString(_T("Marking1"), _T("MARKING_AVER_DIST"), sData, sPath);
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkHgtAvgPosRt();	//_ItemInx::_MkHgtAvgPosRt
+#endif
 }
 
 double CGvisR2R_PunchDoc::GetAverDist2()
@@ -6752,6 +6908,11 @@ void CGvisR2R_PunchDoc::SetStopDist(double dDist)
 	long lData = (long)(dDist * 1000.0);
 	pView->m_pMpe->Write(_T("ML45006"), lData);	// 일시정지 길이 (단위 M * 1000)
 #endif
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetTempStopLen();	//_ItemInx::_TempStopLen
+#endif
 }
 
 double CGvisR2R_PunchDoc::GetStopDist()
@@ -6769,6 +6930,11 @@ void CGvisR2R_PunchDoc::SetAOIToq(double dToq)
 	long lData = (long)(dToq * 1000.0);
 	pView->m_pMpe->Write(_T("ML45042"), lData);	// 검사부 Tension 모터 토크값 (단위 Kgf * 1000)
 #endif
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetAoiTqVal();	//_ItemInx::_AoiTqVal
+#endif
 }
 
 double CGvisR2R_PunchDoc::GetAOIToq()
@@ -6785,6 +6951,11 @@ void CGvisR2R_PunchDoc::SetMarkingToq(double dToq)
 #ifdef USE_MPE
 	long lData = (long)(dToq * 1000.0);
 	pView->m_pMpe->Write(_T("ML45044"), lData);	// 마킹부 Tension 모터 토크값 (단위 Kgf * 1000)
+#endif
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkTqVal();	//_ItemInx::_MkTqVal
 #endif
 }
 

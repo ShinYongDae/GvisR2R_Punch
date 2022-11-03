@@ -7502,10 +7502,15 @@ void CGvisR2R_PunchView::SetAoiFdPitch(double dPitch)
 {
 	pDoc->SetAoiFdPitch(dPitch);
 	// 	m_pMotion->SetLeadPitch(AXIS_AOIFD, dPitch);
-	long lData = long(dPitch*1000.0);
-#ifdef USE_MPE
-	pView->m_pMpe->Write(_T("ML45012"), lData); // 검사부 Feeding 롤러 Lead Pitch
-	pView->m_pMpe->Write(_T("ML45020"), lData); // 각인부 Feeding 롤러 Lead Pitch
+//	long lData = long(dPitch*1000.0);
+//#ifdef USE_MPE
+//	pView->m_pMpe->Write(_T("ML45012"), lData); // 검사부 Feeding 롤러 Lead Pitch
+//	pView->m_pMpe->Write(_T("ML45020"), lData); // 각인부 Feeding 롤러 Lead Pitch
+//#endif
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetAoiLeadPitch();	//_ItemInx::_AoiLeadPitch
 #endif
 }
 
@@ -7516,6 +7521,11 @@ void CGvisR2R_PunchView::SetMkFdPitch(double dPitch)
 	long lData = long(dPitch*1000.0);
 #ifdef USE_MPE
 	pView->m_pMpe->Write(_T("ML45014"), lData); // 마킹부 Feeding 롤러 Lead Pitch
+#endif
+
+#ifdef USE_ENGRAVE
+	if (pView && pView->m_pEngrave)
+		pView->m_pEngrave->SetMkLeadPitch();	//_ItemInx::_MkLeadPitch
 #endif
 }
 
