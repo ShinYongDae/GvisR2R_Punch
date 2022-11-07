@@ -1225,7 +1225,7 @@ void CDlgMenu04::DispBufEnc()
 #ifdef USE_ENGRAVE
 	if (pView && pView->m_pEngrave)
 	{
-		pView->m_pEngrave->SetEngBuffCurrPos();	//_ItemInx::_EngBuffCurrPos (Engrave)
+		//pView->m_pEngrave->SetEngBuffCurrPos();	//_ItemInx::_EngBuffCurrPos (Engrave)
 
 		if (pDoc->WorkingInfo.Motion.bEngBuffJogCw && !m_bEngBuffJogCwF)
 		{

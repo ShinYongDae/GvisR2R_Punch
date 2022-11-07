@@ -1572,24 +1572,24 @@ BOOL CGvisR2R_PunchDoc::LoadWorkingInfo()
 		WorkingInfo.LastJob.nAlignMethode = TWO_POINT;
 
 	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Use Engrave Cleanner"), NULL, szData, sizeof(szData), sPath))
-		WorkingInfo.LastJob.bUseEngraveCleanner = _ttoi(szData);
+		WorkingInfo.LastJob.bUseEngraveUltrasonic = _ttoi(szData);
 	else
-		WorkingInfo.LastJob.bUseEngraveCleanner = FALSE;
+		WorkingInfo.LastJob.bUseEngraveUltrasonic= FALSE;
 
 	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Use AoiDn Cleanner"), NULL, szData, sizeof(szData), sPath))
-		WorkingInfo.LastJob.bUseAoiDnCleanner = _ttoi(szData);
+		WorkingInfo.LastJob.bUseAoiDnUltrasonic = _ttoi(szData);
 	else
-		WorkingInfo.LastJob.bUseAoiDnCleanner = FALSE;
+		WorkingInfo.LastJob.bUseAoiDnUltrasonic = FALSE;
 
-	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Engrave Cleanner"), NULL, szData, sizeof(szData), sPath))
-		WorkingInfo.LastJob.bEngraveCleanner = _ttoi(szData);
+	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Engrave Cleanner Vel"), NULL, szData, sizeof(szData), sPath))
+		WorkingInfo.LastJob.bVelEngraveUltrasonic = _ttoi(szData);
 	else
-		WorkingInfo.LastJob.bEngraveCleanner = FALSE;
+		WorkingInfo.LastJob.bVelEngraveUltrasonic = FALSE;
 
-	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("AoiDn Cleanner"), NULL, szData, sizeof(szData), sPath))
-		WorkingInfo.LastJob.bAoiDnCleanner = _ttoi(szData);
+	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("AoiDn Cleanner Vel"), NULL, szData, sizeof(szData), sPath))
+		WorkingInfo.LastJob.bVelAoiDnUltrasonic = _ttoi(szData);
 	else
-		WorkingInfo.LastJob.bAoiDnCleanner = FALSE;
+		WorkingInfo.LastJob.bVelAoiDnUltrasonic = FALSE;
 
 
 	// [Motion]
@@ -3276,11 +3276,11 @@ void CGvisR2R_PunchDoc::SaveWorkingInfo()
 	sData = WorkingInfo.LastJob.sPartialSpd;
 	::WritePrivateProfileString(_T("Last Job"), _T("Partial Speed"), sData, sPath);
 
-	sData.Format(_T("%d"), WorkingInfo.LastJob.bEngraveCleanner ? 1 : 0);
-	::WritePrivateProfileString(_T("Last Job"), _T("Engrave Cleanner"), sData, sPath);
+	sData.Format(_T("%d"), WorkingInfo.LastJob.bVelEngraveUltrasonic ? 1 : 0);
+	::WritePrivateProfileString(_T("Last Job"), _T("Engrave Cleanner Vel"), sData, sPath);
 
-	sData.Format(_T("%d"), WorkingInfo.LastJob.bAoiDnCleanner ? 1 : 0);
-	::WritePrivateProfileString(_T("Last Job"), _T("AoiDn Cleanner"), sData, sPath);
+	sData.Format(_T("%d"), WorkingInfo.LastJob.bVelAoiDnUltrasonic ? 1 : 0);
+	::WritePrivateProfileString(_T("Last Job"), _T("AoiDn Cleanner Vel"), sData, sPath);
 
 
 

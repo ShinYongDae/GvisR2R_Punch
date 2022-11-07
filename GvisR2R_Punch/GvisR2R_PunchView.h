@@ -7,6 +7,7 @@
 #include "Dialog/DlgMyMsg.h"
 #include "Dialog/DlgMsgBox.h"
 #include "Dialog/DlgFrameHigh.h"
+#include "Dialog/DlgInfo.h"
 #include "Dialog/DlgMenu01.h"
 #include "Dialog/DlgMenu02.h"
 #include "Dialog/DlgMenu03.h"
@@ -281,7 +282,6 @@ class CGvisR2R_PunchView : public CFormView
 	//BOOL ChkXmpCollision();
 	void DispStsMainMsg(int nIdx = 0);
 	void SetPlcParam();
-	void GetPlcParam();
 
 	BOOL DoElecChk(CString &sRst);  // TRUE: bDone , FALSE: Doing
 
@@ -320,6 +320,7 @@ public:
 	CDlgMsgBox* m_pDlgMsgBox;
 	CEvent      m_evtWaitClrDispMsg;
 
+	CDlgInfo *m_pDlgInfo;
 	CDlgFrameHigh *m_pDlgFrameHigh;
 	CDlgMenu01 *m_pDlgMenu01;
 	CDlgMenu02 *m_pDlgMenu02;
@@ -455,6 +456,7 @@ public:
 	afx_msg LRESULT OnMyMsgExit(WPARAM wPara, LPARAM lPara);
 
 
+	void GetPlcParam();
 	BOOL WatiDispMain(int nDelay);
 
 	void RestoreReelmap();
