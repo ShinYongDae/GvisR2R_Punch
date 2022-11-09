@@ -1291,6 +1291,23 @@ struct stBtnUncoiler
 	}
 };
 
+struct stBtnEngAuto
+{
+	BOOL MkSt, OnMking, Read2dSt, OnRead2d;
+	BOOL MkStF, OnMkingF, Read2dStF, OnRead2dF;
+
+	stBtnEngAuto()
+	{
+		Init();
+	}
+
+	void Init()
+	{
+		MkSt = FALSE; OnMking = FALSE; Read2dSt = FALSE; OnRead2d = FALSE;
+		MkStF = FALSE; OnMkingF = FALSE; Read2dStF = FALSE; OnRead2dF = FALSE;
+	}
+};
+
 struct stBtnStatus
 {
 	stBtnMain Main;
@@ -1304,6 +1321,7 @@ struct stBtnStatus
 	stBtnAOIUp AoiUp;
 	stBtnEngrave Eng;
 	stBtnUncoiler Uc;
+	stBtnEngAuto EngAuto;
 };
 
 typedef enum {

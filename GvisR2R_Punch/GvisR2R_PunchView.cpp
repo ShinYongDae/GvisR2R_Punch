@@ -330,6 +330,14 @@ CGvisR2R_PunchView::CGvisR2R_PunchView()
 	m_bMkStSw = FALSE;
 	m_nMkStAuto = 0;
 
+	m_bEngSt = FALSE;
+	m_bEngStSw = FALSE;
+	m_nEngStAuto = FALSE;
+
+	m_bEng2dSt = FALSE;
+	m_bEng2dStSw = FALSE;
+	m_nEng2dStAuto = FALSE;
+
 	m_bLotEnd = FALSE;
 	m_nLotEndAuto = 0;
 
@@ -4164,6 +4172,7 @@ void CGvisR2R_PunchView::DoIO()
 	}
 	else if (pDoc->Status.bAuto)
 	{
+		DoAutoEng();
 		DoAuto();
 	}
 
@@ -4843,68 +4852,91 @@ void CGvisR2R_PunchView::DoModeSel()
 	if (!pDoc->m_pMpeIo)
 		return;
 
-	BOOL bMode[2];
-	bMode[0] = pDoc->m_pMpeIb[4] & (0x01 << 5) ? TRUE : FALSE;	// 마킹부 자동/수동/1회운전 1
-	bMode[1] = pDoc->m_pMpeIb[4] & (0x01 << 6) ? TRUE : FALSE;	// 마킹부 자동/수동/1회운전 2
-
-	if (bMode[0] && !bMode[1])		 // 마킹부 자동/수동/1회운전 (1,2)
+	BOOL bMode;// [2];
+	//bMode = pDoc->m_pMpeIb[36] & (0x01 << 5) ? TRUE : FALSE;	// 마킹부 자동 상태 스위치 램프
+	bMode = pDoc->m_pMpeIo[36] & (0x01 << 5) ? TRUE : FALSE;	// 마킹부 자동 상태 스위치 램프
+	if (bMode)
 	{
 		pDoc->Status.bAuto = TRUE;
 		pDoc->Status.bManual = FALSE;
 		pDoc->Status.bOneCycle = FALSE;
-	}
-	else if (!bMode[0] && bMode[1])
-	{
-		pDoc->Status.bAuto = FALSE;
-		pDoc->Status.bManual = FALSE;
-		pDoc->Status.bOneCycle = TRUE;
-	}
-	else if (!bMode[0] && !bMode[1])
-	{
-		pDoc->Status.bAuto = FALSE;
-		pDoc->Status.bManual = TRUE;
-		pDoc->Status.bOneCycle = FALSE;
+
+		m_bAuto = TRUE;
+		m_bManual = FALSE;
+		m_bOneCycle = FALSE;
 	}
 	else
 	{
+		pDoc->Status.bManual = TRUE;
 		pDoc->Status.bAuto = FALSE;
-		pDoc->Status.bManual = FALSE;
 		pDoc->Status.bOneCycle = FALSE;
+
+		m_bManual = TRUE;
+		m_bAuto = FALSE;
+		m_bOneCycle = FALSE;
 	}
+
+	//bMode[0] = pDoc->m_pMpeIb[4] & (0x01 << 5) ? TRUE : FALSE;	// 마킹부 자동/수동/1회운전 1
+	//bMode[1] = pDoc->m_pMpeIb[4] & (0x01 << 6) ? TRUE : FALSE;	// 마킹부 자동/수동/1회운전 2
+
+	//if (bMode[0] && !bMode[1])		 // 마킹부 자동/수동/1회운전 (1,2)
+	//{
+	//	pDoc->Status.bAuto = TRUE;
+	//	pDoc->Status.bManual = FALSE;
+	//	pDoc->Status.bOneCycle = FALSE;
+	//}
+	//else if (!bMode[0] && bMode[1])
+	//{
+	//	pDoc->Status.bAuto = FALSE;
+	//	pDoc->Status.bManual = FALSE;
+	//	pDoc->Status.bOneCycle = TRUE;
+	//}
+	//else if (!bMode[0] && !bMode[1])
+	//{
+	//	pDoc->Status.bAuto = FALSE;
+	//	pDoc->Status.bManual = TRUE;
+	//	pDoc->Status.bOneCycle = FALSE;
+	//}
+	//else
+	//{
+	//	pDoc->Status.bAuto = FALSE;
+	//	pDoc->Status.bManual = FALSE;
+	//	pDoc->Status.bOneCycle = FALSE;
+	//}
 #else
 	pDoc->Status.bAuto = FALSE;
 	pDoc->Status.bManual = TRUE;
 	pDoc->Status.bOneCycle = FALSE;
 #endif
 
-	if (pDoc->Status.bManual && !m_bManual)
-	{
-		m_bManual = TRUE;
-		m_bAuto = FALSE;
-		m_bOneCycle = FALSE;
+	//if (pDoc->Status.bManual && !m_bManual)
+	//{
+	//	m_bManual = TRUE;
+	//	m_bAuto = FALSE;
+	//	m_bOneCycle = FALSE;
 
-		if (m_pDlgMenu03)
-		{
-			m_pDlgMenu03->DoManual();
-		}
-	}
-	else if (pDoc->Status.bAuto && !m_bAuto)
-	{
-		m_bManual = FALSE;
-		m_bAuto = TRUE;
-		m_bOneCycle = FALSE;
+	//	if (m_pDlgMenu03)
+	//	{
+	//		m_pDlgMenu03->DoManual();
+	//	}
+	//}
+	//else if (pDoc->Status.bAuto && !m_bAuto)
+	//{
+	//	m_bManual = FALSE;
+	//	m_bAuto = TRUE;
+	//	m_bOneCycle = FALSE;
 
-		if (m_pDlgMenu03)
-		{
-			m_pDlgMenu03->DoAuto();
-		}
-	}
-	else if (pDoc->Status.bOneCycle && !m_bOneCycle)
-	{
-		m_bManual = FALSE;
-		m_bAuto = FALSE;
-		m_bOneCycle = TRUE;
-	}
+	//	if (m_pDlgMenu03)
+	//	{
+	//		m_pDlgMenu03->DoAuto();
+	//	}
+	//}
+	//else if (pDoc->Status.bOneCycle && !m_bOneCycle)
+	//{
+	//	m_bManual = FALSE;
+	//	m_bAuto = FALSE;
+	//	m_bOneCycle = TRUE;
+	//}
 
 }
 
@@ -9768,6 +9800,16 @@ void CGvisR2R_PunchView::InitAuto(BOOL bInit)
 	m_bMkSt = FALSE;
 	m_bMkStSw = FALSE;
 	m_nMkStAuto = 0;
+
+	m_bEngSt = FALSE;
+	m_bEngStSw = FALSE;
+	m_nEngStAuto = FALSE;
+
+	m_bEng2dSt = FALSE;
+	m_bEng2dStSw = FALSE;
+	m_nEng2dStAuto = FALSE;
+
+	pDoc->BtnStatus.EngAuto.Init();
 
 	m_bLotEnd = FALSE;
 	m_nLotEndAuto = 0;
@@ -15466,7 +15508,7 @@ void CGvisR2R_PunchView::DoAuto()
 	str.Format(_T("%d : %d"), m_nStepTHREAD_DISP_DEF, m_bTHREAD_DISP_DEF ? 1 : 0);
 	pView->DispStsBar(str, 6);
 
-	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
+	//BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
 
 	// LotEnd Start
 	if (DoAutoGetLotEndSignal())
@@ -20603,8 +20645,10 @@ void CGvisR2R_PunchView::GetPlcParam()
 	pDoc->BtnStatus.Main.Run = m_pMpe->Read(_T("MB005501")) ? TRUE : FALSE;		// 마킹부 운전 스위치
 	pDoc->BtnStatus.Main.Reset = m_pMpe->Read(_T("MB005504")) ? TRUE : FALSE;	// 마킹부 리셋 스위치
 	pDoc->BtnStatus.Main.Stop = m_pMpe->Read(_T("MB005502")) ? TRUE : FALSE;	// 마킹부 정지 스위치
-	pDoc->BtnStatus.Main.Auto = m_pMpe->Read(_T("MB005505")) ? TRUE : FALSE;	// 마킹부 자동/수동 (ON)
-	pDoc->BtnStatus.Main.Manual = m_pMpe->Read(_T("MB005505")) ? FALSE : TRUE;	// 마킹부 자동/수동 (OFF)
+	//pDoc->BtnStatus.Main.Auto = m_pMpe->Read(_T("MB005505")) ? TRUE : FALSE;	// 마킹부 자동/수동 (ON)
+	//pDoc->BtnStatus.Main.Manual = m_pMpe->Read(_T("MB005505")) ? FALSE : TRUE;	// 마킹부 자동/수동 (OFF)
+	pDoc->BtnStatus.Main.Auto = m_pMpe->Read(_T("MB003705")) ? TRUE : FALSE;	// 마킹부 자동 상태 스위치 램프
+	pDoc->BtnStatus.Main.Manual = m_pMpe->Read(_T("MB003705")) ? FALSE : TRUE;	// 마킹부 자동 상태 스위치 램프
 
 	// TorqueMotor
 	pDoc->BtnStatus.Tq.Mk = m_pMpe->Read(_T("MB440155")) ? TRUE : FALSE;
@@ -22329,6 +22373,13 @@ void CGvisR2R_PunchView::SetEngraveFd()
 	}
 }
 
+void CGvisR2R_PunchView::SetEngraveFd(double dDist)
+{
+	double fLen = pDoc->GetOnePnlLen();
+	double dOffset = dDist - (fLen*2.0);
+	MoveMk(dOffset);
+}
+
 void CGvisR2R_PunchView::MoveEngrave(double dOffset)
 {
 #ifdef USE_MPE
@@ -22703,3 +22754,109 @@ void CGvisR2R_PunchView::UpdateYield()
 	}
 }
 
+
+void CGvisR2R_PunchView::DoAutoEng()
+{
+	if (!IsAuto() || (MODE_INNER != pDoc->WorkingInfo.LastJob.nTestMode))
+		return;
+
+	// 각인부 마킹시작 신호를 확인
+	DoAtuoGetEngStSignal();
+
+	// 각인부 2D 코드 Reading신호를 확인
+	DoAtuoGet2dReadStSignal();
+
+/*	// LastProc Start
+	DoAutoSetLastProcAtPlc();
+
+	// CycleStop
+	DoAutoChkCycleStop();
+
+	// DispMsg
+	DoAutoDispMsg();
+
+	// 각인부 Marking Start
+	DoAutoMarking();
+
+	// 각인부 2D 코드 Reading Start
+	DoAuto2dReading(); */
+}
+
+
+void CGvisR2R_PunchView::DoAtuoGetEngStSignal()
+{
+#ifdef USE_MPE
+	if (m_pMpe)
+	{
+		if (!m_bEngSt)
+		{
+			if (pDoc->m_pMpeSignal[0] & (0x01 << 3) || m_bEngStSw) // 2D(GUI) 각인 동작 Start신호(PLC On->PC Off)
+			{
+				m_bEngStSw = FALSE;
+
+				if (m_pEngrave)
+				{ 
+					m_pEngrave->SwEngAutoMkSt(TRUE);
+					pDoc->BtnStatus.EngAuto.MkStF = TRUE;
+				}
+
+
+			}
+		}
+	}
+
+	if (IsRun())
+	{
+		if (!pDoc->BtnStatus.EngAuto.MkSt && pDoc->BtnStatus.EngAuto.MkStF)
+		{
+			pDoc->BtnStatus.EngAuto.MkStF = FALSE;
+
+			m_pMpe->Write(_T("MB440103"), 0);			// 2D(GUI) 각인 동작 Start신호(PLC On->PC Off)
+
+			if (pDoc->m_pMpeSignal[0] & (0x01 << 2))	// 각인부 Feeding완료(PLC가 On시키고 PC가 확인하고 Reset시킴.)
+				m_pMpe->Write(_T("MB440102"), 0);		// 각인부 Feeding완료
+
+			m_bEngSt = TRUE;
+			m_nEngStAuto = ENG_ST;
+		}
+	}
+#endif
+}
+
+void CGvisR2R_PunchView::DoAtuoGet2dReadStSignal()
+{
+#ifdef USE_MPE
+	if (m_pMpe)
+	{
+		if (!m_bEng2dSt)
+		{
+			if (pDoc->m_pMpeSignal[0] & (0x01 << 3) || m_bEng2dStSw) // 2D(GUI) Reading 동작 Start신호(PLC On->PC Off)
+			{
+				m_bEng2dStSw = FALSE;
+
+				if (m_pEngrave)
+				{
+					m_pEngrave->SwEngAuto2dReadSt(TRUE);
+					pDoc->BtnStatus.EngAuto.Read2dStF = TRUE;
+				}
+			}
+		}
+	}
+
+	if (IsRun())
+	{
+		if (!pDoc->BtnStatus.EngAuto.Read2dSt && pDoc->BtnStatus.EngAuto.Read2dStF)
+		{
+			pDoc->BtnStatus.EngAuto.Read2dStF = FALSE;
+
+			m_pMpe->Write(_T("MB440103"), 0);			// 2D(GUI) Reading 동작 Start신호(PLC On->PC Off)
+
+			//if (pDoc->m_pMpeSignal[0] & (0x01 << 2))	// 각인부 Feeding완료(PLC가 On시키고 PC가 확인하고 Reset시킴.)
+			//	m_pMpe->Write(_T("MB440102"), 0);		// 각인부 Feeding완료
+
+			m_bEng2dSt = TRUE;
+			m_nEng2dStAuto = ENG_2D_ST;
+		}
+	}
+#endif
+}

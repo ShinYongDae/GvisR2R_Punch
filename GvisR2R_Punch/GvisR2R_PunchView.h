@@ -61,6 +61,9 @@
 #define LAST_PROC_VS_DN			400	// m_nSetpAuto
 #define LOT_END					500	// m_nSetpAuto
 
+#define ENG_ST					100	// m_nEngStAuto
+#define ENG_2D_ST				150	// m_nEngStAuto
+
 #define TIM_INIT_VIEW			0
 #define TIM_TOWER_WINKER		10
 #define TIM_BTN_WINKER			11
@@ -74,20 +77,33 @@
 #define TIM_CHK_TEMP_STOP		20
 #define TIM_SAFTY_STOP			21
 
+namespace Mk1PtIdx
+{
+	typedef enum Index {
+		Start = 2, ChkSn = 4, InitMk = 10, Move0Cam1 = 12, Move0Cam0 = 14, Align1_0 = 17, Align0_0 = 18,
+		Move1Cam1 = 21, Move1Cam0 = 23, Align1_1 = 26, Align0_1 = 27, MoveInitPt = 29, ChkElec = 32, DoMk = 35,
+		Verify = 37, DoneMk = 38, LotDiff = 50
+	};
+}
+
 namespace Mk2PtIdx
 {
-	typedef enum Index {Start = 2, ChkSn = 4, InitMk = 10, Move0Cam1 = 12, Move0Cam0 = 14, Align1_0 = 17, Align0_0 = 18, 
-						Move1Cam1 = 21, Move1Cam0 = 23, Align1_1 = 26, Align0_1 = 27, MoveInitPt = 29, ChkElec = 32, DoMk = 35, 
-						Verify = 37, DoneMk = 38, LotDiff = 50 }; 
+	typedef enum Index {
+		Start = 2, ChkSn = 4, InitMk = 10, Move0Cam1 = 12, Move0Cam0 = 14, Align1_0 = 17, Align0_0 = 18,
+		Move1Cam1 = 21, Move1Cam0 = 23, Align1_1 = 26, Align0_1 = 27, MoveInitPt = 29, ChkElec = 32, DoMk = 35,
+		Verify = 37, DoneMk = 38, LotDiff = 50
+	}; 
 }
 
 namespace Mk4PtIdx
 {
-	typedef enum Index {Start = 2, ChkSn = 4, InitMk = 10, Move0Cam1 = 12, Move0Cam0 = 14, Align1_0 = 17, Align0_0 = 18,
-						Move1Cam1 = 21, Move1Cam0 = 23, Align1_1 = 26, Align0_1 = 27, Move2Cam1 = 29, Move2Cam0 = 31,
-						Align1_2 = 34, Align0_2 = 35, Move3Cam1 = 37, Move3Cam0 = 39, Align1_3 = 42, Align0_3 = 43,
-						MoveInitPt = 45, ChkElec = 48, DoMk = 51,
-						Verify = 53, DoneMk = 54, LotDiff = 60};
+	typedef enum Index {
+		Start = 2, ChkSn = 4, InitMk = 10, Move0Cam1 = 12, Move0Cam0 = 14, Align1_0 = 17, Align0_0 = 18,
+		Move1Cam1 = 21, Move1Cam0 = 23, Align1_1 = 26, Align0_1 = 27, Move2Cam1 = 29, Move2Cam0 = 31,
+		Align1_2 = 34, Align0_2 = 35, Move3Cam1 = 37, Move3Cam0 = 39, Align1_3 = 42, Align0_3 = 43,
+		MoveInitPt = 45, ChkElec = 48, DoMk = 51,
+		Verify = 53, DoneMk = 54, LotDiff = 60
+	};
 }
 
 typedef struct _DispMain
@@ -292,6 +308,10 @@ class CGvisR2R_PunchView : public CFormView
 	BOOL SortingOutDn(int* pSerial, int nTot);
 	void SwapDn(__int64 *num1, __int64 *num2);
 
+	void DoAutoEng();
+	void DoAtuoGetEngStSignal();
+	void DoAtuoGet2dReadStSignal();
+
 
 protected: // serialization에서만 만들어집니다.
 	CGvisR2R_PunchView();
@@ -414,9 +434,12 @@ public:
 	BOOL m_bReMark[2];			// [nCam] : TRUE(Punching 다시시작), FALSE(pass)
 
 	int m_nMonAlmF, m_nClrAlmF;
-	BOOL m_bMkSt, m_bLotEnd, m_bLastProc, m_bLastProcFromUp;
-	BOOL m_bMkStSw;
-	int m_nMkStAuto, m_nLotEndAuto, m_nLastProcAuto;
+	BOOL m_bLotEnd, m_bLastProc, m_bLastProcFromUp;
+	BOOL m_bMkSt, m_bMkStSw;
+	BOOL m_bEngSt, m_bEngStSw;
+	BOOL m_bEng2dSt, m_bEng2dStSw;
+	int m_nMkStAuto, m_nEngStAuto, m_nEng2dStAuto;
+	int m_nLotEndAuto, m_nLastProcAuto;
 	BOOL m_bLoadShare[2]; // [Up/Dn]
 	CString m_sNewLotUp, m_sNewLotDn;
 
