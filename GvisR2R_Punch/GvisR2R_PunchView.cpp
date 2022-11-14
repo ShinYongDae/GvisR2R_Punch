@@ -165,6 +165,8 @@ CGvisR2R_PunchView::CGvisR2R_PunchView()
 	m_dwThreadTick[2] = 0;
 	m_bThread[3] = FALSE;
 	m_dwThreadTick[3] = 0;
+	m_bThread[4] = FALSE;
+	m_dwThreadTick[4] = 0;
 
 	m_bTIM_MPE_IO = FALSE;
 
@@ -199,6 +201,9 @@ CGvisR2R_PunchView::CGvisR2R_PunchView()
 	m_bTHREAD_UPDATAE_YIELD[1] = FALSE;
 	m_nSerialTHREAD_UPDATAE_YIELD[0] = 0;
 	m_nSerialTHREAD_UPDATAE_YIELD[1] = 0;
+	//m_bTHREAD_SHIFT2MK[0] = FALSE;
+	//m_bTHREAD_SHIFT2MK[1] = FALSE;
+	m_bTHREAD_SHIFT2MK = FALSE;
 
 	m_bTHREAD_MK[0] = FALSE;
 	m_bTHREAD_MK[1] = FALSE;
@@ -336,7 +341,7 @@ CGvisR2R_PunchView::CGvisR2R_PunchView()
 
 	m_bEng2dSt = FALSE;
 	m_bEng2dStSw = FALSE;
-	m_nEng2dStAuto = FALSE;
+	m_nEng2dStAuto = 0;
 
 	m_bLotEnd = FALSE;
 	m_nLotEndAuto = 0;
@@ -878,6 +883,10 @@ void CGvisR2R_PunchView::OnTimer(UINT_PTR nIDEvent)
 			// UpdateYield
 			if (!m_bThread[3])
 				m_Thread[3].Start(GetSafeHwnd(), this, ThreadProc3);
+
+			// DoShift2Mk
+			if (!m_bThread[4])
+				m_Thread[4].Start(GetSafeHwnd(), this, ThreadProc4);
 
 			MoveInitPos1();
 			Sleep(30);
@@ -2102,6 +2111,15 @@ void CGvisR2R_PunchView::ThreadKill()
 			Sleep(20);
 		}
 	}
+	if (m_bThread[4])
+	{
+		m_Thread[4].Stop();
+		Sleep(20);
+		while (m_bThread[4])
+		{
+			Sleep(20);
+		}
+	}
 }
 
 UINT CGvisR2R_PunchView::ThreadProc0(LPVOID lpContext)
@@ -2288,6 +2306,37 @@ UINT CGvisR2R_PunchView::ThreadProc3(LPVOID lpContext)
 	}
 
 	pThread->m_bThread[3] = FALSE;
+
+	return 0;
+}
+
+
+UINT CGvisR2R_PunchView::ThreadProc4(LPVOID lpContext)
+{
+	// Turn the passed in 'this' pointer back into a CProgressMgr instance
+	CGvisR2R_PunchView* pThread = reinterpret_cast<CGvisR2R_PunchView*>(lpContext);
+
+	BOOL bLock = FALSE;
+	DWORD dwTick = GetTickCount();
+	DWORD dwShutdownEventCheckPeriod = 0; // thread shutdown event check period
+
+	pThread->m_bThread[4] = TRUE;
+	while (WAIT_OBJECT_0 != WaitForSingleObject(pThread->m_Thread[4].GetShutdownEvent(), dwShutdownEventCheckPeriod))
+	{
+		pThread->m_dwThreadTick[4] = GetTickCount() - dwTick;
+		dwTick = GetTickCount();
+
+		if (pThread->m_bTHREAD_SHIFT2MK)
+		{
+			pThread->RunShift2Mk();
+			pThread->m_bTHREAD_SHIFT2MK = FALSE;
+			Sleep(0);
+		}
+		else
+			Sleep(30);
+	}
+
+	pThread->m_bThread[4] = FALSE;
 
 	return 0;
 }
@@ -4172,7 +4221,7 @@ void CGvisR2R_PunchView::DoIO()
 	}
 	else if (pDoc->Status.bAuto)
 	{
-		DoAutoEng();
+		//DoAutoEng();
 		DoAuto();
 	}
 
@@ -4948,6 +4997,10 @@ void CGvisR2R_PunchView::DoMainSw()
 	// 
 	// 	unsigned short usIn = pDoc->m_pSliceIo[0];
 	// 	unsigned short *usInF = &pDoc->m_pSliceIoF[0];
+
+	if (!pDoc->m_pMpeIb || !pDoc->m_pMpeIF)
+		return;
+
 	unsigned short usIn = pDoc->m_pMpeIb[4];
 	unsigned short *usInF = &pDoc->m_pMpeIF[4];
 
@@ -9803,13 +9856,13 @@ void CGvisR2R_PunchView::InitAuto(BOOL bInit)
 
 	m_bEngSt = FALSE;
 	m_bEngStSw = FALSE;
-	m_nEngStAuto = FALSE;
+	m_nEngStAuto = 0;
 
 	m_bEng2dSt = FALSE;
 	m_bEng2dStSw = FALSE;
-	m_nEng2dStAuto = FALSE;
+	m_nEng2dStAuto = 0;
 
-	pDoc->BtnStatus.EngAuto.Init();
+	pDoc->BtnStatus.EngAuto._Init();
 
 	m_bLotEnd = FALSE;
 	m_nLotEndAuto = 0;
@@ -14016,6 +14069,11 @@ void CGvisR2R_PunchView::DoMark0()
 		}
 		break;
 	case 7:
+		if (bDualTest)
+			nSerial = m_nBufDnSerial[0];//GetBuffer0();
+		else
+			nSerial = m_nBufUpSerial[0];//GetBuffer0();
+
 		if (!WaitDelay0(1))		// F:Done, T:On Waiting....		// Delay후에
 		{
 			m_nMkPcs[0] = 0;
@@ -14032,8 +14090,13 @@ void CGvisR2R_PunchView::DoMark0()
 				}
 				else											// Review가 아니면
 				{
-					m_nMkPcs[0] = GetTotDefPcs0(nSerial);
-					m_nStepMk[0] = MK_END;
+					if (m_bReview)
+					{
+						m_nMkPcs[0] = GetTotDefPcs0(nSerial);
+						m_nStepMk[0] = MK_END;
+					}
+					else
+						m_nStepMk[0]++;
 				}
 			}
 		}
@@ -14706,6 +14769,11 @@ void CGvisR2R_PunchView::DoMark1()
 		}
 		break;
 	case 7:
+		if (bDualTest)
+			nSerial = m_nBufDnSerial[1];//GetBuffer1();
+		else
+			nSerial = m_nBufUpSerial[1];//GetBuffer1();
+
 		if (!WaitDelay1(6))		// F:Done, T:On Waiting....
 		{
 			m_nMkPcs[1] = 0;
@@ -16624,13 +16692,16 @@ void CGvisR2R_PunchView::Mk2PtReady()
 		case MK_ST:	// PLC MK 신호 확인	
 			if (IsRun())
 			{
-				SetListBuf();
+				m_pMpe->Write(_T("MB440150"), 1);// 마킹부 마킹중 ON (PC가 ON, OFF)
 				m_nMkStAuto++;
 			}
 			break;
 		case MK_ST + 1:
-			m_pMpe->Write(_T("MB440150"), 1);// 마킹부 마킹중 ON (PC가 ON, OFF)
-			m_nMkStAuto++;
+			if (!m_bTHREAD_SHIFT2MK)
+			{
+				SetListBuf();
+				m_nMkStAuto++;
+			}
 			break;
 		case MK_ST + (Mk2PtIdx::Start) :	// 2
 			if (bDualTest)
@@ -16704,7 +16775,7 @@ void CGvisR2R_PunchView::Mk2PtReady()
 			}
 			break;
 		case MK_ST + (Mk2PtIdx::Start) + 1:
-			m_nMkStAuto++;
+			m_nMkStAuto = MK_ST + (Mk2PtIdx::ChkSn);
 
 			// 			if(bDualTest)
 			// 			{
@@ -16746,6 +16817,9 @@ void CGvisR2R_PunchView::Mk2PtChkSerial()
 	int nSerial = 0;
 	int nNewLot = 0;
 	double dFdEnc;
+
+	if (m_bTHREAD_SHIFT2MK)
+		return;
 
 	if (m_bMkSt)
 	{
@@ -16853,6 +16927,9 @@ void CGvisR2R_PunchView::Mk2PtChkSerial()
 
 void CGvisR2R_PunchView::Mk2PtInit()
 {
+	if (m_bTHREAD_SHIFT2MK)
+		return;
+
 	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
 
 	if (m_bMkSt)
@@ -16884,7 +16961,7 @@ void CGvisR2R_PunchView::Mk2PtInit()
 
 		case MK_ST + (Mk2PtIdx::InitMk) + 1:
 			if (IsRun())
-				m_nMkStAuto++;
+				m_nMkStAuto = MK_ST + (Mk2PtIdx::Move0Cam1);	// Move - Cam1 - Pt0
 			break;
 		}
 	}
@@ -17599,18 +17676,24 @@ void CGvisR2R_PunchView::Mk2PtDoMarking()
 #ifdef USE_MPE
 			if (pDoc->m_pMpeSignal[0] & (0x01 << 1))	// 마킹부 Feeding완료(PLC가 On시키고 PC가 확인하고 Reset시킴.)-20141030
 			{
-				m_pMpe->Write(_T("MB440101"), 0);	// 마킹부 Feeding완료
+				//if (!m_bTHREAD_SHIFT2MK[0] && !m_bTHREAD_SHIFT2MK[1])
+				if (!m_bTHREAD_SHIFT2MK)
+				{
+					m_pMpe->Write(_T("MB440101"), 0);	// 마킹부 Feeding완료
 
-				Shift2Mk();			// PCR 이동(Buffer->Marked) // 기록(WorkingInfo.LastJob.sSerial)
-				UpdateRst();
-				SetMkFdLen();
+					//Shift2Mk();			// PCR 이동(Buffer->Marked) // 기록(WorkingInfo.LastJob.sSerial)
+					//UpdateRst();
+					DoShift2Mk();
 
-				SetCycTime();
-				m_dwCycSt = GetTickCount();
+					SetMkFdLen();
 
-				UpdateWorking();	// Update Working Info...
-				ChkYield();
-				m_nMkStAuto++;
+					SetCycTime();
+					m_dwCycSt = GetTickCount();
+
+					UpdateWorking();	// Update Working Info...
+					ChkYield();
+					m_nMkStAuto++;
+				}
 			}
 #endif
 			break;
@@ -21151,7 +21234,7 @@ void CGvisR2R_PunchView::PlcAlm(BOOL bMon, BOOL bClr)
 	if (bMon && !m_nMonAlmF)
 	{
 		m_nMonAlmF = 1;
-		//		ResetMonAlm();
+		//ResetMonAlm();
 		FindAlarm();
 		Sleep(300);
 		m_pMpe->Write(_T("MB600008"), 1);
@@ -22619,6 +22702,12 @@ BOOL CGvisR2R_PunchView::IsPinPos1()
 	return TRUE;
 }
 
+void CGvisR2R_PunchView::RunShift2Mk()
+{
+	Shift2Mk();			// PCR 이동(Buffer->Marked) // 기록(WorkingInfo.LastJob.sSerial)
+	UpdateRst();
+}
+
 void CGvisR2R_PunchView::UpdateYield(int nSerial)
 {
 	pDoc->UpdateYield(nSerial);
@@ -22755,6 +22844,105 @@ void CGvisR2R_PunchView::UpdateYield()
 }
 
 
+void CGvisR2R_PunchView::DoShift2Mk()
+{
+	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
+	int nSerial;
+
+	if (bDualTest)
+	{
+		if (m_bLastProc && m_nBufDnSerial[0] == m_nLotEndSerial)
+		{
+			nSerial = m_nBufDnSerial[0];
+			if (nSerial > 0 && (nSerial % 2))
+			{
+				m_bTHREAD_SHIFT2MK = TRUE;
+			}
+		}
+		else
+		{
+			nSerial = m_nBufDnSerial[0];
+			if (!m_bCont)
+			{
+				if (nSerial > 0 && (nSerial % 2)) // First Shot number must be odd.
+				{
+					m_bTHREAD_SHIFT2MK = TRUE;
+				}
+				else
+				{
+					Stop();
+				}
+			}
+			else
+			{
+				if (nSerial > 0)
+				{
+					m_bTHREAD_SHIFT2MK = TRUE;
+				}
+				else
+				{
+					Stop();
+				}
+			}
+		}
+	}
+	else
+	{
+		if (m_bLastProc && m_nBufUpSerial[0] == m_nLotEndSerial)
+		{
+			nSerial = m_nBufUpSerial[0];
+			if (!m_bCont)
+			{
+				if (nSerial > 0 && (nSerial % 2)) // First Shot number must be odd.
+				{
+					m_bTHREAD_SHIFT2MK = TRUE;
+				}
+				else
+				{
+					Stop();
+				}
+			}
+			else
+			{
+				if (nSerial > 0)
+				{
+					m_bTHREAD_SHIFT2MK = TRUE;
+				}
+				else
+				{
+					Stop();
+				}
+			}
+		}
+		else
+		{
+			nSerial = m_nBufUpSerial[0];
+			if (!m_bCont)
+			{
+				if (nSerial > 0 && (nSerial % 2)) // First Shot number must be odd.
+				{
+					m_bTHREAD_SHIFT2MK = TRUE;
+				}
+				else
+				{
+					Stop();
+				}
+			}
+			else
+			{
+				if (nSerial > 0)
+				{
+					m_bTHREAD_SHIFT2MK = TRUE;
+				}
+				else
+				{
+					Stop();
+				}
+			}
+		}
+	}
+}
+
 void CGvisR2R_PunchView::DoAutoEng()
 {
 	if (!IsAuto() || (MODE_INNER != pDoc->WorkingInfo.LastJob.nTestMode))
@@ -22799,8 +22987,6 @@ void CGvisR2R_PunchView::DoAtuoGetEngStSignal()
 					m_pEngrave->SwEngAutoMkSt(TRUE);
 					pDoc->BtnStatus.EngAuto.MkStF = TRUE;
 				}
-
-
 			}
 		}
 	}
@@ -22830,7 +23016,7 @@ void CGvisR2R_PunchView::DoAtuoGet2dReadStSignal()
 	{
 		if (!m_bEng2dSt)
 		{
-			if (pDoc->m_pMpeSignal[0] & (0x01 << 3) || m_bEng2dStSw) // 2D(GUI) Reading 동작 Start신호(PLC On->PC Off)
+			if (pDoc->m_pMpeSignal[0] & (0x01 << 5) || m_bEng2dStSw) // 각인부 2D 리더 시작신호(PLC On->PC Off)
 			{
 				m_bEng2dStSw = FALSE;
 
@@ -22849,10 +23035,10 @@ void CGvisR2R_PunchView::DoAtuoGet2dReadStSignal()
 		{
 			pDoc->BtnStatus.EngAuto.Read2dStF = FALSE;
 
-			m_pMpe->Write(_T("MB440103"), 0);			// 2D(GUI) Reading 동작 Start신호(PLC On->PC Off)
+			m_pMpe->Write(_T("MB440105"), 0);			// 각인부 2D 리더 시작신호(PLC On->PC Off)
 
-			//if (pDoc->m_pMpeSignal[0] & (0x01 << 2))	// 각인부 Feeding완료(PLC가 On시키고 PC가 확인하고 Reset시킴.)
-			//	m_pMpe->Write(_T("MB440102"), 0);		// 각인부 Feeding완료
+			if (pDoc->m_pMpeSignal[0] & (0x01 << 2))	// 각인부 Feeding완료(PLC가 On시키고 PC가 확인하고 Reset시킴.)
+				m_pMpe->Write(_T("MB440102"), 0);		// 각인부 Feeding완료
 
 			m_bEng2dSt = TRUE;
 			m_nEng2dStAuto = ENG_2D_ST;

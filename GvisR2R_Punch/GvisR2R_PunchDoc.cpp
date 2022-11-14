@@ -7080,6 +7080,9 @@ void CGvisR2R_PunchDoc::DelSharePcrDn()
 
 void CGvisR2R_PunchDoc::DelPcrAll()
 {
+	DelSharePcrUp();
+	DelSharePcrDn();
+
 	DelPcrUp();
 	DelPcrDn();
 }

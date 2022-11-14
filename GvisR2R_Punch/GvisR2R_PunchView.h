@@ -77,6 +77,17 @@
 #define TIM_CHK_TEMP_STOP		20
 #define TIM_SAFTY_STOP			21
 
+#define MAX_THREAD				5
+
+namespace Read2dIdx
+{
+	typedef enum Index {
+		Start = 2, ChkSn = 4, InitRead = 10, Move0Cam1 = 12, Move0Cam0 = 14, Align1_0 = 17, Align0_0 = 18,
+		Move1Cam1 = 21, Move1Cam0 = 23, Align1_1 = 26, Align0_1 = 27, MoveInitPt = 29, ChkElec = 32, DoRead = 35,
+		Verify = 37, DoneRead = 38, LotDiff = 50
+	};
+}
+
 namespace Mk1PtIdx
 {
 	typedef enum Index {
@@ -357,9 +368,9 @@ public:
 	BOOL m_bTIM_INIT_VIEW;
 	BOOL m_bCam, m_bReview;
 
-	DWORD m_dwThreadTick[4];
-	BOOL m_bThread[4];
-	CThreadTask m_Thread[4];
+	DWORD m_dwThreadTick[MAX_THREAD];
+	BOOL m_bThread[MAX_THREAD];
+	CThreadTask m_Thread[MAX_THREAD];
 
 	double m_dEnc[MAX_AXIS], m_dTarget[MAX_AXIS];
 	double m_dNextTarget[MAX_AXIS];
@@ -380,6 +391,7 @@ public:
 	int	m_nStepTHREAD_DISP_DEF;
 	BOOL m_bTHREAD_UPDATAE_YIELD[2];		// [0] : Cam0, [1] : Cam1
 	int	m_nSerialTHREAD_UPDATAE_YIELD[2];	// [0] : Cam0, [1] : Cam1
+	BOOL m_bTHREAD_SHIFT2MK;// [2];		// [0] : Cam0, [1] : Cam1
 	// 	BOOL m_bTIM_MK_START;
 
 	BOOL m_bSwRun, m_bSwRunF;
@@ -557,9 +569,12 @@ public:
 	static UINT ThreadProc1(LPVOID lpContext); // Safety check thread procedure
 	static UINT ThreadProc2(LPVOID lpContext); // Safety check thread procedure
 	static UINT ThreadProc3(LPVOID lpContext); // Safety check thread procedure
+	static UINT ThreadProc4(LPVOID lpContext); // Safety check thread procedure
 
 											   // Auto Sequence
 	BOOL IsReady();
+	void DoShift2Mk();
+	void RunShift2Mk();
 	void Shift2Buf();
 	void Shift2Mk();
 	void CompletedMk(int nCam); // 0: Only Cam0, 1: Only Cam1, 2: Cam0 and Cam1, 3: None

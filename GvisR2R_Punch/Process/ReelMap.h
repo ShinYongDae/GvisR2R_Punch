@@ -47,11 +47,11 @@ class CReelMap : public CWnd
 	BOOL UpdateRst(int nSerial);
 	BOOL MakeDir();
 	BOOL MakeDir(CString sModel, CString sLayer, CString sLot);
-	BOOL MakeDirUser();
-	BOOL MakeDirUser(CString sModel, CString sLayer, CString sLot);
-	CString MakeDirUserRestore();
-	CString MakeDirUserRestore(CString sModel, CString sLayer, CString sLot);
-	int GetLastUserRestoreDir(CString strPath);
+	BOOL MakeDirRmap();
+	BOOL MakeDirRmap(CString sModel, CString sLayer, CString sLot);
+	CString MakeDirRmapRestore();
+	CString MakeDirRmapRestore(CString sModel, CString sLayer, CString sLot);
+	int GetLastRmapRestoreDir(CString strPath);
 
 	char* StrToChar(CString str);
 	void StrToChar(CString str, char* pCh);
@@ -62,6 +62,9 @@ class CReelMap : public CWnd
 	
 	BOOL LoadDefectTableIni();
 	BOOL LoadDefectTableDB();
+
+	BOOL MakeDirYield(CString sPath);
+
 // Construction
 public:
 	CReelMap(int nLayer, int nPnl=0, int nPcs=0, int nDir=0);
@@ -99,6 +102,7 @@ public:
 	double m_dProgressRatio;
 
 	stYield m_stYield;
+	int m_nStartSerial;
 
 // Operations
 public:

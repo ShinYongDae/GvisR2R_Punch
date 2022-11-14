@@ -168,6 +168,8 @@ CReelMap::CReelMap(int nLayer, int nPnl, int nPcs, int nDir)
 	ClrPnlNum();	
 	ClrPnlDefNum();
 	ClrFixPcs();
+
+	m_nStartSerial = 0;
 }
 
 CReelMap::~CReelMap()
@@ -440,16 +442,8 @@ BOOL CReelMap::Open(CString sPath)
 	if(findfile.FindFile(sPath))
 		bExist = TRUE;
 	else
-		MakeDirUser();
+		MakeDirRmap();
 
-// 	if(bExist)
-// 	{
-// 		char szData[100];
-// 		if (0 >= ::GetPrivateProfileString(_T("Info"), _T("모      델"), NULL, szData, sizeof(szData), sPath))
-// 			bExist = FALSE;
-// 	}
-
-	//_tcscpy(FileName, sPath);
 	StrToChar(sPath, FileName);
 
 	fp = fopen(FileName, "a+");
@@ -460,14 +454,8 @@ BOOL CReelMap::Open(CString sPath)
 		return FALSE; 
 	}
 
-	m_sPathShare = sPath;
 	//m_sPathShare.Format(_T("%s"), sPath);
 
-#ifdef TEST_MODE
-	fclose(fp);
-
-	return TRUE;
-#endif
 	char* pRtn = NULL;
 	if(!bExist)
 	{
@@ -476,10 +464,10 @@ BOOL CReelMap::Open(CString sPath)
 
 		fprintf(fp, "[Info]\n");
 		fprintf(fp, "설  비  명 = %s\n", pRtn = StrToChar(pDoc->WorkingInfo.System.sMcName)); if (pRtn) delete pRtn; pRtn = NULL;
-		fprintf(fp, "운  용  자 = %s\n", pRtn= StrToChar(pDoc->WorkingInfo.LastJob.sSelUserName)); if (pRtn) delete pRtn; pRtn = NULL;
-		fprintf(fp, "모      델 = %s\n", pRtn= StrToChar(pDoc->WorkingInfo.LastJob.sModelUp)); if (pRtn) delete pRtn; pRtn = NULL;
-		fprintf(fp, "로      트 = %s\n", pRtn= StrToChar(pDoc->WorkingInfo.LastJob.sLotUp)); if (pRtn) delete pRtn; pRtn = NULL;
-		fprintf(fp, "상면레이어 = %s\n", pRtn= StrToChar(pDoc->WorkingInfo.LastJob.sLayerUp)); if (pRtn) delete pRtn; pRtn = NULL;
+		fprintf(fp, "운  용  자 = %s\n", pRtn = StrToChar(pDoc->WorkingInfo.LastJob.sSelUserName)); if (pRtn) delete pRtn; pRtn = NULL;
+		fprintf(fp, "모      델 = %s\n", pRtn = StrToChar(pDoc->WorkingInfo.LastJob.sModelUp)); if (pRtn) delete pRtn; pRtn = NULL;
+		fprintf(fp, "로      트 = %s\n", pRtn = StrToChar(pDoc->WorkingInfo.LastJob.sLotUp)); if (pRtn) delete pRtn; pRtn = NULL;
+		fprintf(fp, "상면레이어 = %s\n", pRtn = StrToChar(pDoc->WorkingInfo.LastJob.sLayerUp)); if (pRtn) delete pRtn; pRtn = NULL;
 		if (bDualTest)
 		{
 			fprintf(fp, "하면레이어 = %s\n", pRtn = StrToChar(pDoc->WorkingInfo.LastJob.sLayerDn)); if (pRtn) delete pRtn; pRtn = NULL;
@@ -574,7 +562,7 @@ BOOL CReelMap::OpenUser(CString sPath)
 	if(findfile.FindFile(sPath))
 		bExist = TRUE;
 	else
-		MakeDirUser();
+		MakeDirRmap();
 
 // 	if(bExist)
 // 	{
@@ -682,7 +670,7 @@ BOOL CReelMap::Open(CString sPath, CString sModel, CString sLayer, CString sLot)
 	if(findfile.FindFile(sPath))
 		bExist = TRUE;
 	else
-		MakeDirUser(sModel, sLayer, sLot);
+		MakeDirRmap(sModel, sLayer, sLot);
 
 // 	if(bExist)
 // 	{
@@ -805,7 +793,7 @@ BOOL CReelMap::OpenUser(CString sPath, CString sModel, CString sLayer, CString s
 	if(findfile.FindFile(sPath))
 		bExist = TRUE;
 	else
-		MakeDirUser(sModel, sLayer, sLot);
+		MakeDirRmap(sModel, sLayer, sLot);
 
 // 	if(bExist)
 // 	{
@@ -1943,7 +1931,7 @@ void CReelMap::ResetYield()
 	{
 		m_stYield.nDefA[k] = 0;
 
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < MAX_STRIP; i++)
 		{
 			m_stYield.nDefPerStrip[i][k] = 0;
 		}
@@ -1967,9 +1955,16 @@ BOOL CReelMap::ReadYield(int nSerial, CString sPath)
 		}
 		else
 		{
-			sMsg.Format(_T("이전 수율 읽기 오류 : Shot(%d)-불량(%d)\r\n%s"), nSerial, i, sPath);
-			AfxMessageBox(sMsg, MB_ICONWARNING | MB_OK);
-			return FALSE;
+			if (nSerial == 1)
+			{
+				m_stYield.nDefA[i] = 0;
+			}
+			else
+			{
+				sMsg.Format(_T("이전 수율 읽기 오류 : Shot(%d)-불량(%d)\r\n%s"), nSerial, i, sPath);
+				AfxMessageBox(sMsg, MB_ICONWARNING | MB_OK);
+				return FALSE;
+			}
 		}
 	}
 
@@ -1979,9 +1974,16 @@ BOOL CReelMap::ReadYield(int nSerial, CString sPath)
 	}
 	else
 	{
-		sMsg.Format(_T("이전 수율 읽기 오류 : Shot(%d)-Total Pcs\r\n%s"), nSerial, sPath);
-		AfxMessageBox(sMsg, MB_ICONWARNING | MB_OK);
-		return FALSE;
+		if (nSerial == 1)
+		{
+			m_stYield.nTot = 0;
+		}
+		else
+		{
+			sMsg.Format(_T("이전 수율 읽기 오류 : Shot(%d)-Total Pcs\r\n%s"), nSerial, sPath);
+			AfxMessageBox(sMsg, MB_ICONWARNING | MB_OK);
+			return FALSE;
+		}
 	}
 
 	if (0 < ::GetPrivateProfileString(strMenu, _T("Good Pcs"), NULL, szData, sizeof(szData), sPath))
@@ -1990,9 +1992,16 @@ BOOL CReelMap::ReadYield(int nSerial, CString sPath)
 	}
 	else
 	{
-		sMsg.Format(_T("이전 수율 읽기 오류 : Shot(%d)-Good Pcs\r\n%s"), nSerial, sPath);
-		AfxMessageBox(sMsg, MB_ICONWARNING | MB_OK);
-		return FALSE;
+		if (nSerial == 1)
+		{
+			m_stYield.nGood = 0;
+		}
+		else
+		{
+			sMsg.Format(_T("이전 수율 읽기 오류 : Shot(%d)-Good Pcs\r\n%s"), nSerial, sPath);
+			AfxMessageBox(sMsg, MB_ICONWARNING | MB_OK);
+			return FALSE;
+		}
 	}
 
 	if (0 < ::GetPrivateProfileString(strMenu, _T("Bad Pcs"), NULL, szData, sizeof(szData), sPath))
@@ -2001,12 +2010,19 @@ BOOL CReelMap::ReadYield(int nSerial, CString sPath)
 	}
 	else
 	{
-		sMsg.Format(_T("이전 수율 읽기 오류 : Shot(%d)-Bad Pcs\r\n%s"), nSerial, sPath);
-		AfxMessageBox(sMsg, MB_ICONWARNING | MB_OK);
-		return FALSE;
+		if (nSerial == 1)
+		{
+			m_stYield.nDef = 0;
+		}
+		else
+		{
+			sMsg.Format(_T("이전 수율 읽기 오류 : Shot(%d)-Bad Pcs\r\n%s"), nSerial, sPath);
+			AfxMessageBox(sMsg, MB_ICONWARNING | MB_OK);
+			return FALSE;
+		}
 	}
 
-	for (k = 0; k < 4; k++)
+	for (k = 0; k < MAX_STRIP; k++)
 	{
 		strItem.Format(_T("Strip%d"), k);
 		if (0 < ::GetPrivateProfileString(strMenu, strItem, NULL, szData, sizeof(szData), sPath))
@@ -2015,9 +2031,16 @@ BOOL CReelMap::ReadYield(int nSerial, CString sPath)
 		}
 		else
 		{
-			sMsg.Format(_T("이전 수율 읽기 오류 : Shot(%d)-Strip%d\r\n%s"), nSerial, k, sPath);
-			AfxMessageBox(sMsg, MB_ICONWARNING | MB_OK);
-			return FALSE;
+			if (nSerial == 1)
+			{
+				m_stYield.nDefStrip[k] = 0;
+			}
+			else
+			{
+				sMsg.Format(_T("이전 수율 읽기 오류 : Shot(%d)-Strip%d\r\n%s"), nSerial, k, sPath);
+				AfxMessageBox(sMsg, MB_ICONWARNING | MB_OK);
+				return FALSE;
+			}
 		}
 
 		strItem.Format(_T("StripOut_%d"), k);
@@ -2027,9 +2050,16 @@ BOOL CReelMap::ReadYield(int nSerial, CString sPath)
 		}
 		else
 		{
-			sMsg.Format(_T("이전 수율 읽기 오류 : Shot(%d)-StripOut_%d\r\n%s"), nSerial, k, sPath);
-			AfxMessageBox(sMsg, MB_ICONWARNING | MB_OK);
-			return FALSE;
+			if (nSerial == 1)
+			{
+				m_stYield.nStripOut[k] = 0;
+			}
+			else
+			{
+				sMsg.Format(_T("이전 수율 읽기 오류 : Shot(%d)-StripOut_%d\r\n%s"), nSerial, k, sPath);
+				AfxMessageBox(sMsg, MB_ICONWARNING | MB_OK);
+				return FALSE;
+			}
 		}
 
 		for (i = 1; i < MAX_DEF; i++)
@@ -2041,9 +2071,16 @@ BOOL CReelMap::ReadYield(int nSerial, CString sPath)
 			}
 			else
 			{
-				sMsg.Format(_T("이전 수율 읽기 오류 : Shot(%d)-Strip%d_%d\r\n%s"), nSerial, k, i, sPath);
-				AfxMessageBox(sMsg, MB_ICONWARNING | MB_OK);
-				return FALSE;
+				if (nSerial == 1)
+				{
+					m_stYield.nDefPerStrip[k][i] = 0;
+				}
+				else
+				{
+					sMsg.Format(_T("이전 수율 읽기 오류 : Shot(%d)-Strip%d_%d\r\n%s"), nSerial, k, i, sPath);
+					AfxMessageBox(sMsg, MB_ICONWARNING | MB_OK);
+					return FALSE;
+				}
 			}
 		}
 	}
@@ -2054,145 +2091,153 @@ BOOL CReelMap::ReadYield(int nSerial, CString sPath)
 	}
 	else
 	{
-		sMsg.Format(_T("이전 수율 읽기 오류 : Shot(%d)-StripOut_Total\r\n%s"), nSerial, sPath);
-		AfxMessageBox(sMsg, MB_ICONWARNING | MB_OK);
-		return FALSE;
+		if (nSerial == 1)
+		{
+			m_stYield.nTotSriptOut = 0;
+		}
+		else
+		{
+			sMsg.Format(_T("이전 수율 읽기 오류 : Shot(%d)-StripOut_Total\r\n%s"), nSerial, sPath);
+			AfxMessageBox(sMsg, MB_ICONWARNING | MB_OK);
+			return FALSE;
+		}
 	}
 
 	return TRUE;
 }
 
-BOOL CReelMap::WriteYield(int nSerial, CString sPath)
-{
-	int nNodeX = 0, nNodeY = 0;
-#ifndef TEST_MODE
-	nNodeX = pDoc->m_Master[0].m_pPcsRgn->nCol;
-	nNodeY = pDoc->m_Master[0].m_pPcsRgn->nRow;
-#endif
-	CString sDefNum, strData;
-	int nPnl, nRow, nCol, nDefCode, nStrip;
-	int nTotPcs = nNodeX * nNodeY;
-	int nStripPcs = nTotPcs / 4;
-	double dStOutRto = _tstof(pDoc->WorkingInfo.LastJob.sStripOutRatio) / 100.0;
-	nPnl = nSerial - 1;
-
-	int i, k;
-	TCHAR szData[200];
-
-	CString sCode, strMenu, strItem, sMsg;
-	int nTot=0, nGood=0, nDef=0;
-	int nTotSriptOut = 0;
-
-	int nDefStrip[4], nDefA[MAX_DEF], nDefPerStrip[4][MAX_DEF], nStripOut[4];
-	nDefStrip[0] = 0; nDefStrip[1] = 0; nDefStrip[2] = 0; nDefStrip[3] = 0;
-	nStripOut[0] = 0; nStripOut[1] = 0; nStripOut[2] = 0; nStripOut[3] = 0;
-
-	nTot = nNodeX * nNodeY;
-
-	strMenu.Format(_T("%d"), nSerial);
-
-	strData.Format(_T("%d"), nSerial);
-	::WritePrivateProfileString(_T("Info"), _T("Total Shot"), strData, sPath);
-
-	for (k = 0; k < MAX_DEF; k++)
-	{
-		nDefA[k] = 0;
-
-		for (i = 0; i < 4; i++)
-		{
-			nDefPerStrip[i][k] = 0;
-		}
-	}
-
-	for (nRow = 0; nRow < nNodeY; nRow++)
-	{
-		for (nCol = 0; nCol < nNodeX; nCol++)
-		{
-			if (m_pPnlBuf)
-			{
-				nDefCode = (int)m_pPnlBuf[nPnl][nRow][nCol] < 0 ? 0 : (int)m_pPnlBuf[nPnl][nRow][nCol];
-				nDefA[nDefCode]++;
-
-				nStrip = int(nRow / (nNodeY / 4));
-				if (nStrip > -1 && nStrip < 4)
-				{
-					if (nDefCode > 0)
-					{
-						nDefStrip[nStrip]++;
-						nDefPerStrip[nStrip][nDefCode]++;
-					}
-				}
-			}
-		}
-	}
-
-	for (nStrip = 0; nStrip < 4; nStrip++)
-	{
-		if (nDefStrip[nStrip] >= nStripPcs * dStOutRto)
-			nStripOut[nStrip]++;
-	}
-
-	for (i = 1; i < MAX_DEF; i++)
-	{
-		sCode.Format(_T("%d"), i); 
-		m_stYield.nDefA[i] = m_stYield.nDefA[i] + nDefA[i];
-		sDefNum.Format(_T("%d"), m_stYield.nDefA[i]);
-		::WritePrivateProfileString(_T("Info"), sCode, sDefNum, sPath);
-		::WritePrivateProfileString(strMenu, sCode, sDefNum, sPath);
-
-		nDef += nDefA[i];
-	}
-
-	nGood = nTot - nDef;
-
-	m_stYield.nTot = m_stYield.nTot + nTot;
-	strData.Format(_T("%d"), m_stYield.nTot);
-	::WritePrivateProfileString(_T("Info"), _T("Total Pcs"), strData, sPath);
-	::WritePrivateProfileString(strMenu, _T("Total Pcs"), strData, sPath);
-
-	m_stYield.nGood = m_stYield.nGood + nGood;
-	strData.Format(_T("%d"), m_stYield.nGood);
-	::WritePrivateProfileString(_T("Info"), _T("Good Pcs"), strData, sPath);
-	::WritePrivateProfileString(strMenu, _T("Good Pcs"), strData, sPath);
-
-	m_stYield.nDef = m_stYield.nDef + nDef;
-	strData.Format(_T("%d"), m_stYield.nDef);
-	::WritePrivateProfileString(_T("Info"), _T("Bad Pcs"), strData, sPath);
-	::WritePrivateProfileString(strMenu, _T("Bad Pcs"), strData, sPath);
-
-	for (k = 0; k < 4; k++)
-	{
-		strItem.Format(_T("Strip%d"), k);
-		m_stYield.nDefStrip[k] = m_stYield.nDefStrip[k] + nDefStrip[k];
-		strData.Format(_T("%d"), m_stYield.nDefStrip[k]);
-		::WritePrivateProfileString(_T("Info"), strItem, strData, sPath);
-		::WritePrivateProfileString(strMenu, strItem, strData, sPath);
-
-		strItem.Format(_T("StripOut_%d"), k); 
-		m_stYield.nStripOut[k] = m_stYield.nStripOut[k] + nStripOut[k];
-		strData.Format(_T("%d"), m_stYield.nStripOut[k]);
-		::WritePrivateProfileString(_T("Info"), strItem, strData, sPath);
-		::WritePrivateProfileString(strMenu, strItem, strData, sPath);
-
-		nTotSriptOut += nStripOut[k];
-
-		for (i = 1; i < MAX_DEF; i++)
-		{
-			strItem.Format(_T("Strip%d_%d"), k, i);
-			m_stYield.nDefPerStrip[k][i] = m_stYield.nDefPerStrip[k][i] + nDefPerStrip[k][i];
-			strData.Format(_T("%d"), m_stYield.nDefPerStrip[k][i]);
-			::WritePrivateProfileString(_T("Info"), strItem, strData, sPath);
-			::WritePrivateProfileString(strMenu, strItem, strData, sPath);
-		}
-	}
-
-	m_stYield.nTotSriptOut = m_stYield.nTotSriptOut + nTotSriptOut;
-	strData.Format(_T("%d"), m_stYield.nTotSriptOut);
-	::WritePrivateProfileString(_T("Info"), _T("StripOut_Total"), strData, sPath);
-	::WritePrivateProfileString(strMenu, _T("StripOut_Total"), strData, sPath);
-
-	return TRUE;
-}
+//
+//BOOL CReelMap::WriteYield(int nSerial, CString sPath)
+//{
+//	int nNodeX = 0, nNodeY = 0;
+//#ifndef TEST_MODE
+//	nNodeX = pDoc->m_Master[0].m_pPcsRgn->nCol;
+//	nNodeY = pDoc->m_Master[0].m_pPcsRgn->nRow;
+//#endif
+//	CString sDefNum, strData;
+//	int nPnl, nRow, nCol, nDefCode, nStrip;
+//	int nTotPcs = nNodeX * nNodeY;
+//	int nStripPcs = nTotPcs / 4;
+//	double dStOutRto = _tstof(pDoc->WorkingInfo.LastJob.sStripOutRatio) / 100.0;
+//	nPnl = nSerial - 1;
+//
+//	int i, k;
+//	TCHAR szData[200];
+//
+//	CString sCode, strMenu, strItem, sMsg;
+//	int nTot=0, nGood=0, nDef=0;
+//	int nTotSriptOut = 0;
+//
+//	int nDefStrip[4], nDefA[MAX_DEF], nDefPerStrip[4][MAX_DEF], nStripOut[4];
+//	nDefStrip[0] = 0; nDefStrip[1] = 0; nDefStrip[2] = 0; nDefStrip[3] = 0;
+//	nStripOut[0] = 0; nStripOut[1] = 0; nStripOut[2] = 0; nStripOut[3] = 0;
+//
+//	nTot = nNodeX * nNodeY;
+//
+//	strMenu.Format(_T("%d"), nSerial);
+//
+//	strData.Format(_T("%d"), nSerial);
+//	::WritePrivateProfileString(_T("Info"), _T("Total Shot"), strData, sPath);
+//
+//	for (k = 0; k < MAX_DEF; k++)
+//	{
+//		nDefA[k] = 0;
+//
+//		for (i = 0; i < 4; i++)
+//		{
+//			nDefPerStrip[i][k] = 0;
+//		}
+//	}
+//
+//	for (nRow = 0; nRow < nNodeY; nRow++)
+//	{
+//		for (nCol = 0; nCol < nNodeX; nCol++)
+//		{
+//			if (m_pPnlBuf)
+//			{
+//				nDefCode = (int)m_pPnlBuf[nPnl][nRow][nCol] < 0 ? 0 : (int)m_pPnlBuf[nPnl][nRow][nCol];
+//				nDefA[nDefCode]++;
+//
+//				nStrip = int(nRow / (nNodeY / 4));
+//				if (nStrip > -1 && nStrip < 4)
+//				{
+//					if (nDefCode > 0)
+//					{
+//						nDefStrip[nStrip]++;
+//						nDefPerStrip[nStrip][nDefCode]++;
+//					}
+//				}
+//			}
+//		}
+//	}
+//
+//	for (nStrip = 0; nStrip < 4; nStrip++)
+//	{
+//		if (nDefStrip[nStrip] >= nStripPcs * dStOutRto)
+//			nStripOut[nStrip]++;
+//	}
+//
+//	for (i = 1; i < MAX_DEF; i++)
+//	{
+//		sCode.Format(_T("%d"), i); 
+//		m_stYield.nDefA[i] = m_stYield.nDefA[i] + nDefA[i];
+//		sDefNum.Format(_T("%d"), m_stYield.nDefA[i]);
+//		::WritePrivateProfileString(_T("Info"), sCode, sDefNum, sPath);
+//		::WritePrivateProfileString(strMenu, sCode, sDefNum, sPath);
+//
+//		nDef += nDefA[i];
+//	}
+//
+//	nGood = nTot - nDef;
+//
+//	m_stYield.nTot = m_stYield.nTot + nTot;
+//	strData.Format(_T("%d"), m_stYield.nTot);
+//	::WritePrivateProfileString(_T("Info"), _T("Total Pcs"), strData, sPath);
+//	::WritePrivateProfileString(strMenu, _T("Total Pcs"), strData, sPath);
+//
+//	m_stYield.nGood = m_stYield.nGood + nGood;
+//	strData.Format(_T("%d"), m_stYield.nGood);
+//	::WritePrivateProfileString(_T("Info"), _T("Good Pcs"), strData, sPath);
+//	::WritePrivateProfileString(strMenu, _T("Good Pcs"), strData, sPath);
+//
+//	m_stYield.nDef = m_stYield.nDef + nDef;
+//	strData.Format(_T("%d"), m_stYield.nDef);
+//	::WritePrivateProfileString(_T("Info"), _T("Bad Pcs"), strData, sPath);
+//	::WritePrivateProfileString(strMenu, _T("Bad Pcs"), strData, sPath);
+//
+//	for (k = 0; k < 4; k++)
+//	{
+//		strItem.Format(_T("Strip%d"), k);
+//		m_stYield.nDefStrip[k] = m_stYield.nDefStrip[k] + nDefStrip[k];
+//		strData.Format(_T("%d"), m_stYield.nDefStrip[k]);
+//		::WritePrivateProfileString(_T("Info"), strItem, strData, sPath);
+//		::WritePrivateProfileString(strMenu, strItem, strData, sPath);
+//
+//		strItem.Format(_T("StripOut_%d"), k); 
+//		m_stYield.nStripOut[k] = m_stYield.nStripOut[k] + nStripOut[k];
+//		strData.Format(_T("%d"), m_stYield.nStripOut[k]);
+//		::WritePrivateProfileString(_T("Info"), strItem, strData, sPath);
+//		::WritePrivateProfileString(strMenu, strItem, strData, sPath);
+//
+//		nTotSriptOut += nStripOut[k];
+//
+//		for (i = 1; i < MAX_DEF; i++)
+//		{
+//			strItem.Format(_T("Strip%d_%d"), k, i);
+//			m_stYield.nDefPerStrip[k][i] = m_stYield.nDefPerStrip[k][i] + nDefPerStrip[k][i];
+//			strData.Format(_T("%d"), m_stYield.nDefPerStrip[k][i]);
+//			::WritePrivateProfileString(_T("Info"), strItem, strData, sPath);
+//			::WritePrivateProfileString(strMenu, strItem, strData, sPath);
+//		}
+//	}
+//
+//	m_stYield.nTotSriptOut = m_stYield.nTotSriptOut + nTotSriptOut;
+//	strData.Format(_T("%d"), m_stYield.nTotSriptOut);
+//	::WritePrivateProfileString(_T("Info"), _T("StripOut_Total"), strData, sPath);
+//	::WritePrivateProfileString(strMenu, _T("StripOut_Total"), strData, sPath);
+//
+//	return TRUE;
+//}
 
 BOOL CReelMap::UpdateYield(int nSerial)
 {
@@ -2202,79 +2247,81 @@ BOOL CReelMap::UpdateYield(int nSerial)
 		return 0;
 	}
 
-	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
-	int nNodeX = 0, nNodeY = 0;
-#ifndef TEST_MODE
-	nNodeX = pDoc->m_Master[0].m_pPcsRgn->nCol;
-	nNodeY = pDoc->m_Master[0].m_pPcsRgn->nRow;
-#endif
-
-	int k, i;
-	FILE *fp = NULL;
-	char FileName[MAX_PATH];
-
-	BOOL bExist = FALSE;
 	CString sPath = m_sPathYield;
-	CString sMsg;
-	CFileFind findfile;
-	if (findfile.FindFile(sPath))
-		bExist = TRUE;
-	else
-		MakeDirUser();
-	StrToChar(sPath, FileName);
+/*
+//	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
+//	int nNodeX = 0, nNodeY = 0;
+//#ifndef TEST_MODE
+//	nNodeX = pDoc->m_Master[0].m_pPcsRgn->nCol;
+//	nNodeY = pDoc->m_Master[0].m_pPcsRgn->nRow;
+//#endif
 
-	fp = fopen(FileName, "a+");
-	if (fp == NULL)
-	{
-		sMsg.Format(_T("It is trouble to open \r\n %s"), sPath);
-		pView->MsgBox(sMsg);
-		//AfxMessageBox(_T("It is trouble to open ReelMap.txt"),MB_ICONWARNING|MB_OK);
-		return FALSE;
-	}
+	//int k, i;
+	//char FileName[MAX_PATH];
 
-	char* pRtn = NULL;
-	if (!bExist)
-	{
-		fprintf(fp, "[Info]\n");
-		fprintf(fp, "Total Shot=\n");
-		fprintf(fp, "\n");
-		fprintf(fp, "Total Pcs=\n");
-		fprintf(fp, "Good Pcs=\n");
-		fprintf(fp, "Bad Pcs=\n");
-		fprintf(fp, "\n");
+	//BOOL bExist = FALSE;
+	//CString sMsg;
+	//CFileFind findfile;
+	//if (findfile.FindFile(sPath))
+	//	bExist = TRUE;
+	//else
+	//	MakeDirRmap();
 
-		for (i = 1; i < MAX_DEF; i++)
-			fprintf(fp, "%d=\n", i); // m_cBigDef[i]
-		fprintf(fp, "\n");
+	//StrToChar(sPath, FileName);
 
-		fprintf(fp, "Strip0=\n");
-		fprintf(fp, "Strip1=\n");
-		fprintf(fp, "Strip2=\n");
-		fprintf(fp, "Strip3=\n");
-		fprintf(fp, "\n");
+	//FILE *fp = NULL;
+	//fp = fopen(FileName, "a+");
+	//if (fp == NULL)
+	//{
+	//	sMsg.Format(_T("It is trouble to open \r\n %s"), sPath);
+	//	pView->MsgBox(sMsg);
+	//	//AfxMessageBox(_T("It is trouble to open ReelMap.txt"),MB_ICONWARNING|MB_OK);
+	//	return FALSE;
+	//}
 
-		for (k = 0; k < 4; k++)
-		{
-			for (i = 1; i < MAX_DEF; i++)
-				fprintf(fp, "Strip%d_%d=\n", k, i);
-			fprintf(fp, "\n");
-		}
+	//char* pRtn = NULL;
+	//if (!bExist)
+	//{
+	//	fprintf(fp, "[Info]\n");
+	//	fprintf(fp, "Total Shot=\n");
+	//	fprintf(fp, "\n");
+	//	fprintf(fp, "Total Pcs=\n");
+	//	fprintf(fp, "Good Pcs=\n");
+	//	fprintf(fp, "Bad Pcs=\n");
+	//	fprintf(fp, "\n");
 
-		fprintf(fp, "StripOut_Total=\n");
-		for (k = 0; k < 4; k++)
-			fprintf(fp, "StripOut_%d=\n", k);
-		fprintf(fp, "\n");
+	//	for (i = 1; i < MAX_DEF; i++)
+	//		fprintf(fp, "%d=\n", i); // m_cBigDef[i]
+	//	fprintf(fp, "\n");
 
-		fprintf(fp, "Start Shot=%d\n", nSerial);
-		fprintf(fp, "\n");
-	}
+	//	fprintf(fp, "Strip0=\n");
+	//	fprintf(fp, "Strip1=\n");
+	//	fprintf(fp, "Strip2=\n");
+	//	fprintf(fp, "Strip3=\n");
+	//	fprintf(fp, "\n");
 
-	fclose(fp);
+	//	for (k = 0; k < MAX_STRIP; k++)
+	//	{
+	//		for (i = 1; i < MAX_DEF; i++)
+	//			fprintf(fp, "Strip%d_%d=\n", k, i);
+	//		fprintf(fp, "\n");
+	//	}
 
-	CString strData;
-	strData.Format(_T("%d"), nSerial);
-	::WritePrivateProfileString(_T("Info"), _T("Total Shot"), strData, sPath);
+	//	fprintf(fp, "StripOut_Total=\n");
+	//	for (k = 0; k < MAX_STRIP; k++)
+	//		fprintf(fp, "StripOut_%d=\n", k);
+	//	fprintf(fp, "\n");
 
+	//	fprintf(fp, "Start Shot=%d\n", nSerial);
+	//	fprintf(fp, "\n");
+	//}
+
+	//fclose(fp);
+
+	//CString strData;
+	//strData.Format(_T("%d"), nSerial);
+	//::WritePrivateProfileString(_T("Info"), _T("Total Shot"), strData, sPath);
+	*/
 	int nPnl = nSerial - 1;
 
 	if (nPnl > 0) // After first shot
@@ -2330,7 +2377,7 @@ BOOL CReelMap::UpdateRst(int nSerial)
 	}
 
 	int nTotStOut = 0;
-	for (k = 0; k < 4; k++)
+	for (k = 0; k < MAX_STRIP; k++)
 	{
 		strItem.Format(_T("Strip%d"), k);
 		m_nDefStrip[k] = m_stYield.nDefStrip[k];
@@ -2354,101 +2401,6 @@ BOOL CReelMap::UpdateRst(int nSerial)
 	strData.Format(_T("%d"), m_stYield.nTotSriptOut);
 	::WritePrivateProfileString(_T("StripOut"), _T("Total"), strData, m_sPathBuf);
 
-/*
-	CString sCode, sDefNum, strData, strMenu, strItem;
-	int nPnl, nRow, nCol, nDefCode , nTot, nGood, nDef, k, i, nStrip;
-	int nNodeX = pDoc->m_Master[0].m_pPcsRgn->nCol;
-	int nNodeY = pDoc->m_Master[0].m_pPcsRgn->nRow;
-	int nTotPcs = nNodeX * nNodeY;
-	int nStripPcs = nTotPcs / 4;
-
-	int nDefStrip[4];
-	nDefStrip[0] = 0; nDefStrip[1] = 0; nDefStrip[2] = 0; nDefStrip[3] = 0;
-	
-	nPnl = nSerial - 1;
-
-	if(nPnl>=0)
-	{
-		for(nRow=0; nRow<nNodeY; nRow++)
-		{
-			for(nCol=0; nCol<nNodeX; nCol++)
-			{
-				if(m_pPnlBuf)
-				{
-					nDefCode = (int)m_pPnlBuf[nPnl][nRow][nCol] < 0 ? 0 : (int)m_pPnlBuf[nPnl][nRow][nCol];
-					m_nDef[nDefCode]++;
-
-					nStrip = int(nRow / (nNodeY/4));
-					if(nStrip > -1 && nStrip < 4)
-					{
-						if(nDefCode > 0)
-						{
-							nDefStrip[nStrip]++;
-							m_nDefStrip[nStrip]++;
-							m_nDefPerStrip[nStrip][nDefCode]++;
-						}
-					}
-				}
-			}
-		}
-	}
-	else
-		return FALSE;
-
-
-	double dStOutRto = _tstof(pDoc->WorkingInfo.LastJob.sStripOutRatio) / 100.0; // atof
-	for(nStrip=0; nStrip<4; nStrip++)
-	{
-		if(nDefStrip[nStrip] >= nStripPcs * dStOutRto)
-			m_nStripOut[nStrip]++;
-	}
-
-
-	nTot = nNodeX * nNodeY * nSerial;
-	nDef = 0;
-	for(i=1; i<MAX_DEF; i++)
-	{
-		nDef += m_nDef[i];
-		sCode.Format(_T("%d"), i);
-		sDefNum.Format(_T("%d"), m_nDef[i]);
-		::WritePrivateProfileString(_T("Info"), sCode, sDefNum, m_sPathBuf);
-	}
-	nGood = nTot - nDef;
-
-	strData.Format(_T("%d"), nTot);
-	::WritePrivateProfileString(_T("Info"), _T("Total Pcs"), strData, m_sPathBuf);
-	strData.Format(_T("%d"), nGood);
-	::WritePrivateProfileString(_T("Info"), _T("Good Pcs"), strData, m_sPathBuf);
-	strData.Format(_T("%d"), nDef);
-	::WritePrivateProfileString(_T("Info"), _T("Bad Pcs"), strData, m_sPathBuf);
-
-	int nTotStOut = 0;
-	for(k=0; k<4; k++)
-	{
-		strMenu.Format(_T("Strip%d"), k);
-		strData.Format(_T("%d"), m_nDefStrip[k]);
-		::WritePrivateProfileString(_T("Info"), strMenu, strData, m_sPathBuf);
-		
-		strMenu.Format(_T("%d"), k);
-		strData.Format(_T("%d"), m_nStripOut[k]);
-		::WritePrivateProfileString(_T("StripOut"), strMenu, strData, m_sPathBuf);
-		nTotStOut += m_nStripOut[k];
-
-		for(i=1; i<MAX_DEF; i++)
-		{
-			strItem.Format(_T("Strip%d"), k);
-			strMenu.Format(_T("%d"), i);
-			strData.Format(_T("%d"), m_nDefPerStrip[k][i]);
-			::WritePrivateProfileString(strItem, strMenu, strData, m_sPathBuf);
-		}			
-	}
-	strData.Format(_T("%d"), nTotStOut);
-	::WritePrivateProfileString(_T("StripOut"), _T("Total"), strData, m_sPathBuf);
-
-	m_nTotPcs = nTot;
-	m_nGoodPcs = nGood;
-	m_nBadPcs = nDef;
-*/
 	return TRUE;
 }
 
@@ -2759,7 +2711,7 @@ BOOL CReelMap::MakeDir()
 	return TRUE;
 }
 
-BOOL CReelMap::MakeDirUser()
+BOOL CReelMap::MakeDirRmap()
 {
 	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
 
@@ -2833,7 +2785,7 @@ BOOL CReelMap::MakeDirUser()
 	return TRUE;
 }
 
-CString CReelMap::MakeDirUserRestore()
+CString CReelMap::MakeDirRmapRestore()
 {
 	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
 	CString sPath=_T("");
@@ -2965,7 +2917,7 @@ BOOL CReelMap::MakeDir(CString sModel, CString sLayer, CString sLot)
 	return TRUE;
 }
 
-BOOL CReelMap::MakeDirUser(CString sModel, CString sLayer, CString sLot)
+BOOL CReelMap::MakeDirRmap(CString sModel, CString sLayer, CString sLot)
 {
 	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
 
@@ -3022,7 +2974,7 @@ BOOL CReelMap::MakeDirUser(CString sModel, CString sLayer, CString sLot)
 	return TRUE;
 }
 
-CString CReelMap::MakeDirUserRestore(CString sModel, CString sLayer, CString sLot)
+CString CReelMap::MakeDirRmapRestore(CString sModel, CString sLayer, CString sLot)
 {
 	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
 	CString sPath;
@@ -3336,10 +3288,10 @@ BOOL CReelMap::RemakeReelmap()
 		}
 	}
 
-	MakeDirUser(sModel, sLayer[0], sLot);
+	MakeDirRmap(sModel, sLayer[0], sLot);
 
 	if(bDualTest)
-		MakeDirUser(sModel, sLayer[1], sLot);
+		MakeDirRmap(sModel, sLayer[1], sLot);
 
 	CString sFile=_T(""), sRmapPath=sPath;
 	int nPos = sRmapPath.ReverseFind('\\');
@@ -3510,8 +3462,8 @@ BOOL CReelMap::RemakeReelmap()
 
 void CReelMap::RestoreReelmap()
 {
-	CString sPath = MakeDirUserRestore();
-	int nLastDir = GetLastUserRestoreDir(sPath);
+	CString sPath = MakeDirRmapRestore();
+	int nLastDir = GetLastRmapRestoreDir(sPath);
 
 	CString sUserRestoreDir;
 	sUserRestoreDir.Format(_T("%s\\%d"), sPath, nLastDir+1);
@@ -3579,7 +3531,7 @@ void CReelMap::RestoreReelmap()
 	delete pFile;
 }
 
-int CReelMap::GetLastUserRestoreDir(CString strPath)
+int CReelMap::GetLastRmapRestoreDir(CString strPath)
 {
 	CString strFileName;
 
@@ -3874,4 +3826,354 @@ void CReelMap::StrToChar(CString str, char* pCh) // char* returned must be delet
 																			  //3. wchar_t* to char* conversion
 	WideCharToMultiByte(CP_ACP, 0, wszStr, -1, pCh, nLenth, 0, 0);
 	return;
+}
+
+BOOL CReelMap::MakeDirYield(CString sPath)
+{
+	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
+	CFileFind finder;
+	CString str, Path[4];
+
+
+	if (bDualTest)
+	{
+		switch (m_nLayer)
+		{
+		case RMAP_UP:
+			str = _T("YieldUp.txt");
+			if (pDoc->m_bDoneChgLot || !pDoc->m_bNewLotShare[0])
+			{
+				Path[0] = pDoc->WorkingInfo.System.sPathOldFile;
+				Path[1] = pDoc->WorkingInfo.LastJob.sModelUp;
+				Path[2] = pDoc->WorkingInfo.LastJob.sLotUp;
+				Path[3] = pDoc->WorkingInfo.LastJob.sLayerUp;
+			}
+			else if (!pDoc->m_bDoneChgLot && pDoc->m_bNewLotShare[0])
+			{
+				Path[0] = pDoc->WorkingInfo.System.sPathOldFile;
+				Path[1] = pDoc->WorkingInfo.LastJob.sModelUp;
+				Path[2] = pDoc->Status.PcrShare[0].sLot;
+				Path[3] = pDoc->WorkingInfo.LastJob.sLayerUp;
+			}
+			break;
+		case RMAP_ALLUP:
+#ifdef TEST_MODE
+			str = _T("YieldAllUp.txt");
+#else
+			str = _T("YieldAll.txt");
+#endif
+			if (pDoc->m_bDoneChgLot || !pDoc->m_bNewLotShare[0])
+			{
+				Path[0] = pDoc->WorkingInfo.System.sPathOldFile;
+				Path[1] = pDoc->WorkingInfo.LastJob.sModelUp;
+				Path[2] = pDoc->WorkingInfo.LastJob.sLotUp;
+				Path[3] = pDoc->WorkingInfo.LastJob.sLayerUp;
+			}
+			else if (!pDoc->m_bDoneChgLot && pDoc->m_bNewLotShare[0])
+			{
+				Path[0] = pDoc->WorkingInfo.System.sPathOldFile;
+				Path[1] = pDoc->WorkingInfo.LastJob.sModelUp;
+				Path[2] = pDoc->Status.PcrShare[0].sLot;
+				Path[3] = pDoc->WorkingInfo.LastJob.sLayerUp;
+			}
+			break;
+		case RMAP_DN:
+			str = _T("YieldDn.txt");
+			if (pDoc->m_bDoneChgLot || !pDoc->m_bNewLotShare[1])
+			{
+				Path[0] = pDoc->WorkingInfo.System.sPathOldFile;
+				Path[1] = pDoc->WorkingInfo.LastJob.sModelDn;
+				Path[2] = pDoc->WorkingInfo.LastJob.sLotDn;
+				Path[3] = pDoc->WorkingInfo.LastJob.sLayerDn;
+			}
+			else if (!pDoc->m_bDoneChgLot && pDoc->m_bNewLotShare[1])
+			{
+				Path[0] = pDoc->WorkingInfo.System.sPathOldFile;
+				Path[1] = pDoc->WorkingInfo.LastJob.sModelDn;
+				Path[2] = pDoc->Status.PcrShare[1].sLot;
+				Path[3] = pDoc->WorkingInfo.LastJob.sLayerDn;
+			}
+			break;
+		case RMAP_ALLDN:
+#ifdef TEST_MODE
+			str = _T("YieldAllDn.txt");
+#else
+			str = _T("YieldAll.txt");
+#endif
+			if (pDoc->m_bDoneChgLot || !pDoc->m_bNewLotShare[1])
+			{
+				Path[0] = pDoc->WorkingInfo.System.sPathOldFile;
+				Path[1] = pDoc->WorkingInfo.LastJob.sModelDn;
+				Path[2] = pDoc->WorkingInfo.LastJob.sLotDn;
+				Path[3] = pDoc->WorkingInfo.LastJob.sLayerDn;
+			}
+			else if (!pDoc->m_bDoneChgLot && pDoc->m_bNewLotShare[1])
+			{
+				Path[0] = pDoc->WorkingInfo.System.sPathOldFile;
+				Path[1] = pDoc->WorkingInfo.LastJob.sModelDn;
+				Path[2] = pDoc->Status.PcrShare[1].sLot;
+				Path[3] = pDoc->WorkingInfo.LastJob.sLayerDn;
+			}
+			break;
+		}
+	}
+	else
+	{
+		str = _T("YieldUp.txt");
+		if (pDoc->m_bDoneChgLot || !pDoc->m_bNewLotShare[0])
+		{
+			Path[0] = pDoc->WorkingInfo.System.sPathOldFile;
+			Path[1] = pDoc->WorkingInfo.LastJob.sModelUp;
+			Path[2] = pDoc->WorkingInfo.LastJob.sLotUp;
+			Path[3] = pDoc->WorkingInfo.LastJob.sLayerUp;
+		}
+		else if (!pDoc->m_bDoneChgLot && pDoc->m_bNewLotShare[0])
+		{
+			Path[0] = pDoc->WorkingInfo.System.sPathOldFile;
+			Path[1] = pDoc->WorkingInfo.LastJob.sModelUp;
+			Path[2] = pDoc->Status.PcrShare[0].sLot;
+			Path[3] = pDoc->WorkingInfo.LastJob.sLayerUp;
+		}
+	}
+
+	sPath.Format(_T("%s%s"), Path[0], Path[1]);
+	//if(!finder.FindFile(sPath))
+	if (!pDoc->DirectoryExists(sPath))
+		CreateDirectory(sPath, NULL);
+
+	sPath.Format(_T("%s%s\\%s"), Path[0], Path[1], Path[2]);
+	//if(!finder.FindFile(sPath))
+	if (!pDoc->DirectoryExists(sPath))
+		CreateDirectory(sPath, NULL);
+
+	sPath.Format(_T("%s%s\\%s\\%s"), Path[0], Path[1], Path[2], Path[3]);
+	//if(!finder.FindFile(sPath))
+	if (!pDoc->DirectoryExists(sPath))
+		CreateDirectory(sPath, NULL);
+
+	sPath.Format(_T("%s%s\\%s\\%s\\Reelmap"), Path[0], Path[1], Path[2], Path[3]);
+	//if(!finder.FindFile(sPath))
+	if (!pDoc->DirectoryExists(sPath))
+		CreateDirectory(sPath, NULL);
+
+	return TRUE;
+}
+
+
+BOOL CReelMap::WriteYield(int nSerial, CString sPath)
+{
+	int nNodeX = 0, nNodeY = 0;
+#ifndef TEST_MODE
+	nNodeX = pDoc->m_Master[0].m_pPcsRgn->nCol;
+	nNodeY = pDoc->m_Master[0].m_pPcsRgn->nRow;
+#endif
+	CString sDefNum, strData;
+	int nPnl, nRow, nCol, nDefCode, nStrip;
+	int nTotPcs = nNodeX * nNodeY;
+	int nStripPcs = nTotPcs / 4;
+	double dStOutRto = _tstof(pDoc->WorkingInfo.LastJob.sStripOutRatio) / 100.0;
+	nPnl = nSerial - 1;
+
+	int i, k;
+	TCHAR szData[200];
+
+	CString sCode, strMenu, strItem, sMsg;
+	int nTot = 0, nGood = 0, nDef = 0;
+	int nTotSriptOut = 0;
+
+	int nDefStrip[MAX_STRIP], nDefA[MAX_DEF], nDefPerStrip[4][MAX_DEF], nStripOut[4];
+	nDefStrip[0] = 0; nDefStrip[1] = 0; nDefStrip[2] = 0; nDefStrip[3] = 0;
+	nStripOut[0] = 0; nStripOut[1] = 0; nStripOut[2] = 0; nStripOut[3] = 0;
+
+	nTot = nNodeX * nNodeY;
+
+	for (k = 0; k < MAX_DEF; k++)
+	{
+		nDefA[k] = 0;
+
+		for (i = 0; i < MAX_STRIP; i++)
+		{
+			nDefPerStrip[i][k] = 0;
+		}
+	}
+
+	for (nRow = 0; nRow < nNodeY; nRow++)
+	{
+		for (nCol = 0; nCol < nNodeX; nCol++)
+		{
+			if (m_pPnlBuf)
+			{
+				nDefCode = (int)m_pPnlBuf[nPnl][nRow][nCol] < 0 ? 0 : (int)m_pPnlBuf[nPnl][nRow][nCol];
+				nDefA[nDefCode]++;
+
+				nStrip = int(nRow / (nNodeY / 4));
+				if (nStrip > -1 && nStrip < 4)
+				{
+					if (nDefCode > 0)
+					{
+						nDefStrip[nStrip]++;
+						nDefPerStrip[nStrip][nDefCode]++;
+					}
+				}
+			}
+		}
+	}
+
+	for (nStrip = 0; nStrip < 4; nStrip++)
+	{
+		if (nDefStrip[nStrip] >= nStripPcs * dStOutRto)
+			nStripOut[nStrip]++;
+	}
+
+	for (i = 1; i < MAX_DEF; i++)
+	{
+		m_stYield.nDefA[i] = m_stYield.nDefA[i] + nDefA[i];
+		nDef += nDefA[i];
+	}
+	nGood = nTot - nDef;
+
+	m_stYield.nTot = m_stYield.nTot + nTot;
+	m_stYield.nGood = m_stYield.nGood + nGood;
+	m_stYield.nDef = m_stYield.nDef + nDef;
+
+	for (k = 0; k < MAX_STRIP; k++)
+	{
+		m_stYield.nDefStrip[k] = m_stYield.nDefStrip[k] + nDefStrip[k];
+		m_stYield.nStripOut[k] = m_stYield.nStripOut[k] + nStripOut[k];
+		nTotSriptOut += nStripOut[k];
+		for (i = 1; i < MAX_DEF; i++)
+			m_stYield.nDefPerStrip[k][i] = m_stYield.nDefPerStrip[k][i] + nDefPerStrip[k][i];
+	}
+	m_stYield.nTotSriptOut = m_stYield.nTotSriptOut + nTotSriptOut;
+
+
+	FILE *fp = NULL;
+	char FileName[MAX_PATH];
+
+	BOOL bExist = FALSE;
+	CFileFind findfile;
+	if (findfile.FindFile(sPath))
+		bExist = TRUE;
+	else
+		MakeDirYield(sPath);
+
+	//_tcscpy(FileName, sPath);
+	StrToChar(sPath, FileName);
+
+	fp = fopen(FileName, "a+");
+	if (fp == NULL)
+	{
+		pView->MsgBox(_T("It is trouble to open ReelMap.txt"));
+		// 		AfxMessageBox(_T("It is trouble to open ReelMap.txt"),MB_ICONWARNING|MB_OK);
+		return FALSE;
+	}
+
+	if (!bExist)
+	{
+		m_nStartSerial = nSerial;
+
+		fprintf(fp, "[Info]\n");
+		fprintf(fp, "Total Shot = \n\n");
+		fprintf(fp, "Total Pcs = \n");
+		fprintf(fp, "Good Pcs = \n");
+		fprintf(fp, "Bad Pcs = \n\n");
+		fprintf(fp, "Start Shot=%d\n", m_nStartSerial);
+		fprintf(fp, "End Shot = \n\n");
+
+		for (i = 1; i <= MAX_DEF; i++)
+			fprintf(fp, "%d=\n", i);
+		fprintf(fp, "\n");
+
+		for (k = 0; k < MAX_STRIP; k++)
+			fprintf(fp, "Strip%d = \n", k);
+		fprintf(fp, "\n");
+
+		for (k = 0; k < MAX_STRIP; k++)
+		{
+			for (i = 1; i <= MAX_DEF; i++)
+				fprintf(fp, "Strip%d_%d = \n", k, i);
+			fprintf(fp, "\n");
+		}
+
+		fprintf(fp, "StripOut_Total = \n");
+		fprintf(fp, "StripOut_0 = \n");
+		fprintf(fp, "StripOut_1 = \n");
+		fprintf(fp, "StripOut_2 = \n");
+		fprintf(fp, "StripOut_3 = \n");
+		fprintf(fp, "\n");
+	}
+	
+	// [Serial]
+
+	fprintf(fp, "[%d]\n", nSerial);
+	fprintf(fp, "Total Pcs = %d\n", m_stYield.nTot);
+	fprintf(fp, "Good Pcs = %d\n", m_stYield.nGood);
+	fprintf(fp, "Bad Pcs = %d\n\n", m_stYield.nDef);
+	
+	for (i = 1; i < MAX_DEF; i++)
+	{
+		fprintf(fp, "%d = %d\n", i, m_stYield.nDefA[i]);
+	}
+	fprintf(fp, "\n");
+
+	fprintf(fp, "StripOut_Total = %d\n", m_stYield.nTotSriptOut);
+	for (k = 0; k < MAX_STRIP; k++)
+		fprintf(fp, "StripOut_%d = %d\n", k, m_stYield.nStripOut[k]);
+	fprintf(fp, "\n");
+
+	for (k = 0; k < MAX_STRIP; k++)
+	{
+		fprintf(fp, "Strip%d = %d\n", k, m_stYield.nDefStrip[k]);
+		for (i = 1; i < MAX_DEF; i++)
+			fprintf(fp, "Strip%d_%d = %d\n", k, i, m_stYield.nDefPerStrip[k][i]);
+		fprintf(fp, "\n");
+	}
+
+	fclose(fp);
+
+
+	for (i = 1; i < MAX_DEF; i++)
+	{
+		sCode.Format(_T("%d"), i);
+		sDefNum.Format(_T("%d"), m_stYield.nDefA[i]);
+		::WritePrivateProfileString(_T("Info"), sCode, sDefNum, sPath);
+	}
+
+	strData.Format(_T("%d"), nSerial);
+	::WritePrivateProfileString(_T("Info"), _T("End Shot"), strData, sPath);
+
+	strData.Format(_T("%d"), nSerial - m_nStartSerial + 1);
+	::WritePrivateProfileString(_T("Info"), _T("Total Shot"), strData, sPath);
+
+	strData.Format(_T("%d"), m_stYield.nTot);
+	::WritePrivateProfileString(_T("Info"), _T("Total Pcs"), strData, sPath);
+
+	strData.Format(_T("%d"), m_stYield.nGood);
+	::WritePrivateProfileString(_T("Info"), _T("Good Pcs"), strData, sPath);
+
+	strData.Format(_T("%d"), m_stYield.nDef);
+	::WritePrivateProfileString(_T("Info"), _T("Bad Pcs"), strData, sPath);
+
+	for (k = 0; k < MAX_STRIP; k++)
+	{
+		strItem.Format(_T("Strip%d"), k);
+		strData.Format(_T("%d"), m_stYield.nDefStrip[k]);
+		::WritePrivateProfileString(_T("Info"), strItem, strData, sPath);
+
+		strItem.Format(_T("StripOut_%d"), k);
+		strData.Format(_T("%d"), m_stYield.nStripOut[k]);
+		::WritePrivateProfileString(_T("Info"), strItem, strData, sPath);
+
+		for (i = 1; i < MAX_DEF; i++)
+		{
+			strItem.Format(_T("Strip%d_%d"), k, i);
+			strData.Format(_T("%d"), m_stYield.nDefPerStrip[k][i]);
+			::WritePrivateProfileString(_T("Info"), strItem, strData, sPath);
+		}
+	}
+
+	strData.Format(_T("%d"), m_stYield.nTotSriptOut);
+	::WritePrivateProfileString(_T("Info"), _T("StripOut_Total"), strData, sPath);
+
+	return TRUE;
 }

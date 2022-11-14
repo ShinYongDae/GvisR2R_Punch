@@ -3564,11 +3564,13 @@ BOOL CDlgMenu03::DoReset()
 		pView->m_nDebugStep = 16; pView->DispThreadTick();
 		if(bInit)
 		{
+			// 초기화
 			pDoc->m_ListBuf[0].Clear();
 			pDoc->m_ListBuf[1].Clear();
 		}
 		else
 		{
+			// 이어가기
 			pView->SetListBuf();
 		}
 		pView->m_nDebugStep = 17; pView->DispThreadTick();

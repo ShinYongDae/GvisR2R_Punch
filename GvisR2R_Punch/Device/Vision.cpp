@@ -3405,7 +3405,7 @@ BOOL CVision::GrabIRayple(int nPos, BOOL bDraw)
 	//char szFileName[100];
 	//sprintf(szFileName, "C:\\PinPat.tif");
 	TCHAR szFileName[30];
-	_stprintf(szFileName, _T("C:\\PinPat.tif"));
+	_stprintf(szFileName, _T("C:\\AlignPat.tif"));
 	MbufSave(szFileName, MilPatRzImg->m_MilImage);
 	//MilPatRzImg->BufferSave(szFileName);
 	//MilPatRtImg->BufferSave(szFileName);
