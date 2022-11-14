@@ -7274,6 +7274,24 @@ void CGvisR2R_PunchDoc::SetLastSerial(int nSerial)
 	}
 }
 
+void CGvisR2R_PunchDoc::UpdateRstOnRmap()
+{
+	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
+
+	if (m_pReelMapUp)
+		m_pReelMapUp->UpdateRst();					// 릴맵 텍스트 파일의 수율정보를 업데이트함.
+	if (bDualTest)
+	{
+		if (m_pReelMapDn)
+			m_pReelMapDn->UpdateRst();					// 릴맵 텍스트 파일의 수율정보를 업데이트함.
+		if (m_pReelMapAllUp)
+			m_pReelMapAllUp->UpdateRst();					// 릴맵 텍스트 파일의 수율정보를 업데이트함.
+		if (m_pReelMapAllDn)
+			m_pReelMapAllDn->UpdateRst();					// 릴맵 텍스트 파일의 수율정보를 업데이트함.
+	}
+
+}
+
 void CGvisR2R_PunchDoc::UpdateYield(int nSerial)
 {
 	if (nSerial <= 0)

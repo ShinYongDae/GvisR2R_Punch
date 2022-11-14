@@ -1634,7 +1634,7 @@ void CReelMap::SetLastSerial(int nSerial)
 		sData.Format(_T("%04d-%02d-%02d, %02d:%02d:%02d"), nYear, nMonth, nDay, nHour, nMin, nSec);
 	::WritePrivateProfileString(_T("Info"), _T("Marked Date"), sData, m_sPathBuf);
 
-	UpdateRst(nSerial);
+	//UpdateRst();
 }
 
 void CReelMap::SetCompletedSerial(int nSerial)
@@ -2341,20 +2341,8 @@ BOOL CReelMap::UpdateYield(int nSerial)
 
 
 
-BOOL CReelMap::UpdateRst(int nSerial)
+BOOL CReelMap::UpdateRst()
 {
-	if(nSerial <= 0)
-	{
-		AfxMessageBox(_T("Serial Error.65"));
-		return FALSE;
-	}
-
-	//if (!UpdateYield(nSerial))
-	//{
-	//	AfxMessageBox(_T("Serial Error.66"));
-	//	return FALSE;
-	//}
-
 	int k, i;
 	CString strMenu, strItem, sCode, sDefNum, strData;
 

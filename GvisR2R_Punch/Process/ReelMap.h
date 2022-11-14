@@ -44,7 +44,6 @@ class CReelMap : public CWnd
 	//int m_nCntFixPcs;
 
 	void LoadConfig();
-	BOOL UpdateRst(int nSerial);
 	BOOL MakeDir();
 	BOOL MakeDir(CString sModel, CString sLayer, CString sLot);
 	BOOL MakeDirRmap();
@@ -187,6 +186,7 @@ public:
 	void StopThreadReloadRst();
 
 	BOOL UpdateYield(int nSerial);
+	BOOL UpdateRst();
 
 // Overrides
 	// ClassWizard generated virtual function overrides

@@ -2328,9 +2328,15 @@ UINT CGvisR2R_PunchView::ThreadProc4(LPVOID lpContext)
 
 		if (pThread->m_bTHREAD_SHIFT2MK)
 		{
-			pThread->RunShift2Mk();
-			pThread->m_bTHREAD_SHIFT2MK = FALSE;
-			Sleep(0);
+			if (!pThread->m_bTHREAD_UPDATAE_YIELD[0] && !pThread->m_bTHREAD_UPDATAE_YIELD[1])
+			{
+				pThread->RunShift2Mk();
+				pThread->m_bTHREAD_SHIFT2MK = FALSE;
+				Sleep(0);
+			}
+			else
+				Sleep(30);
+
 		}
 		else
 			Sleep(30);
@@ -7923,6 +7929,7 @@ void CGvisR2R_PunchView::Shift2Mk()
 				//m_bTHREAD_UPDATAE_YIELD[0] = TRUE;
 
 				pDoc->Shift2Mk(nSerial);	// Cam0
+				pDoc->UpdateRstOnRmap();
 				if (m_pDlgFrameHigh)
 					m_pDlgFrameHigh->SetMkLastShot(nSerial);
 			}
@@ -7945,6 +7952,7 @@ void CGvisR2R_PunchView::Shift2Mk()
 					//m_bTHREAD_UPDATAE_YIELD[1] = TRUE;
 
 					pDoc->Shift2Mk(nSerial + 1);	// Cam1
+					pDoc->UpdateRstOnRmap();
 					if (m_pDlgFrameHigh)
 						m_pDlgFrameHigh->SetMkLastShot(nSerial + 1);
 				}
@@ -7968,6 +7976,7 @@ void CGvisR2R_PunchView::Shift2Mk()
 					//m_bTHREAD_UPDATAE_YIELD[1] = TRUE;
 
 					pDoc->Shift2Mk(nSerial + 1);	// Cam1
+					pDoc->UpdateRstOnRmap();
 					if (m_pDlgFrameHigh)
 						m_pDlgFrameHigh->SetMkLastShot(nSerial + 1);
 				}
@@ -20858,18 +20867,18 @@ void CGvisR2R_PunchView::GetPlcParam()
 	//pDoc->BtnStatus.AoiUp.LsrPt = m_pMpe->Read(_T("MB005608")) ? TRUE : FALSE;
 
 	// Engrave
-	//pDoc->BtnStatus.Eng.Relation = m_pMpe->Read(_T("")) ? TRUE : FALSE;
-	//pDoc->BtnStatus.Eng.FdCw = m_pMpe->Read(_T("")) ? TRUE : FALSE;
-	//pDoc->BtnStatus.Eng.FdCcw = m_pMpe->Read(_T("")) ? TRUE : FALSE;
-	//pDoc->BtnStatus.Eng.FdVac = m_pMpe->Read(_T("")) ? TRUE : FALSE;
-	//pDoc->BtnStatus.Eng.PushUp = m_pMpe->Read(_T("")) ? TRUE : FALSE;
-	//pDoc->BtnStatus.Eng.TblBlw = m_pMpe->Read(_T("")) ? TRUE : FALSE;
-	//pDoc->BtnStatus.Eng.TblVac = m_pMpe->Read(_T("")) ? TRUE : FALSE;
-	//pDoc->BtnStatus.Eng.FdClp = m_pMpe->Read(_T("")) ? TRUE : FALSE;
-	//pDoc->BtnStatus.Eng.TqClp = m_pMpe->Read(_T("")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Eng.Relation = m_pMpe->Read(_T("MB004111")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Eng.FdCw = m_pMpe->Read(_T("MB004113")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Eng.FdCcw = m_pMpe->Read(_T("MB004114")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Eng.FdVac = m_pMpe->Read(_T("MB004115")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Eng.PushUp = m_pMpe->Read(_T("MB004116")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Eng.TblBlw = m_pMpe->Read(_T("MB00411F")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Eng.TblVac = m_pMpe->Read(_T("MB004117")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Eng.FdClp = m_pMpe->Read(_T("MB004119")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Eng.TqClp = m_pMpe->Read(_T("MB00411A")) ? TRUE : FALSE;
 	pDoc->BtnStatus.Eng.MvOne = m_pMpe->Read(_T("MB440151")) ? TRUE : FALSE;
-	//pDoc->BtnStatus.Eng.LsrPt = m_pMpe->Read(_T("")) ? TRUE : FALSE;
-	//pDoc->BtnStatus.Eng.DcRSol = m_pMpe->Read(_T("")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Eng.LsrPt = m_pMpe->Read(_T("MB004118")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Eng.DcRSol = m_pMpe->Read(_T("MB00411B")) ? TRUE : FALSE;
 	pDoc->BtnStatus.Eng.VelSonicBlw = m_pMpe->Read(_T("MB44014E")) ? TRUE : FALSE;
 
 	// Uncoiler

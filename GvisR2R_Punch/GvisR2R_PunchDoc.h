@@ -377,6 +377,7 @@ public:
 	double GetEngraveBuffInitPos();
 
 	BOOL DirectoryExists(LPCTSTR szPath);
+	void UpdateRstOnRmap();
 
 // 재정의입니다.
 public:
