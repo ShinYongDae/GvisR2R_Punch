@@ -64,6 +64,8 @@ CDlgMenu02::CDlgMenu02(CWnd* pParent /*=NULL*/)
 	m_dAoiUpFdOffsetY = 0.0;
 	m_dAoiDnFdOffsetX = 0.0;
 	m_dAoiDnFdOffsetY = 0.0;
+	m_dEngFdOffsetX = 0.0;
+	m_dEngFdOffsetY = 0.0;
 
 	m_nBtnAlignCam0Pos = 0;
 	m_nBtnAlignCam1Pos = 0;

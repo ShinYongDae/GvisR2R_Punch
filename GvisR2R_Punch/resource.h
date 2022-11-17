@@ -463,10 +463,12 @@
 #define IDC_GRP_LT8                     1162
 #define IDC_GRP_02                      1162
 #define IDC_STC_104                     1162
+#define IDC_STC_16                      1162
 #define IDC_STC_GD_RA_4_UP              1163
 #define IDC_STC_RES2                    1163
 #define IDC_STC_017                     1163
 #define IDC_GRP_3                       1163
+#define IDC_STC_17                      1163
 #define IDC_STC_0020                    1164
 #define IDC_STC_GD_RA_ALL               1164
 #define IDC_STC_RES_X9                  1164

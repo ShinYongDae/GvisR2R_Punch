@@ -108,6 +108,7 @@ public:
 	double m_dMkFdOffsetX[2][4], m_dMkFdOffsetY[2][4];	// 2Cam / 4Point Align
 	double m_dAoiUpFdOffsetX, m_dAoiUpFdOffsetY;
 	double m_dAoiDnFdOffsetX, m_dAoiDnFdOffsetY;
+	double m_dEngFdOffsetX, m_dEngFdOffsetY;
 // 	BOOL m_bMkDnSolOff;
 
 	double m_dOneShotRemainLen;

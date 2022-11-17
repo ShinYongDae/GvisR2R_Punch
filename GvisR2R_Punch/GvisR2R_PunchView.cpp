@@ -139,6 +139,11 @@ CGvisR2R_PunchView::CGvisR2R_PunchView()
 	m_bAoiTest[0] = FALSE;
 	m_bAoiTest[1] = FALSE;
 
+	m_bEngFdWrite = FALSE; 
+	m_bEngFdWriteF = FALSE;
+	m_bEngTest = FALSE;
+	m_bEngTestF = FALSE;
+
 
 	// H/W Device 초기화.....
 	m_pMpe = NULL;
@@ -348,6 +353,7 @@ CGvisR2R_PunchView::CGvisR2R_PunchView()
 
 	m_bLastProc = FALSE;
 	m_bLastProcFromUp = TRUE;
+	m_bLastProcFromEng = TRUE;
 	m_nLastProcAuto = 0;
 
 	m_bLoadShare[0] = FALSE;
@@ -4227,7 +4233,7 @@ void CGvisR2R_PunchView::DoIO()
 	}
 	else if (pDoc->Status.bAuto)
 	{
-		//DoAutoEng();
+		DoAutoEng();
 		DoAuto();
 	}
 
@@ -7627,10 +7633,10 @@ void CGvisR2R_PunchView::SetAoiFdPitch(double dPitch)
 //	pView->m_pMpe->Write(_T("ML45020"), lData); // 각인부 Feeding 롤러 Lead Pitch
 //#endif
 
-#ifdef USE_ENGRAVE
-	if (pView && pView->m_pEngrave)
-		pView->m_pEngrave->SetAoiLeadPitch();	//_ItemInx::_AoiLeadPitch
-#endif
+//#ifdef USE_ENGRAVE
+//	if (pView && pView->m_pEngrave)
+//		pView->m_pEngrave->SetAoiLeadPitch();	//_ItemInx::_AoiLeadPitch
+//#endif
 }
 
 void CGvisR2R_PunchView::SetMkFdPitch(double dPitch)
@@ -7642,10 +7648,10 @@ void CGvisR2R_PunchView::SetMkFdPitch(double dPitch)
 	pView->m_pMpe->Write(_T("ML45014"), lData); // 마킹부 Feeding 롤러 Lead Pitch
 #endif
 
-#ifdef USE_ENGRAVE
-	if (pView && pView->m_pEngrave)
-		pView->m_pEngrave->SetMkLeadPitch();	//_ItemInx::_MkLeadPitch
-#endif
+//#ifdef USE_ENGRAVE
+//	if (pView && pView->m_pEngrave)
+//		pView->m_pEngrave->SetMkLeadPitch();	//_ItemInx::_MkLeadPitch
+//#endif
 }
 
 void CGvisR2R_PunchView::SetBufInitPos(double dPos)
@@ -9623,6 +9629,14 @@ BOOL CGvisR2R_PunchView::ChkLastProcFromUp()
 	return bRtn;
 }
 
+BOOL CGvisR2R_PunchView::ChkLastProcFromEng()
+{
+	BOOL bRtn = TRUE;
+	if (m_pDlgMenu01)
+		bRtn = (m_pDlgMenu01->m_bLastProcFromUp);
+	return bRtn;
+}
+
 BOOL CGvisR2R_PunchView::ChkLotEnd(int nSerial)
 {
 	if (nSerial <= 0)
@@ -9877,7 +9891,11 @@ void CGvisR2R_PunchView::InitAuto(BOOL bInit)
 	m_nLotEndAuto = 0;
 
 	m_bLastProc = FALSE;
-	m_bLastProcFromUp = TRUE;
+	if(MODE_INNER != pDoc->GetTestMode())
+		m_bLastProcFromUp = TRUE;
+	else
+		m_bLastProcFromEng = TRUE;
+
 	m_nLastProcAuto = 0;
 
 	pDoc->m_sAlmMsg = _T("");
@@ -9925,7 +9943,12 @@ void CGvisR2R_PunchView::InitAuto(BOOL bInit)
 	if (m_pDlgMenu01)
 	{
 		m_pDlgMenu01->m_bLastProc = FALSE;
-		m_pDlgMenu01->m_bLastProcFromUp = TRUE;
+
+		if (MODE_INNER != pDoc->GetTestMode())
+			m_pDlgMenu01->m_bLastProcFromUp = TRUE;
+		else
+			m_pDlgMenu01->m_bLastProcFromEng = TRUE;
+
 		m_pDlgMenu01->ResetSerial();
 		m_pDlgMenu01->ResetLastProc();
 	}
@@ -15605,6 +15628,9 @@ void CGvisR2R_PunchView::DoAuto()
 	// AOI Feeding Offset Start
 	DoAutoSetFdOffset();
 
+	// Engrave Feeding Offset Start
+	DoAutoSetFdOffsetEngrave();
+
 	// CycleStop
 	DoAutoChkCycleStop();
 
@@ -15706,10 +15732,22 @@ void CGvisR2R_PunchView::DoAutoSetLastProcAtPlc()
 		case LAST_PROC:	// 잔량처리 1
 			if (IsRun())
 			{
-				if (ChkLastProcFromUp())
-					m_pMpe->Write(_T("MB440185"), 1);			// 잔량처리 AOI(상) 부터(PC가 On시키고, PLC가 확인하고 Off시킴)-20141112
+				if (MODE_INNER != pDoc->GetTestMode())
+				{
+					if (ChkLastProcFromUp())
+						m_pMpe->Write(_T("MB440185"), 1);			// 잔량처리 AOI(상) 부터(PC가 On시키고, PLC가 확인하고 Off시킴)-20141112
+					else
+						m_pMpe->Write(_T("MB440186"), 1);			// 잔량처리 AOI(하) 부터(PC가 On시키고, PLC가 확인하고 Off시킴)-20141112
+				}
 				else
-					m_pMpe->Write(_T("MB440186"), 1);			// 잔량처리 AOI(하) 부터(PC가 On시키고, PLC가 확인하고 Off시킴)-20141112
+				{
+					if (ChkLastProcFromEng())
+						m_pMpe->Write(_T("MB44019D"), 1);			// 잔량처리 각인부 부터(PC가 On시키고, PLC가 확인하고 Off시킴)-20141112
+					else if (ChkLastProcFromUp())
+						m_pMpe->Write(_T("MB440185"), 1);			// 잔량처리 AOI(상) 부터(PC가 On시키고, PLC가 확인하고 Off시킴)-20141112
+					else
+						m_pMpe->Write(_T("MB440186"), 1);			// 잔량처리 AOI(하) 부터(PC가 On시키고, PLC가 확인하고 Off시킴)-20141112
+				}
 
 				m_nLastProcAuto++;
 			}
@@ -16220,7 +16258,7 @@ void CGvisR2R_PunchView::DoAutoChkShareFolder()	// 20170727-잔량처리 시 계속적으
 					{
 						if (bDualTest)
 						{
-							if (ChkLastProcFromUp())
+							if (ChkLastProcFromUp() || ChkLastProcFromEng())
 								nSerial = pDoc->m_ListBuf[0].GetLast();
 							else
 								nSerial = pDoc->m_ListBuf[1].GetLast();
@@ -16435,7 +16473,7 @@ void CGvisR2R_PunchView::DoAutoChkShareFolder()	// 20170727-잔량처리 시 계속적으
 					{
 						if (bDualTest)
 						{
-							if (ChkLastProcFromUp())
+							if (ChkLastProcFromUp() || ChkLastProcFromEng())
 								nSerial = pDoc->m_ListBuf[0].GetLast();
 							else
 								nSerial = pDoc->m_ListBuf[1].GetLast();
@@ -16557,7 +16595,7 @@ void CGvisR2R_PunchView::DoAutoChkShareFolder()	// 20170727-잔량처리 시 계속적으
 					}
 					else
 					{
-						if (ChkLastProcFromUp())
+						if (ChkLastProcFromUp() || ChkLastProcFromEng())
 							nSerial = pDoc->m_ListBuf[0].GetLast();
 						else
 							nSerial = pDoc->m_ListBuf[1].GetLast();
@@ -16737,6 +16775,7 @@ void CGvisR2R_PunchView::Mk2PtReady()
 					{
 						m_nLotEndSerial = _tstoi(pDoc->WorkingInfo.LastJob.sSampleTestShotNum);
 						m_bLastProcFromUp = FALSE;
+						m_bLastProcFromEng = FALSE;
 						m_bLastProc = TRUE;
 						if (m_pDlgMenu01)
 							m_pDlgMenu01->m_bLastProc = TRUE;
@@ -16771,6 +16810,7 @@ void CGvisR2R_PunchView::Mk2PtReady()
 					{
 						m_nLotEndSerial = _tstoi(pDoc->WorkingInfo.LastJob.sSampleTestShotNum);
 						m_bLastProcFromUp = FALSE;
+						m_bLastProcFromEng = FALSE;
 						m_bLastProc = TRUE;
 						if (m_pDlgMenu01)
 							m_pDlgMenu01->m_bLastProc = TRUE;
@@ -16785,34 +16825,6 @@ void CGvisR2R_PunchView::Mk2PtReady()
 			break;
 		case MK_ST + (Mk2PtIdx::Start) + 1:
 			m_nMkStAuto = MK_ST + (Mk2PtIdx::ChkSn);
-
-			// 			if(bDualTest)
-			// 			{
-			// 				if(pDoc->m_ListBuf[1].nTot > 0) // AOI-Dn
-			// 				{
-			// 					m_nMkStAuto++;
-			// 
-			//					m_nBufDnSerial[1] = pDoc->m_ListBuf[1].Pop();
-			// 				}
-			// 				else
-			// 				{
-			//					m_nBufDnSerial[1] = 0;
-			// 					m_nMkStAuto++;
-			// 				}
-			// 			}
-			// 			else
-			// 			{
-			// 				if(pDoc->m_ListBuf[0].nTot > 0) // AOI-Up
-			// 				{
-			// 					m_nMkStAuto++;
-			//					m_nBufUpSerial[1] = pDoc->m_ListBuf[0].Pop();
-			// 				}
-			// 				else
-			// 				{
-			//					m_nBufUpSerial[1] = 0;
-			// 					m_nMkStAuto++;
-			// 				}
-			// 			}
 			break;
 		}
 	}
@@ -17465,7 +17477,7 @@ void CGvisR2R_PunchView::Mk2PtMoveInitPos()
 			break;
 		case MK_ST + (Mk2PtIdx::MoveInitPt) + 2:
 			if (IsMoveDone())
-				m_nMkStAuto++;
+				m_nMkStAuto = MK_ST + (Mk2PtIdx::ChkElec);
 			break;
 		}
 	}
@@ -17512,7 +17524,12 @@ void CGvisR2R_PunchView::Mk2PtElecChk()
 				m_nMkStAuto++;
 			}
 			else
-				m_nMkStAuto = MK_ST + (Mk2PtIdx::DoMk);	// Mk 마킹 시작
+			{
+				if (MODE_INNER != pDoc->GetTestMode())
+					m_nMkStAuto = MK_ST + (Mk2PtIdx::DoMk); 	// Mk 마킹 시작
+				else
+					m_nMkStAuto = MK_ST + (Mk2PtIdx::Shift2Mk);
+			}
 			break;
 
 		case MK_ST + (Mk2PtIdx::ChkElec) + 2:
@@ -17521,7 +17538,10 @@ void CGvisR2R_PunchView::Mk2PtElecChk()
 				if (m_pMotion->IsEnable(MS_X0) && m_pMotion->IsEnable(MS_Y0) &&
 					m_pMotion->IsEnable(MS_X1) && m_pMotion->IsEnable(MS_Y1))
 				{
-					m_nMkStAuto++;
+					if (MODE_INNER != pDoc->GetTestMode())
+						m_nMkStAuto = MK_ST + (Mk2PtIdx::DoMk); 	// Mk 마킹 시작
+					else
+						m_nMkStAuto = MK_ST + (Mk2PtIdx::Shift2Mk);
 				}
 				else
 				{
@@ -17789,6 +17809,133 @@ void CGvisR2R_PunchView::Mk2PtDoMarking()
 	}
 }
 
+void CGvisR2R_PunchView::Mk2PtShift2Mk()
+{
+	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
+	CString sRst, sMsg;
+	int a, b, nSerial, nPrevSerial;
+
+	if (m_bMkSt)
+	{
+		switch (m_nMkStAuto)
+		{
+		case MK_ST + (Mk2PtIdx::Shift2Mk) :
+			m_pMpe->Write(_T("MB440150"), 0);	// 마킹부 마킹중 ON (PC가 ON, OFF)
+			m_pMpe->Write(_T("MB440170"), 1);	// 마킹완료(PLC가 확인하고 Reset시킴.)-20141029
+			break;
+
+		case MK_ST + (Mk2PtIdx::Shift2Mk) + 1:
+			if (!m_bTHREAD_UPDATAE_YIELD[0] && !m_bTHREAD_UPDATAE_YIELD[1])
+			{
+				UpdateYield();
+				m_nMkStAuto++;
+			}
+			break;
+
+		case MK_ST + (Mk2PtIdx::Shift2Mk) + 2:
+#ifdef USE_MPE
+			if (pDoc->m_pMpeSignal[0] & (0x01 << 1))	// 마킹부 Feeding완료(PLC가 On시키고 PC가 확인하고 Reset시킴.)-20141030
+			{
+				if (!m_bTHREAD_SHIFT2MK)
+				{
+					m_pMpe->Write(_T("MB440101"), 0);	// 마킹부 Feeding완료
+					DoShift2Mk();
+
+					SetMkFdLen();
+
+					SetCycTime();
+					m_dwCycSt = GetTickCount();
+
+					UpdateWorking();	// Update Working Info...
+					ChkYield();
+					m_nMkStAuto++;
+				}
+			}
+#endif
+			break;
+		case MK_ST + (Mk2PtIdx::Shift2Mk) + 3:
+			ChkLotCutPos();
+			m_nMkStAuto++;
+			break;
+		case MK_ST + (Mk2PtIdx::Shift2Mk) + 4:
+			m_nMkStAuto++;
+			break;
+		case MK_ST + (Mk2PtIdx::Shift2Mk) + 5:
+			m_nMkStAuto++;
+			if (!IsBuffer(0))
+			{
+				m_bLotEnd = TRUE;
+				m_nLotEndAuto = LOT_END;
+			}
+			else
+			{
+				// [0]: AOI-Up , [1]: AOI-Dn
+				if (bDualTest)
+				{
+					nSerial = pDoc->m_ListBuf[0].Pop(); // Up (좌)
+					nSerial = pDoc->m_ListBuf[0].Pop(); // Up (우)
+
+					SetListBuf();
+				}
+
+				if (m_nLotEndSerial > 0)
+				{
+					nSerial = GetBufferUp(&nPrevSerial);
+
+					if (nSerial > m_nLotEndSerial || nSerial <= 0) // 노광불량 3번째 Lot End ( -1, -1, -2)
+					{
+						if (IsDoneDispMkInfo())
+						{
+							if (IsBuffer() && nSerial > 0)
+								SetSerial(nSerial);
+							else
+								SetSerial(nPrevSerial + 1, TRUE);
+
+							if (IsBuffer() && nSerial > 0)
+								SetSerial(nSerial + 1);
+							else
+								SetSerial(nPrevSerial + 2, TRUE);
+
+							//m_nStepAuto = LOT_END;
+							m_bLotEnd = TRUE;
+							m_nLotEndAuto = LOT_END;
+						}
+					}
+
+					if (bDualTest)
+					{
+						nSerial = GetBufferDn(&nPrevSerial);
+
+						if (nSerial > m_nLotEndSerial || nSerial <= 0) // 노광불량 3번째 Lot End ( -1, -1, -2)
+						{
+							if (IsDoneDispMkInfo())
+							{
+								if (IsBuffer() && nSerial > 0)
+									SetSerial(nSerial);
+								else
+									SetSerial(nPrevSerial + 1, TRUE);
+
+								if (IsBuffer() && nSerial > 0)
+									SetSerial(nSerial + 1);
+								else
+									SetSerial(nPrevSerial + 2, TRUE);
+
+								m_bLotEnd = TRUE;
+								m_nLotEndAuto = LOT_END;
+							}
+						}
+					}
+				}
+			}
+
+			break;
+		case MK_ST + (Mk2PtIdx::Shift2Mk) + 6:
+			m_bMkSt = FALSE;
+			break;
+		}
+	}
+}
+
 void CGvisR2R_PunchView::Mk2PtLotDiff()
 {
 	if (m_bMkSt)
@@ -18009,7 +18156,10 @@ void CGvisR2R_PunchView::MarkingWith2PointAlign()
 	Mk2PtAlignPt1();
 	Mk2PtMoveInitPos();
 	Mk2PtElecChk();
-	Mk2PtDoMarking();
+	if (MODE_INNER != pDoc->GetTestMode())
+		Mk2PtDoMarking();
+	else
+		Mk2PtShift2Mk();
 	Mk2PtLotDiff();
 	Mk2PtReject();
 	Mk2PtErrStop();
@@ -18059,6 +18209,7 @@ void CGvisR2R_PunchView::Mk4PtReady()
 					{
 						m_nLotEndSerial = _tstoi(pDoc->WorkingInfo.LastJob.sSampleTestShotNum);
 						m_bLastProcFromUp = FALSE;
+						m_bLastProcFromEng = FALSE;
 						m_bLastProc = TRUE;
 						if (m_pDlgMenu01)
 							m_pDlgMenu01->m_bLastProc = TRUE;
@@ -18093,6 +18244,7 @@ void CGvisR2R_PunchView::Mk4PtReady()
 					{
 						m_nLotEndSerial = _tstoi(pDoc->WorkingInfo.LastJob.sSampleTestShotNum);
 						m_bLastProcFromUp = FALSE;
+						m_bLastProcFromEng = FALSE;
 						m_bLastProc = TRUE;
 						if (m_pDlgMenu01)
 							m_pDlgMenu01->m_bLastProc = TRUE;
@@ -20545,7 +20697,7 @@ void CGvisR2R_PunchView::InitPLC()
 	lData = (long)(_tstoi(pDoc->WorkingInfo.Motion.sFdAoiAoiDistShot) * 1000);
 	pView->m_pMpe->Write(_T("ML45010"), lData);	// AOI(상)에서 AOI(하) Shot수 (단위 Shot수 * 1000)
 	lData = (long)(_tstof(pDoc->WorkingInfo.Motion.sFdEngraveAoiInitDist) * 1000.0);
-	pView->m_pMpe->Write(_T("ML45018"), lData);	// 각인부에서 AOI(상)까지 거리 (단위 mm * 1000)
+	pView->m_pMpe->Write(_T("ML45024"), lData);	// 각인부에서 AOI(상)까지 거리 (단위 mm * 1000)
 	lData = (long)(_tstof(pDoc->WorkingInfo.Motion.sFdBarcodeOffsetVel) * 1000.0);
 	m_pMpe->Write(_T("ML45060"), lData);	// 2D 바코드 리더기위치까지 Feeding 속도 (단위 mm/sec * 1000)
 	lData = (long)(_tstof(pDoc->WorkingInfo.Motion.sFdBarcodeOffsetAcc) * 1000.0);
@@ -20867,18 +21019,18 @@ void CGvisR2R_PunchView::GetPlcParam()
 	//pDoc->BtnStatus.AoiUp.LsrPt = m_pMpe->Read(_T("MB005608")) ? TRUE : FALSE;
 
 	// Engrave
-	pDoc->BtnStatus.Eng.Relation = m_pMpe->Read(_T("MB004111")) ? TRUE : FALSE;
-	pDoc->BtnStatus.Eng.FdCw = m_pMpe->Read(_T("MB004113")) ? TRUE : FALSE;
-	pDoc->BtnStatus.Eng.FdCcw = m_pMpe->Read(_T("MB004114")) ? TRUE : FALSE;
-	pDoc->BtnStatus.Eng.FdVac = m_pMpe->Read(_T("MB004115")) ? TRUE : FALSE;
-	pDoc->BtnStatus.Eng.PushUp = m_pMpe->Read(_T("MB004116")) ? TRUE : FALSE;
-	pDoc->BtnStatus.Eng.TblBlw = m_pMpe->Read(_T("MB00411F")) ? TRUE : FALSE;
-	pDoc->BtnStatus.Eng.TblVac = m_pMpe->Read(_T("MB004117")) ? TRUE : FALSE;
-	pDoc->BtnStatus.Eng.FdClp = m_pMpe->Read(_T("MB004119")) ? TRUE : FALSE;
-	pDoc->BtnStatus.Eng.TqClp = m_pMpe->Read(_T("MB00411A")) ? TRUE : FALSE;
-	pDoc->BtnStatus.Eng.MvOne = m_pMpe->Read(_T("MB440151")) ? TRUE : FALSE;
-	pDoc->BtnStatus.Eng.LsrPt = m_pMpe->Read(_T("MB004118")) ? TRUE : FALSE;
-	pDoc->BtnStatus.Eng.DcRSol = m_pMpe->Read(_T("MB00411B")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Eng.Relation = m_pMpe->Read(_T("MB004511")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Eng.FdCw = m_pMpe->Read(_T("MB004513")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Eng.FdCcw = m_pMpe->Read(_T("MB004514")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Eng.FdVac = m_pMpe->Read(_T("MB004515")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Eng.PushUp = m_pMpe->Read(_T("MB004516")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Eng.TblBlw = m_pMpe->Read(_T("MB00451F")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Eng.TblVac = m_pMpe->Read(_T("MB004517")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Eng.FdClp = m_pMpe->Read(_T("MB004519")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Eng.TqClp = m_pMpe->Read(_T("MB00451A")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Eng.MvOne = m_pMpe->Read(_T("MB440551")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Eng.LsrPt = m_pMpe->Read(_T("MB004518")) ? TRUE : FALSE;
+	pDoc->BtnStatus.Eng.DcRSol = m_pMpe->Read(_T("MB00451B")) ? TRUE : FALSE;
 	pDoc->BtnStatus.Eng.VelSonicBlw = m_pMpe->Read(_T("MB44014E")) ? TRUE : FALSE;
 
 	// Uncoiler
@@ -22298,10 +22450,10 @@ void CGvisR2R_PunchView::SetTwoMetal(BOOL bSel, BOOL bOn)
 			::WritePrivateProfileString(_T("Last Job"), _T("Two Metal On"), _T("0"), PATH_WORKING_INFO);// IDC_CHK_TWO_METAL - Uncoiler\r정방향 ON : TRUE	
 		}
 
-#ifdef USE_ENGRAVE
-		if (pView && pView->m_pEngrave)
-			pView->m_pEngrave->SetUncoilerCcw();	//_stSigInx::_UncoilerCcw
-#endif
+//#ifdef USE_ENGRAVE
+//		if (pView && pView->m_pEngrave)
+//			pView->m_pEngrave->SetUncoilerCcw();	//_stSigInx::_UncoilerCcw
+//#endif
 	}
 	else
 	{
@@ -22318,10 +22470,10 @@ void CGvisR2R_PunchView::SetTwoMetal(BOOL bSel, BOOL bOn)
 			::WritePrivateProfileString(_T("Last Job"), _T("One Metal On"), _T("0"), PATH_WORKING_INFO);// IDC_CHK_ONE_METAL - Recoiler\r정방향 CW : FALSE
 		}
 
-#ifdef USE_ENGRAVE
-		if (pView && pView->m_pEngrave)
-			pView->m_pEngrave->SetRecoilerCcw();	//_stSigInx::_RecoilerCcw
-#endif
+//#ifdef USE_ENGRAVE
+//		if (pView && pView->m_pEngrave)
+//			pView->m_pEngrave->SetRecoilerCcw();	//_stSigInx::_RecoilerCcw
+//#endif
 	}
 }
 
@@ -22476,10 +22628,8 @@ void CGvisR2R_PunchView::MoveEngrave(double dOffset)
 {
 #ifdef USE_MPE
 	long lData = (long)(dOffset * 1000.0);
-	//IoWrite(_T("MB440161"), 1);		// 마킹부 피딩 CW ON (PLC가 피딩완료 후 OFF))
-	pView->m_pMpe->Write(_T("MB440161"), 1);
-	//IoWrite(_T("ML45066"), lData);	// 마킹부 Feeding 롤러 Offset(*1000, +:더 보냄, -덜 보냄)
-	pView->m_pMpe->Write(_T("ML45066"), lData);
+	pView->m_pMpe->Write(_T("MB440199"), 1);		// 각인부 피딩 CW ON (PLC가 피딩완료 후 OFF)
+	pView->m_pMpe->Write(_T("ML45078"), lData);		// 각인부 Feeding 롤러 Offset(*1000, +:더 보냄, -덜 보냄, PC가 쓰고 PLC에서 지움)
 #endif
 }
 
@@ -22566,11 +22716,14 @@ LRESULT CGvisR2R_PunchView::wmClientReceived(WPARAM wParam, LPARAM lParam)
 		if (m_pEngrave)
 			m_pEngrave->GetSysSignal(rSockData);
 
-		if (m_pDlgInfo)
-			m_pDlgInfo->UpdateData();
+		if (m_pEngrave->m_bGetOpInfo)
+		{
+			if (m_pDlgInfo)
+				m_pDlgInfo->UpdateData();
 
-		if (m_pDlgMenu01)
-			m_pDlgMenu01->UpdateData();
+			if (m_pDlgMenu01)
+				m_pDlgMenu01->UpdateData();
+		}
 
 		if (m_pDlgMenu03)
 			m_pDlgMenu03->UpdateSignal();
@@ -22579,8 +22732,11 @@ LRESULT CGvisR2R_PunchView::wmClientReceived(WPARAM wParam, LPARAM lParam)
 		if (m_pEngrave)
 			m_pEngrave->GetSysData(rSockData);
 
-		if (m_pDlgMenu01)
-			m_pDlgMenu01->UpdateData();
+		if (m_pEngrave->m_bGetOpInfo)
+		{
+			if (m_pDlgMenu01)
+				m_pDlgMenu01->UpdateData();
+		}
 
 		//if (m_pDlgMenu02)
 		//	m_pDlgMenu02->UpdateData();
@@ -22954,7 +23110,8 @@ void CGvisR2R_PunchView::DoShift2Mk()
 
 void CGvisR2R_PunchView::DoAutoEng()
 {
-	if (!IsAuto() || (MODE_INNER != pDoc->WorkingInfo.LastJob.nTestMode))
+	//if (!IsAuto() || (MODE_INNER != pDoc->WorkingInfo.LastJob.nTestMode))
+	if (!IsAuto() || (MODE_INNER != pDoc->GetTestMode()))
 		return;
 
 	// 각인부 마킹시작 신호를 확인
@@ -23055,3 +23212,127 @@ void CGvisR2R_PunchView::DoAtuoGet2dReadStSignal()
 	}
 #endif
 }
+
+
+
+void CGvisR2R_PunchView::DoAutoSetFdOffsetEngrave()
+{
+#ifdef USE_MPE
+	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
+	double dAveX, dAveY;
+	CfPoint OfSt;
+	
+	if (pDoc->m_pMpeSignal[1] & (0x01 << 6) && !m_bEngTestF)		// 각인부 검사중
+	{
+		m_bEngTestF = TRUE;
+		m_bEngTest = TRUE;
+	}
+	else if (!(pDoc->m_pMpeSignal[1] & (0x01 << 6)) && m_bEngTestF)
+	{
+		m_bEngTestF = TRUE;
+		m_bEngTest = TRUE;
+		m_bEngFdWriteF = FALSE;
+		pView->m_pMpe->Write(_T("MB440115"), 0);					// 각인부 Feeding Offset Write 완료(PC가 확인하고 Reset시킴.)
+	}
+
+	if (pDoc->m_pMpeSignal[1] & (0x01 << 5) && !m_bEngFdWrite)		// 각인부 Feeding Offset Write 완료(PC가 확인하고 Reset시킴.)
+		m_bEngFdWrite = TRUE;
+	else if (!(pDoc->m_pMpeSignal[1] & (0x01 << 5)) && m_bEngFdWrite)
+		m_bEngFdWrite = FALSE;
+
+
+	if (m_bEngFdWrite&& !m_bEngFdWriteF)
+	{
+		m_bEngFdWriteF = TRUE;
+
+		GetEngOffset(OfSt);
+
+		dAveX = OfSt.x;
+		dAveY = OfSt.y;
+
+		if (m_pDlgMenu02)
+		{
+			m_pDlgMenu02->m_dEngFdOffsetX = OfSt.x;
+			m_pDlgMenu02->m_dEngFdOffsetY = OfSt.y;
+		}
+
+		pView->m_pMpe->Write(_T("ML45078"), (long)(dAveX*1000.0));	// 각인부 Feeding 롤러 Offset(*1000, +:더 보냄, -덜 보냄, PC가 쓰고 PLC에서 지움)
+		pView->m_pMpe->Write(_T("MB440115"), 0);					// 각인부 Feeding Offset Write 완료(PC가 확인하고 Reset시킴.)
+	}
+	else if (!m_bEngFdWrite && m_bEngFdWriteF)
+	{
+		m_bEngFdWriteF = FALSE;
+		m_bEngTest = FALSE;
+	}
+
+	if (m_bEngTest && !m_bEngTest)
+	{
+		if (m_bEngFdWrite && !m_bEngFdWriteF)
+		{
+			m_bEngFdWriteF = TRUE;
+
+			GetEngOffset(OfSt);
+
+			if (m_pDlgMenu02)
+			{
+				m_pDlgMenu02->m_dEngFdOffsetX = OfSt.x;
+				m_pDlgMenu02->m_dEngFdOffsetY = OfSt.y;
+			}
+
+			pView->m_pMpe->Write(_T("ML45078"), (long)(OfSt.x*1000.0)); // 각인부 Feeding 롤러 Offset(*1000, +:더 보냄, -덜 보냄, PC가 쓰고 PLC에서 지움)
+			pView->m_pMpe->Write(_T("MB440115"), 0);					// 각인부 Feeding Offset Write 완료(PC가 확인하고 Reset시킴.)
+		}
+		else if (!m_bAoiFdWrite[0] && m_bAoiFdWriteF[0])
+		{
+			m_bAoiFdWriteF[0] = FALSE;
+			m_bAoiTest[0] = FALSE;
+		}
+	}
+#endif
+}
+
+
+
+void CGvisR2R_PunchView::SetEngFd()
+{
+	CfPoint OfSt;
+	if (GetEngOffset(OfSt))
+	{
+		if (m_pDlgMenu02)
+		{
+			m_pDlgMenu02->m_dEngFdOffsetX = OfSt.x;
+			m_pDlgMenu02->m_dEngFdOffsetY = OfSt.y;
+		}
+	}
+
+	MoveEng(-1.0*OfSt.x);
+	if (m_pDlgMenu03)
+		m_pDlgMenu03->ChkDoneEngrave();
+
+	if (!pDoc->WorkingInfo.LastJob.bAoiOnePnl)
+	{
+#ifdef USE_MPE
+		pView->m_pMpe->Write(_T("MB440151"), 1);	// 한판넬 이송상태 ON (PC가 ON, OFF)
+#endif
+		CString sData, sPath = PATH_WORKING_INFO;
+		pDoc->WorkingInfo.LastJob.bMkOnePnl = pDoc->WorkingInfo.LastJob.bAoiOnePnl = pDoc->WorkingInfo.LastJob.bEngraveOnePnl = TRUE;
+		sData.Format(_T("%d"), pDoc->WorkingInfo.LastJob.bMkOnePnl ? 1 : 0);
+		::WritePrivateProfileString(_T("Last Job"), _T("Marking One Pannel Move On"), sData, sPath);
+		::WritePrivateProfileString(_T("Last Job"), _T("AOI One Pannel Move On"), sData, sPath);
+		::WritePrivateProfileString(_T("Last Job"), _T("Engrave One Pannel Move On"), sData, sPath);
+	}
+}
+
+BOOL CGvisR2R_PunchView::GetEngOffset(CfPoint &OfSt)
+{
+	return pDoc->GetEngOffset(OfSt);
+}
+
+
+void CGvisR2R_PunchView::MoveEng(double dOffset)
+{
+	long lData = (long)(dOffset * 1000.0);
+	pView->m_pMpe->Write(_T("MB440160"), 1);	// 검사부 피딩 ON (PLC가 피딩완료 후 OFF)
+	pView->m_pMpe->Write(_T("ML45064"), lData);	// 검사부 Feeding 롤러 Offset(*1000, +:더 보냄, -덜 보냄)
+}
+

@@ -1962,6 +1962,17 @@ void CDlgMenu03::OnTimer(UINT_PTR nIDEvent)//(UINT nIDEvent)
 			SetTimer(TIM_CHK_DONE_ENG_BUF_INIT, 100, NULL);
 	}
 
+	if (nIDEvent == TIM_CHK_DONE_AOI)
+	{
+		KillTimer(TIM_CHK_DONE_AOI);
+
+#ifdef USE_MPE
+		if (!(pDoc->m_pMpeSignal[5] & (0x01 << 0)))	// 검사부 피딩 ON (PLC가 피딩완료 후 OFF)
+			m_bTIM_CHK_DONE_AOI = FALSE;
+#endif
+		if (m_bTIM_CHK_DONE_AOI)
+			SetTimer(TIM_CHK_DONE_AOI, 100, NULL);
+	}
 
 	CDialog::OnTimer(nIDEvent);
 }
@@ -2572,11 +2583,19 @@ void CDlgMenu03::SwMpeBtn(int nCtrlID, long lData)
 		// [One Metal]
 	case IDC_CHK_68:
 		pView->SetTwoMetal(FALSE, TRUE);
+#ifdef USE_ENGRAVE
+		if (pView && pView->m_pEngrave)
+			pView->m_pEngrave->SetRecoilerCcw();	//_stSigInx::_RecoilerCcw
+#endif
 		break;
 
 		// [Two Metal]
 	case IDC_CHK_69:
 		pView->SetTwoMetal(TRUE, TRUE);
+#ifdef USE_ENGRAVE
+		if (pView && pView->m_pEngrave)
+			pView->m_pEngrave->SetUncoilerCcw();	//_stSigInx::_UncoilerCcw
+#endif
 		break;
 
 		// [Core 150mm] - Recoiler
@@ -3467,7 +3486,6 @@ BOOL CDlgMenu03::DoReset()
 		if(m_bTIM_CHK_DONE_READY)
 		{
 			m_bTIM_CHK_DONE_READY = FALSE;
-			//pView->ClrDispMsg();
 			pView->m_bReadyDone = FALSE;
 #ifdef USE_MPE
 			if(pView->m_pMpe)
@@ -3475,8 +3493,10 @@ BOOL CDlgMenu03::DoReset()
 #endif
 		}
 		pView->ClrDispMsg();
+
+		//if (pView->m_pEngrave)
+		//	pView->m_pEngrave->SwEngAutoInit(TRUE);
 		
-//		if(IDNO == pView->DoMyMsgBox(_T("초기화 하시겠습니까?"), MB_YESNO))
 		if(IDNO == pView->MsgBox(_T("초기화 하시겠습니까?"), 0, MB_YESNO))
 			bInit = FALSE;
 		else
@@ -3487,7 +3507,6 @@ BOOL CDlgMenu03::DoReset()
 
 		if(!bInit)
 		{
-//			if(IDNO == pView->DoMyMsgBox(_T("이어가기를 하시겠습니까?"), MB_YESNO))
 			if(IDNO == pView->MsgBox(_T("이어가기를 하시겠습니까?"), 0, MB_YESNO))
 			{
 				pView->m_bCont = FALSE;
@@ -3507,9 +3526,6 @@ BOOL CDlgMenu03::DoReset()
 		pView->m_nDebugStep = 4; pView->DispThreadTick();
 		if(bDualTest)
 			pView->SetAoiDummyShot(1, pView->GetAoiDnDummyShot());
-			
-		//pView->IoWrite("MB440162", 0); // 마킹부 정지 스위치 램프 ON(PC가 On/Off시킴)  - 20141021	
-		//pView->m_pMpe->Write(_T("MB440162", 0);
 
 		pView->m_nDebugStep = 5; pView->DispThreadTick();
 		pView->m_bAoiFdWrite[0] = FALSE;
@@ -3557,7 +3573,6 @@ BOOL CDlgMenu03::DoReset()
 		pView->DispStsBar(_T("정지-2"), 0);
 		pView->m_nDebugStep = 14; pView->DispThreadTick();
 		pView->DispMain(_T("정 지"), RGB_RED);	
-//		SwStop();
 		pView->m_nDebugStep = 15; pView->DispThreadTick();
 		SwAoiReset(TRUE);
 
@@ -5260,7 +5275,7 @@ void CDlgMenu03::MoveEngrave(int nDir)
 	{
 #ifdef USE_MPE
 		if (pView->m_pMpe)
-			pView->m_pMpe->Write(_T("MB44017C"), 1);	// 각인부 피딩 CW ON (PLC가 피딩완료 후 OFF)
+			pView->m_pMpe->Write(_T("MB440199"), 1);	// 각인부 피딩 CW ON (PLC가 피딩완료 후 OFF)
 #endif
 	}
 }
@@ -5381,3 +5396,4 @@ void CDlgMenu03::ChkEngBufInitDone()
 		SetTimer(TIM_CHK_DONE_ENG_BUF_INIT, 100, NULL);
 	}
 }
+

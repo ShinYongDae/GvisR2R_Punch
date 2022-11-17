@@ -292,6 +292,8 @@ public:
 	void UpdateData();
 	void UpdateSignal();
 
+	void ChkDoneEng();
+
 // Dialog Data
 	//{{AFX_DATA(CDlgMenu03)
 	enum { IDD = IDD_DLG_MENU_03 };

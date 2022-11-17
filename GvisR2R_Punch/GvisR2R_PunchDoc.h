@@ -373,11 +373,15 @@ public:
 	double GetEngraveFdErrRng();
 	void SetEngraveFdErrNum(int nNum);
 	int GetEngraveFdErrNum();
-	void SetEngraveBufInitPos(double dPos);
 	double GetEngraveBuffInitPos();
 
 	BOOL DirectoryExists(LPCTSTR szPath);
 	void UpdateRstOnRmap();
+	void SetTestMode(int nMode);
+	int GetTestMode();
+	BOOL GetEngOffset(CfPoint &OfSt);
+
+	void SetEngOrderNum(CString sOrderNum);
 
 // 재정의입니다.
 public:

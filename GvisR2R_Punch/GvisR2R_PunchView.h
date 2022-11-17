@@ -102,7 +102,7 @@ namespace Mk2PtIdx
 	typedef enum Index {
 		Start = 2, ChkSn = 4, InitMk = 10, Move0Cam1 = 12, Move0Cam0 = 14, Align1_0 = 17, Align0_0 = 18,
 		Move1Cam1 = 21, Move1Cam0 = 23, Align1_1 = 26, Align0_1 = 27, MoveInitPt = 29, ChkElec = 32, DoMk = 35,
-		Verify = 37, DoneMk = 38, LotDiff = 50
+		Verify = 37, DoneMk = 38, LotDiff = 50, Shift2Mk = 100
 	}; 
 }
 
@@ -252,6 +252,7 @@ class CGvisR2R_PunchView : public CFormView
 	void Mk2PtMoveInitPos();
 	void Mk2PtElecChk();
 	void Mk2PtDoMarking();
+	void Mk2PtShift2Mk();
 	void Mk2PtLotDiff();
 	void Mk2PtReject();
 	void Mk2PtErrStop();
@@ -322,6 +323,8 @@ class CGvisR2R_PunchView : public CFormView
 	void DoAutoEng();
 	void DoAtuoGetEngStSignal();
 	void DoAtuoGet2dReadStSignal();
+
+	void DoAutoSetFdOffsetEngrave();
 
 
 protected: // serialization에서만 만들어집니다.
@@ -446,7 +449,7 @@ public:
 	BOOL m_bReMark[2];			// [nCam] : TRUE(Punching 다시시작), FALSE(pass)
 
 	int m_nMonAlmF, m_nClrAlmF;
-	BOOL m_bLotEnd, m_bLastProc, m_bLastProcFromUp;
+	BOOL m_bLotEnd, m_bLastProc, m_bLastProcFromUp, m_bLastProcFromEng;
 	BOOL m_bMkSt, m_bMkStSw;
 	BOOL m_bEngSt, m_bEngStSw;
 	BOOL m_bEng2dSt, m_bEng2dStSw;
@@ -457,6 +460,9 @@ public:
 
 	BOOL m_bAoiFdWrite[2], m_bAoiFdWriteF[2]; // [Up/Dn]
 	BOOL m_bAoiTest[2], m_bAoiTestF[2], m_bWaitPcr[2]; // [Up/Dn]
+
+	BOOL m_bEngFdWrite, m_bEngFdWriteF;
+	BOOL m_bEngTest, m_bEngTestF;
 
 	BOOL m_bCycleStop, m_bContDiffLot;
 	CString m_sDispMain;
@@ -898,6 +904,7 @@ public:
 	BOOL SetSerialReelmap(int nSerial, BOOL bDumy = FALSE);
 	BOOL SetSerialMkInfo(int nSerial, BOOL bDumy = FALSE);
 	BOOL ChkLastProcFromUp();
+	BOOL ChkLastProcFromEng();
 
 	void CntMk();
 	void ChkMyMsg();
@@ -953,6 +960,10 @@ public:
 
 	void UpdateYield();
 	void UpdateYield(int nSerial);
+
+	void SetEngFd();
+	void MoveEng(double dOffset);
+	BOOL GetEngOffset(CfPoint &OfSt);
 
 // 재정의입니다.
 public:

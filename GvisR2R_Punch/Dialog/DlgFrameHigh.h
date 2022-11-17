@@ -30,7 +30,7 @@ class CDlgFrameHigh : public CDialog
 	CMyStatic myStc[MAX_FRMHIGH_STC];
 
 	BOOL m_bTIM_SIG_AOI;
-	CString m_sStc[3];
+	CString m_sStc[4];
 
 	void AtDlgShow();
 	void AtDlgHide();

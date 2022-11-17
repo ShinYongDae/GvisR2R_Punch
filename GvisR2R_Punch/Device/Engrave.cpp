@@ -41,6 +41,14 @@ CEngrave::CEngrave(CString sAddrCli, CString sAddrSvr, CString sPortSvr, CWnd* p
 
 	m_pThread = NULL;
 	m_bTIM_CHECK_CONNECT = FALSE;
+
+	m_bGetOpInfo = FALSE; m_bGetInfo = FALSE; m_bGetEngInfo = FALSE;
+	m_bGetSignalMain = FALSE; m_bGetSignalTorqueMotor = FALSE; m_bGetSignalInductionMotor = FALSE; m_bGetSignalCore150mm = FALSE; m_bGetSignalEtc = FALSE;
+	m_bGetSignalRecoiler = FALSE; m_bGetSignalPunch = FALSE; m_bGetSignalAOIDn = FALSE; m_bGetSignalAOIUp = FALSE; m_bGetSignalEngrave = FALSE; m_bGetSignalUncoiler = FALSE;
+	m_bGetSignalEngraveAutoSequence = FALSE;
+	m_bGetTotRatio = FALSE; m_bGetStTime = FALSE; m_bGetRunTime = FALSE; m_bGetEdTime = FALSE; m_bGetStripRatio = FALSE; m_bGetDef = FALSE;
+	m_bGet2DReader = FALSE; m_bGetEngInfo = FALSE; m_bGetFdInfo = FALSE; m_bGetAoiInfo = FALSE; m_bGetMkInfo = FALSE; m_bGetMkInfoLf = FALSE; m_bGetMkInfoRt = FALSE;
+
 }
 
 
@@ -405,7 +413,7 @@ void CEngrave::OnTimer(UINT_PTR nIDEvent)
 			if(!IsRunning())
 			{
 				SocketData.nCmdCode = _GetSig;
-				SocketData.nMsgID = _Connect;
+				SocketData.nMsgID = _SigInx::_Connect;
 				SendCommand(SocketData);
 			}
 			if (m_bTIM_CHECK_CONNECT)
@@ -978,35 +986,43 @@ void CEngrave::GetSignalEngraveAutoSequence(SOCKET_DATA SockData)
 			break;
 		case _SigInx::_EngAutoSeqMkSt:
 			pDoc->BtnStatus.EngAuto.MkSt = (SockData.nData1 > 0) ? TRUE : FALSE;
+#ifdef USE_MPE	
+			if (pView && pView->m_pMpe)
+				pView->m_pMpe->Write(_T("MB440103"), SockData.nData1);// 2D(GUI) 각인 동작 Start신호(PLC On->PC Off)
+#endif
 			break;
 		case _SigInx::_EngAutoSeqOnMkIng:
 			pDoc->BtnStatus.EngAuto.OnMking = (SockData.nData1 > 0) ? TRUE : FALSE;
 #ifdef USE_MPE	
 			if(pView && pView->m_pMpe)
-				pView->m_pMpe->Write(_T("MB440173"), pDoc->BtnStatus.EngAuto.OnMking);// 2D(GUI) 각인 동작Running신호(PC On->PC Off)
+				pView->m_pMpe->Write(_T("MB440173"), SockData.nData1);// 2D(GUI) 각인 동작Running신호(PC On->PC Off)
 #endif
 		case _SigInx::_EngAutoSeqMkDone:
 			pDoc->BtnStatus.EngAuto.MkDone = (SockData.nData1 > 0) ? TRUE : FALSE;
 #ifdef USE_MPE	
 			if (pView && pView->m_pMpe)
-				pView->m_pMpe->Write(_T("MB440174"), pDoc->BtnStatus.EngAuto.MkDone);// 각인부 작업완료.(PC가 On, PLC가 확인 후 Off)
+				pView->m_pMpe->Write(_T("MB440174"), SockData.nData1);// 각인부 작업완료.(PC가 On, PLC가 확인 후 Off)
 #endif
 			break;
 		case _SigInx::_EngAutoSeq2dReadSt:
 			pDoc->BtnStatus.EngAuto.Read2dSt = (SockData.nData1 > 0) ? TRUE : FALSE;
+#ifdef USE_MPE	
+			if (pView && pView->m_pMpe)
+				pView->m_pMpe->Write(_T("MB440105"), SockData.nData1);// 각인부 2D 리더 시작신호(PLC On->PC Off)
+#endif
 			break;
 		case _SigInx::_EngAutoSeqOnReading2d:
 			pDoc->BtnStatus.EngAuto.OnRead2d = (SockData.nData1 > 0) ? TRUE : FALSE;
 #ifdef USE_MPE	
 			if (pView && pView->m_pMpe)
-				pView->m_pMpe->Write(_T("MB440178"), pDoc->BtnStatus.EngAuto.OnMking);// 각인부 2D 리더 작업중 신호(PC On->PC Off)
+				pView->m_pMpe->Write(_T("MB440178"), SockData.nData1);// 각인부 2D 리더 작업중 신호(PC On->PC Off)
 #endif
 			break;
 		case _SigInx::_EngAutoSeq2dReadDone:
 			pDoc->BtnStatus.EngAuto.Read2dDone = (SockData.nData1 > 0) ? TRUE : FALSE;
 #ifdef USE_MPE	
 			if (pView && pView->m_pMpe)
-				pView->m_pMpe->Write(_T("MB440179"), pDoc->BtnStatus.EngAuto.Read2dDone);// 각인부 2D 리더 작업완료 신호.(PC가 On, PLC가 확인 후 Off)
+				pView->m_pMpe->Write(_T("MB440179"), SockData.nData1);// 각인부 2D 리더 작업완료 신호.(PC가 On, PLC가 확인 후 Off)
 #endif
 			break;
 		}
@@ -1042,66 +1058,164 @@ void CEngrave::GetOpInfo(SOCKET_DATA SockData)
 	int nMsgId = SockData.nMsgID;
 
 	CString sVal;
+	m_bGetOpInfo = FALSE;
 	if (nCmdCode == _SetSig)
 	{
 		switch (nMsgId)
 		{
 		case _SigInx::_DualTest:
-			pDoc->WorkingInfo.LastJob.bDualTest = (SockData.nData1 > 0) ? TRUE : FALSE;
+			if (pDoc->WorkingInfo.LastJob.bDualTest != (SockData.nData1 > 0) ? TRUE : FALSE)
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.bDualTest = (SockData.nData1 > 0) ? TRUE : FALSE;
+			}
 			break;
 		case _SigInx::_SampleTest:
-			pDoc->WorkingInfo.LastJob.bSampleTest = (SockData.nData1 > 0) ? TRUE : FALSE;
+			if (pDoc->WorkingInfo.LastJob.bSampleTest != (SockData.nData1 > 0) ? TRUE : FALSE)
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.bSampleTest = (SockData.nData1 > 0) ? TRUE : FALSE;
+			}
 			break;
 		case _SigInx::_TestMode:
-			pDoc->WorkingInfo.LastJob.nTestMode = (int)SockData.nData1; // MODE_NONE = 0, MODE_INNER = 1, MODE_OUTER = 2
+			if(pDoc->GetTestMode() != (int)SockData.nData1) // MODE_NONE = 0, MODE_INNER = 1, MODE_OUTER = 2
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->SetTestMode((int)SockData.nData1); // MODE_NONE = 0, MODE_INNER = 1, MODE_OUTER = 2
+				//pDoc->WorkingInfo.LastJob.nTestMode = (int)SockData.nData1; // MODE_NONE = 0, MODE_INNER = 1, MODE_OUTER = 2
+#ifdef USE_MPE	
+				if (pView && pView->m_pMpe)
+				{
+					if (pDoc->GetTestMode() == MODE_INNER)
+					{
+						pView->m_pMpe->Write(_T("MB440172"), 1);// 내층 검사 사용/미사용
+						pView->m_pMpe->Write(_T("MB440176"), 0);// 외층 검사 사용/미사용
+					}
+					else if (pDoc->GetTestMode() == MODE_OUTER)
+					{
+						pView->m_pMpe->Write(_T("MB440172"), 0);// 내층 검사 사용/미사용
+						pView->m_pMpe->Write(_T("MB440176"), 1);// 외층 검사 사용/미사용
+					}
+					else
+					{
+						pView->m_pMpe->Write(_T("MB440172"), 0);// 내층 검사 사용/미사용
+						pView->m_pMpe->Write(_T("MB440176"), 0);// 외층 검사 사용/미사용
+					}
+				}
+#endif
+			}
 			break;
 		case _SigInx::_RecoilerCcw:
-			pDoc->WorkingInfo.LastJob.bOneMetal = (SockData.nData1 > 0) ? TRUE : FALSE;	// OneMetal : TRUE -> SetTwoMetal(FALSE);
+			if(pDoc->WorkingInfo.LastJob.bOneMetal != (SockData.nData1 > 0) ? TRUE : FALSE)	// OneMetal : TRUE -> SetTwoMetal(FALSE);
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.bOneMetal = (SockData.nData1 > 0) ? TRUE : FALSE;	// OneMetal : TRUE -> SetTwoMetal(FALSE);
+			}
 			break;
 		case _SigInx::_UncoilerCcw:
-			pDoc->WorkingInfo.LastJob.bTwoMetal = (SockData.nData1 > 0) ? TRUE : FALSE;	// TwoMetal : TRUE -> SetTwoMetal(TRUE);
+			if(pDoc->WorkingInfo.LastJob.bTwoMetal != (SockData.nData1 > 0) ? TRUE : FALSE)	// TwoMetal : TRUE -> SetTwoMetal(TRUE);
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.bTwoMetal = (SockData.nData1 > 0) ? TRUE : FALSE;	// TwoMetal : TRUE -> SetTwoMetal(TRUE);
+			}
 			break;
 		case _SigInx::_AlignMethode:
-			pDoc->WorkingInfo.LastJob.nAlignMethode = (int)SockData.nData1; // TWO_POINT, FOUR_POINT
+			if(pDoc->WorkingInfo.LastJob.nAlignMethode != (int)SockData.nData1) // TWO_POINT, FOUR_POINT
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.nAlignMethode = (int)SockData.nData1; // TWO_POINT, FOUR_POINT
+			}
 			break;
 		case _SigInx::_DoorRecoiler:
-			pDoc->WorkingInfo.LastJob.bRclDrSen = (SockData.nData1 > 0) ? TRUE : FALSE;
+			if (pDoc->WorkingInfo.LastJob.bRclDrSen != (SockData.nData1 > 0) ? TRUE : FALSE)
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.bRclDrSen = (SockData.nData1 > 0) ? TRUE : FALSE;
+			}
 			break;
 		case _SigInx::_DoorAoiUp:
-			pDoc->WorkingInfo.LastJob.bAoiUpDrSen = (SockData.nData1 > 0) ? TRUE : FALSE;
+			if (pDoc->WorkingInfo.LastJob.bAoiUpDrSen != (SockData.nData1 > 0) ? TRUE : FALSE)
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.bAoiUpDrSen = (SockData.nData1 > 0) ? TRUE : FALSE;
+			}
 			break;
 		case _SigInx::_DoorAoiDn:
-			pDoc->WorkingInfo.LastJob.bAoiDnDrSen = (SockData.nData1 > 0) ? TRUE : FALSE;
+			if (pDoc->WorkingInfo.LastJob.bAoiDnDrSen != (SockData.nData1 > 0) ? TRUE : FALSE)
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.bAoiDnDrSen = (SockData.nData1 > 0) ? TRUE : FALSE;
+			}
 			break;
 		case _SigInx::_DoorMk:
-			pDoc->WorkingInfo.LastJob.bMkDrSen = (SockData.nData1 > 0) ? TRUE : FALSE;
+			if (pDoc->WorkingInfo.LastJob.bMkDrSen != (SockData.nData1 > 0) ? TRUE : FALSE)
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.bMkDrSen = (SockData.nData1 > 0) ? TRUE : FALSE;
+			}
 			break;
 		case _SigInx::_DoorEngrave:
-			pDoc->WorkingInfo.LastJob.bEngvDrSen = (SockData.nData1 > 0) ? TRUE : FALSE;
+			if (pDoc->WorkingInfo.LastJob.bEngvDrSen != (SockData.nData1 > 0) ? TRUE : FALSE)
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.bEngvDrSen = (SockData.nData1 > 0) ? TRUE : FALSE;
+			}
 			break;
 		case _SigInx::_DoorUncoiler:
-			pDoc->WorkingInfo.LastJob.bUclDrSen = (SockData.nData1 > 0) ? TRUE : FALSE;
+			if (pDoc->WorkingInfo.LastJob.bUclDrSen != (SockData.nData1 > 0) ? TRUE : FALSE)
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.bUclDrSen = (SockData.nData1 > 0) ? TRUE : FALSE;
+			}
 			break;
 		case _SigInx::_SaftyMk:
-			pDoc->WorkingInfo.LastJob.bMkSftySen = (SockData.nData1 > 0) ? TRUE : FALSE;
+			if (pDoc->WorkingInfo.LastJob.bMkSftySen != (SockData.nData1 > 0) ? TRUE : FALSE)
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.bMkSftySen = (SockData.nData1 > 0) ? TRUE : FALSE;
+			}
 			break;
 		case _SigInx::_CleannerAoiUp:
-			pDoc->WorkingInfo.LastJob.bUseAoiUpCleanRoler = (SockData.nData1 > 0) ? TRUE : FALSE;
+			if (pDoc->WorkingInfo.LastJob.bUseAoiUpCleanRoler != (SockData.nData1 > 0) ? TRUE : FALSE)
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.bUseAoiUpCleanRoler = (SockData.nData1 > 0) ? TRUE : FALSE;
+			}
 			break;
 		case _SigInx::_CleannerAoiDn:
-			pDoc->WorkingInfo.LastJob.bUseAoiDnCleanRoler = (SockData.nData1 > 0) ? TRUE : FALSE;
+			if (pDoc->WorkingInfo.LastJob.bUseAoiDnCleanRoler != (SockData.nData1 > 0) ? TRUE : FALSE)
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.bUseAoiDnCleanRoler = (SockData.nData1 > 0) ? TRUE : FALSE;
+			}
 			break;
 		case _SigInx::_UltraSonicAoiDn:
-			pDoc->WorkingInfo.LastJob.bUseAoiDnUltrasonic = (SockData.nData1 > 0) ? TRUE : FALSE;
+			if(pDoc->WorkingInfo.LastJob.bUseAoiDnUltrasonic != (SockData.nData1 > 0) ? TRUE : FALSE)
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.bUseAoiDnUltrasonic = (SockData.nData1 > 0) ? TRUE : FALSE;
+			}
 			break;
 		case _SigInx::_UltraSonicEngrave:
-			pDoc->WorkingInfo.LastJob.bUseEngraveUltrasonic = (SockData.nData1 > 0) ? TRUE : FALSE;
+			if (pDoc->WorkingInfo.LastJob.bUseEngraveUltrasonic != (SockData.nData1 > 0) ? TRUE : FALSE)
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.bUseEngraveUltrasonic = (SockData.nData1 > 0) ? TRUE : FALSE;
+			}
 			break;
 		case _SigInx::_TempPause:
-			pDoc->WorkingInfo.LastJob.bTempPause = (SockData.nData1 > 0) ? TRUE : FALSE;
+			if (pDoc->WorkingInfo.LastJob.bTempPause != (SockData.nData1 > 0) ? TRUE : FALSE)
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.bTempPause = (SockData.nData1 > 0) ? TRUE : FALSE;
+			}
 			break;
 		case _SigInx::_LotCut:
-			pDoc->WorkingInfo.LastJob.bLotSep = (SockData.nData1 > 0) ? TRUE : FALSE;
+			if (pDoc->WorkingInfo.LastJob.bLotSep = (SockData.nData1 > 0) ? TRUE : FALSE)
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.bLotSep = (SockData.nData1 > 0) ? TRUE : FALSE;
+			}
 			break;
 		}
 	}
@@ -1110,118 +1224,184 @@ void CEngrave::GetOpInfo(SOCKET_DATA SockData)
 		switch (nMsgId)
 		{
 		case _ItemInx::_OpName:
-			pDoc->WorkingInfo.LastJob.sSelUserName = CharToString(SockData.strData);
+			if (pDoc->WorkingInfo.LastJob.sSelUserName != CharToString(SockData.strData))
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.sSelUserName = CharToString(SockData.strData);
 
-			if (pDoc && pDoc->m_pReelMap)
-				pDoc->m_pReelMap->m_sUser = pDoc->WorkingInfo.LastJob.sSelUserName;
-			if (pDoc)
-				::WritePrivateProfileString(_T("Last Job"), _T("Operator Name"), pDoc->WorkingInfo.LastJob.sSelUserName, PATH_WORKING_INFO);
+				if (pDoc && pDoc->m_pReelMap)
+					pDoc->m_pReelMap->m_sUser = pDoc->WorkingInfo.LastJob.sSelUserName;
+				if (pDoc)
+					::WritePrivateProfileString(_T("Last Job"), _T("Operator Name"), pDoc->WorkingInfo.LastJob.sSelUserName, PATH_WORKING_INFO);
+			}
 			break;
 		case _ItemInx::_SampleShotNum:
 			sVal.Format(_T("%d"), (int)SockData.nData1);
-			pDoc->WorkingInfo.LastJob.sSampleTestShotNum = sVal;
+			if (pDoc->WorkingInfo.LastJob.sSampleTestShotNum != sVal)
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.sSampleTestShotNum = sVal;
 
-			::WritePrivateProfileString(_T("Last Job"), _T("Sample Test Shot Num"), sVal, PATH_WORKING_INFO);
+				::WritePrivateProfileString(_T("Last Job"), _T("Sample Test Shot Num"), sVal, PATH_WORKING_INFO);
+			}
 			break;
 		case _ItemInx::_TotReelLen:
-			pDoc->WorkingInfo.LastJob.sReelTotLen = CharToString(SockData.strData);
-			pDoc->WorkingInfo.Lot.sTotalReelDist = CharToString(SockData.strData);
+			if (pDoc->WorkingInfo.LastJob.sReelTotLen != CharToString(SockData.strData))
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.sReelTotLen = CharToString(SockData.strData);
+				pDoc->WorkingInfo.Lot.sTotalReelDist = CharToString(SockData.strData);
 
-			::WritePrivateProfileString(_T("Last Job"), _T("Reel Total Length"), pDoc->WorkingInfo.LastJob.sReelTotLen, PATH_WORKING_INFO);
-			::WritePrivateProfileString(_T("Lot"), _T("LOT_TOTAL_REEL_DIST"), pDoc->WorkingInfo.Lot.sTotalReelDist, PATH_WORKING_INFO);
+				::WritePrivateProfileString(_T("Last Job"), _T("Reel Total Length"), pDoc->WorkingInfo.LastJob.sReelTotLen, PATH_WORKING_INFO);
+				::WritePrivateProfileString(_T("Lot"), _T("LOT_TOTAL_REEL_DIST"), pDoc->WorkingInfo.Lot.sTotalReelDist, PATH_WORKING_INFO);
 
 #ifdef USE_MPE
-			lData = (long)(_tstof(pDoc->WorkingInfo.LastJob.sReelTotLen) * 1000.0);
-			if (pView && pView->m_pMpe)
-				pView->m_pMpe->Write(_T("ML45000"), lData);	// 전체 Reel 길이 (단위 M * 1000)
+				lData = (long)(_tstof(pDoc->WorkingInfo.LastJob.sReelTotLen) * 1000.0);
+				if (pView && pView->m_pMpe)
+					pView->m_pMpe->Write(_T("ML45000"), lData);	// 전체 Reel 길이 (단위 M * 1000)
 #endif
+			}
 			break;
 		case _ItemInx::_OnePnlLen:
-			pDoc->WorkingInfo.Motion.sMkFdDist = CharToString(SockData.strData);
+			if (pDoc->WorkingInfo.Motion.sMkFdDist != CharToString(SockData.strData))
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.Motion.sMkFdDist = CharToString(SockData.strData);
 
-			if (pDoc->m_pReelMap)
-				pDoc->m_pReelMap->m_dPnlLen = _tstof(pDoc->WorkingInfo.Motion.sMkFdDist);
-			::WritePrivateProfileString(_T("Last Job"), _T("One Panel Length"), pDoc->WorkingInfo.Motion.sMkFdDist, PATH_WORKING_INFO);
-			::WritePrivateProfileString(_T("Motion"), _T("MARKING_FEEDING_SERVO_DIST"), pDoc->WorkingInfo.Motion.sMkFdDist, PATH_WORKING_INFO);
-			::WritePrivateProfileString(_T("Motion"), _T("AOI_FEEDING_SERVO_DIST"), pDoc->WorkingInfo.Motion.sMkFdDist, PATH_WORKING_INFO);
+				if (pDoc->m_pReelMap)
+					pDoc->m_pReelMap->m_dPnlLen = _tstof(pDoc->WorkingInfo.Motion.sMkFdDist);
+				::WritePrivateProfileString(_T("Last Job"), _T("One Panel Length"), pDoc->WorkingInfo.Motion.sMkFdDist, PATH_WORKING_INFO);
+				::WritePrivateProfileString(_T("Motion"), _T("MARKING_FEEDING_SERVO_DIST"), pDoc->WorkingInfo.Motion.sMkFdDist, PATH_WORKING_INFO);
+				::WritePrivateProfileString(_T("Motion"), _T("AOI_FEEDING_SERVO_DIST"), pDoc->WorkingInfo.Motion.sMkFdDist, PATH_WORKING_INFO);
 #ifdef USE_MPE
-			lData = (long)(pDoc->m_pReelMap->m_dPnlLen * 1000.0);
-			pView->m_pMpe->Write(_T("ML45032"), lData);	// 한 판넬 길이 (단위 mm * 1000)
+				lData = (long)(pDoc->m_pReelMap->m_dPnlLen * 1000.0);
+				pView->m_pMpe->Write(_T("ML45032"), lData);	// 한 판넬 길이 (단위 mm * 1000)
 #endif
+			}
 			break;
 		case _ItemInx::_TempStopLen:
-			pDoc->WorkingInfo.LastJob.sTempPauseLen = CharToString(SockData.strData);
-			pDoc->WorkingInfo.Lot.sStopDist = CharToString(SockData.strData);
+			if (pDoc->WorkingInfo.LastJob.sTempPauseLen != CharToString(SockData.strData))
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.sTempPauseLen = CharToString(SockData.strData);
+				pDoc->WorkingInfo.Lot.sStopDist = CharToString(SockData.strData);
 
-			if (pDoc->m_pReelMap)
-				pDoc->m_pReelMap->m_dTempPauseLen = _tstof(pDoc->WorkingInfo.LastJob.sTempPauseLen);
-			::WritePrivateProfileString(_T("Last Job"), _T("Temporary Pause Length"), pDoc->WorkingInfo.LastJob.sTempPauseLen, PATH_WORKING_INFO);
+				if (pDoc->m_pReelMap)
+					pDoc->m_pReelMap->m_dTempPauseLen = _tstof(pDoc->WorkingInfo.LastJob.sTempPauseLen);
+				::WritePrivateProfileString(_T("Last Job"), _T("Temporary Pause Length"), pDoc->WorkingInfo.LastJob.sTempPauseLen, PATH_WORKING_INFO);
 
 #ifdef USE_MPE
-			lData = (long)(_tstof(pDoc->WorkingInfo.LastJob.sTempPauseLen) * 1000.0);
-			pView->m_pMpe->Write(_T("ML45006"), lData);	// 일시정지 길이 (단위 M * 1000)
+				lData = (long)(_tstof(pDoc->WorkingInfo.LastJob.sTempPauseLen) * 1000.0);
+				pView->m_pMpe->Write(_T("ML45006"), lData);	// 일시정지 길이 (단위 M * 1000)
 #endif
+			}
 			break;
 		case _ItemInx::_LotCutLen:
-			pDoc->WorkingInfo.LastJob.sLotSepLen = CharToString(SockData.strData);
-			pDoc->WorkingInfo.Lot.sSeparateDist = CharToString(SockData.strData);
+			if (pDoc->WorkingInfo.LastJob.sLotSepLen != CharToString(SockData.strData))
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.sLotSepLen = CharToString(SockData.strData);
+				pDoc->WorkingInfo.Lot.sSeparateDist = CharToString(SockData.strData);
+			}
 			break;
 		case _ItemInx::_LotCutPosLen:
-			pDoc->WorkingInfo.LastJob.sLotCutPosLen = CharToString(SockData.strData);
-			pDoc->WorkingInfo.Lot.sCuttingDist = CharToString(SockData.strData);
+			if (pDoc->WorkingInfo.LastJob.sLotCutPosLen != CharToString(SockData.strData))
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.sLotCutPosLen = CharToString(SockData.strData);
+				pDoc->WorkingInfo.Lot.sCuttingDist = CharToString(SockData.strData);
 
-			::WritePrivateProfileString(_T("Lot"), _T("LOT_CUTTING_DIST"), pDoc->WorkingInfo.LastJob.sLotCutPosLen, PATH_WORKING_INFO);
-			if (pDoc->m_pReelMap)
-				pDoc->m_pReelMap->m_dLotCutPosLen = _tstof(pDoc->WorkingInfo.LastJob.sLotCutPosLen);
-			::WritePrivateProfileString(_T("Last Job"), _T("Lot Cut Position Length"), pDoc->WorkingInfo.LastJob.sLotCutPosLen, PATH_WORKING_INFO);
+				::WritePrivateProfileString(_T("Lot"), _T("LOT_CUTTING_DIST"), pDoc->WorkingInfo.LastJob.sLotCutPosLen, PATH_WORKING_INFO);
+				if (pDoc->m_pReelMap)
+					pDoc->m_pReelMap->m_dLotCutPosLen = _tstof(pDoc->WorkingInfo.LastJob.sLotCutPosLen);
+				::WritePrivateProfileString(_T("Last Job"), _T("Lot Cut Position Length"), pDoc->WorkingInfo.LastJob.sLotCutPosLen, PATH_WORKING_INFO);
 
 #ifdef USE_MPE
-			lData = (long)(_tstof(pDoc->WorkingInfo.LastJob.sLotCutPosLen) * 1000.0);
-			pView->m_pMpe->Write(_T("ML45004"), lData);	// Lot 분리 후 절단위치 (단위 M * 1000)
+				lData = (long)(_tstof(pDoc->WorkingInfo.LastJob.sLotCutPosLen) * 1000.0);
+				pView->m_pMpe->Write(_T("ML45004"), lData);	// Lot 분리 후 절단위치 (단위 M * 1000)
 #endif
+			}
 			break;
 		case _ItemInx::_LmtTotYld:
-			pDoc->WorkingInfo.LastJob.sLmtTotYld = CharToString(SockData.strData);
+			if(pDoc->WorkingInfo.LastJob.sLmtTotYld != CharToString(SockData.strData))
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.sLmtTotYld = CharToString(SockData.strData);
 
-			::WritePrivateProfileString(_T("Last Job"), _T("Limit Total Yield"), pDoc->WorkingInfo.LastJob.sLmtTotYld, PATH_WORKING_INFO);
+				::WritePrivateProfileString(_T("Last Job"), _T("Limit Total Yield"), pDoc->WorkingInfo.LastJob.sLmtTotYld, PATH_WORKING_INFO);
+			}
 			break;
 		case _ItemInx::_LmtPatlYld:
-			pDoc->WorkingInfo.LastJob.sLmtPatlYld = CharToString(SockData.strData);
+			if(pDoc->WorkingInfo.LastJob.sLmtPatlYld != CharToString(SockData.strData))
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.sLmtPatlYld = CharToString(SockData.strData);
 
-			::WritePrivateProfileString(_T("Last Job"), _T("Limit Partial Yield"), pDoc->WorkingInfo.LastJob.sLmtPatlYld, PATH_WORKING_INFO);
+				::WritePrivateProfileString(_T("Last Job"), _T("Limit Partial Yield"), pDoc->WorkingInfo.LastJob.sLmtPatlYld, PATH_WORKING_INFO);
+			}
 			break;
 		case _ItemInx::_StripOutRatio:
-			pDoc->WorkingInfo.LastJob.sStripOutRatio = CharToString(SockData.strData);
+			if(pDoc->WorkingInfo.LastJob.sStripOutRatio != CharToString(SockData.strData))
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.sStripOutRatio = CharToString(SockData.strData);
 
-			::WritePrivateProfileString(_T("Last Job"), _T("Strip Out Ratio"), pDoc->WorkingInfo.LastJob.sStripOutRatio, PATH_WORKING_INFO);
+				::WritePrivateProfileString(_T("Last Job"), _T("Strip Out Ratio"), pDoc->WorkingInfo.LastJob.sStripOutRatio, PATH_WORKING_INFO);
+			}
 			break;
 		case _ItemInx::_CustomNeedRatio:
-			pDoc->WorkingInfo.LastJob.sCustomNeedRatio = CharToString(SockData.strData);
+			if (pDoc->WorkingInfo.LastJob.sCustomNeedRatio != CharToString(SockData.strData))
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.sCustomNeedRatio = CharToString(SockData.strData);
 
-			::WritePrivateProfileString(_T("Last Job"), _T("Custom Need Ratio"), pDoc->WorkingInfo.LastJob.sCustomNeedRatio, PATH_WORKING_INFO);
+				::WritePrivateProfileString(_T("Last Job"), _T("Custom Need Ratio"), pDoc->WorkingInfo.LastJob.sCustomNeedRatio, PATH_WORKING_INFO);
+			}
 			break;
 		case _ItemInx::_NumRangeFixDef:
-			pDoc->WorkingInfo.LastJob.sNumRangeFixDef = CharToString(SockData.strData);
+			if (pDoc->WorkingInfo.LastJob.sNumRangeFixDef != CharToString(SockData.strData))
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.sNumRangeFixDef = CharToString(SockData.strData);
 
-			::WritePrivateProfileString(_T("Last Job"), _T("Shot Num of Range in Fix Defect"), pDoc->WorkingInfo.LastJob.sNumRangeFixDef, PATH_WORKING_INFO);
+				::WritePrivateProfileString(_T("Last Job"), _T("Shot Num of Range in Fix Defect"), pDoc->WorkingInfo.LastJob.sNumRangeFixDef, PATH_WORKING_INFO);
+			}
 			break;
 		case _ItemInx::_NumContFixDef:
-			pDoc->WorkingInfo.LastJob.sNumContFixDef = CharToString(SockData.strData);
+			if (pDoc->WorkingInfo.LastJob.sNumContFixDef != CharToString(SockData.strData))
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.sNumContFixDef = CharToString(SockData.strData);
 
-			::WritePrivateProfileString(_T("Last Job"), _T("Number of Continuous Fix Defect"), pDoc->WorkingInfo.LastJob.sNumContFixDef, PATH_WORKING_INFO);
+				::WritePrivateProfileString(_T("Last Job"), _T("Number of Continuous Fix Defect"), pDoc->WorkingInfo.LastJob.sNumContFixDef, PATH_WORKING_INFO);
+			}
 			break;
 		case _ItemInx::_UltraSonicStTim:
-			pDoc->WorkingInfo.LastJob.sUltraSonicCleannerStTim = CharToString(SockData.strData);
-
-			::WritePrivateProfileString(_T("Last Job"), _T("Ultra Sonic Cleanner Start Time"), pDoc->WorkingInfo.LastJob.sUltraSonicCleannerStTim, PATH_WORKING_INFO);
-			lData = (long)(_tstof(pDoc->WorkingInfo.LastJob.sUltraSonicCleannerStTim) * 100.0);
-#ifdef USE_MPE
-			if (pView && pView->m_pMpe)
+			if(pDoc->WorkingInfo.LastJob.sUltraSonicCleannerStTim != CharToString(SockData.strData))
 			{
-				pView->m_pMpe->Write(_T("MW05940"), (long)lData);	// AOI_Dn (단위 [초] * 100) : 1 is 10 mSec.
-				pView->m_pMpe->Write(_T("MW05942"), (long)lData);	// AOI_Up (단위 [초] * 100) : 1 is 10 mSec.
-			}
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.sUltraSonicCleannerStTim = CharToString(SockData.strData);
+
+				::WritePrivateProfileString(_T("Last Job"), _T("Ultra Sonic Cleanner Start Time"), pDoc->WorkingInfo.LastJob.sUltraSonicCleannerStTim, PATH_WORKING_INFO);
+				lData = (long)(_tstof(pDoc->WorkingInfo.LastJob.sUltraSonicCleannerStTim) * 100.0);
+#ifdef USE_MPE
+				if (pView && pView->m_pMpe)
+				{
+					pView->m_pMpe->Write(_T("MW05940"), (long)lData);	// AOI_Dn (단위 [초] * 100) : 1 is 10 mSec.
+					pView->m_pMpe->Write(_T("MW05942"), (long)lData);	// AOI_Up (단위 [초] * 100) : 1 is 10 mSec.
+				}
 #endif
+			}
+			break;
+		case _ItemInx::_EngOrderNum:
+			if (pDoc->WorkingInfo.LastJob.sEngOrderNum != CharToString(SockData.strData))
+			{
+				m_bGetOpInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.sEngOrderNum = CharToString(SockData.strData);
+				pDoc->SetEngOrderNum(pDoc->WorkingInfo.LastJob.sEngOrderNum);
+
+				//::WritePrivateProfileString(_T("Last Job"), _T("Engrave Order Num"), pDoc->WorkingInfo.LastJob.sEngOrderNum, PATH_WORKING_INFO);
+			}
 			break;
 		}
 	}
@@ -1232,18 +1412,23 @@ void CEngrave::GetInfo(SOCKET_DATA SockData)
 	int nCmdCode = SockData.nCmdCode;
 	int nMsgId = SockData.nMsgID;
 
+	m_bGetInfo = FALSE;
 	if (nCmdCode == _SetSig)
 	{
 		switch (nMsgId)
 		{
 		case _SigInx::_TempPause:
-			pDoc->WorkingInfo.LastJob.bTempPause = (SockData.nData1 > 0) ? TRUE : FALSE;
+			if(pDoc->WorkingInfo.LastJob.bTempPause != (SockData.nData1 > 0) ? TRUE : FALSE)
+			{
+				m_bGetInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.bTempPause = (SockData.nData1 > 0) ? TRUE : FALSE;
 
-			::WritePrivateProfileString(_T("Last Job"), _T("Use Temporary Pause"), pDoc->WorkingInfo.LastJob.bTempPause ? _T("1") : _T("0"), PATH_WORKING_INFO);
+				::WritePrivateProfileString(_T("Last Job"), _T("Use Temporary Pause"), pDoc->WorkingInfo.LastJob.bTempPause ? _T("1") : _T("0"), PATH_WORKING_INFO);
 #ifdef USE_MPE
-			if (pView && pView->m_pMpe)
-				pView->m_pMpe->Write(_T("MB440183"), pDoc->WorkingInfo.LastJob.bTempPause ? 1 : 0);
+				if (pView && pView->m_pMpe)
+					pView->m_pMpe->Write(_T("MB440183"), pDoc->WorkingInfo.LastJob.bTempPause ? 1 : 0);
 #endif
+			}
 			break;
 		}
 	}
@@ -1252,25 +1437,53 @@ void CEngrave::GetInfo(SOCKET_DATA SockData)
 		switch (nMsgId)
 		{
 		case _ItemInx::_OpName:
-			pDoc->WorkingInfo.LastJob.sSelUserName = CharToString(SockData.strData);
+			if (pDoc->WorkingInfo.LastJob.sSelUserName != CharToString(SockData.strData))
+			{
+				m_bGetInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.sSelUserName = CharToString(SockData.strData);
+			}
 			break;
 		case _ItemInx::_ModelUpName:
-			pDoc->WorkingInfo.LastJob.sModelUp = CharToString(SockData.strData);
+			if (pDoc->WorkingInfo.LastJob.sModelUp != CharToString(SockData.strData))
+			{
+				m_bGetInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.sModelUp = CharToString(SockData.strData);
+			}
 			break;
 		case _ItemInx::_ModelDnName:
-			pDoc->WorkingInfo.LastJob.sModelDn = CharToString(SockData.strData);
+			if (pDoc->WorkingInfo.LastJob.sModelDn != CharToString(SockData.strData))
+			{
+				m_bGetInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.sModelDn = CharToString(SockData.strData);
+			}
 			break;
 		case _ItemInx::_LotUpName:
-			pDoc->WorkingInfo.LastJob.sLotUp = CharToString(SockData.strData);
+			if (pDoc->WorkingInfo.LastJob.sLotUp != CharToString(SockData.strData))
+			{
+				m_bGetInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.sLotUp = CharToString(SockData.strData);
+			}
 			break;
 		case _ItemInx::_LotDnName:
-			pDoc->WorkingInfo.LastJob.sLotDn = CharToString(SockData.strData);
+			if (pDoc->WorkingInfo.LastJob.sLotDn != CharToString(SockData.strData))
+			{
+				m_bGetInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.sLotDn = CharToString(SockData.strData);
+			}
 			break;
 		case _ItemInx::_LayerUpName:
-			pDoc->WorkingInfo.LastJob.sLayerUp = CharToString(SockData.strData);
+			if (pDoc->WorkingInfo.LastJob.sLayerUp != CharToString(SockData.strData))
+			{
+				m_bGetInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.sLayerUp = CharToString(SockData.strData);
+			}
 			break;
 		case _ItemInx::_LayerDnName:
-			pDoc->WorkingInfo.LastJob.sLayerDn = CharToString(SockData.strData);
+			if (pDoc->WorkingInfo.LastJob.sLayerDn = CharToString(SockData.strData))
+			{
+				m_bGetInfo = TRUE;
+				pDoc->WorkingInfo.LastJob.sLayerDn = CharToString(SockData.strData);
+			}
 			break;
 		case _ItemInx::_TotReelLen:
 			pDoc->WorkingInfo.LastJob.sReelTotLen = CharToString(SockData.strData);
@@ -1587,6 +1800,7 @@ void CEngrave::Get2DReader(SOCKET_DATA SockData)
 		{
 		case _ItemInx::_2DEngLen:
 			pDoc->WorkingInfo.Motion.s2DEngLen = CharToString(SockData.strData);
+			pDoc->SetEngraveReaderDist(_tstof(pDoc->WorkingInfo.Motion.s2DEngLen));
 			break;
 		case _ItemInx::_2DAoiLen:
 			pDoc->WorkingInfo.Motion.s2DAoiLen = CharToString(SockData.strData);
@@ -1647,6 +1861,7 @@ void CEngrave::GetEngInfo(SOCKET_DATA SockData)
 		{
 		case _ItemInx::_EngLeadPitch:
 			pDoc->WorkingInfo.Motion.sEngraveFdLead = CharToString(SockData.strData);
+			pDoc->SetEngraveFdPitch(_tstof(pDoc->WorkingInfo.Motion.sEngraveFdLead));
 			break;
 		case _ItemInx::_EngPushOffLen:
 			pDoc->WorkingInfo.Motion.sEngraveFdVacOff = CharToString(SockData.strData);
@@ -1655,7 +1870,8 @@ void CEngrave::GetEngInfo(SOCKET_DATA SockData)
 			pDoc->WorkingInfo.Motion.sEngraveTq = CharToString(SockData.strData);
 			break;
 		case _ItemInx::_EngAoiLen:
-			pDoc->WorkingInfo.Motion.sEngAoiLen = CharToString(SockData.strData);
+			pDoc->WorkingInfo.Motion.sFdEngraveAoiInitDist = pDoc->WorkingInfo.Motion.sEngAoiLen = CharToString(SockData.strData);
+			pDoc->SetEngraveAoiDist(_tstoi(pDoc->WorkingInfo.Motion.sEngAoiLen));
 			break;
 		case _ItemInx::_EngFdDiffMax:
 			pDoc->WorkingInfo.Motion.sEngFdDiffMax = CharToString(SockData.strData);
@@ -1668,6 +1884,7 @@ void CEngrave::GetEngInfo(SOCKET_DATA SockData)
 			break;
 		case _ItemInx::_EngBuffInitPos:
 			pDoc->WorkingInfo.Motion.sEngBuffInitPos = CharToString(SockData.strData);
+			pDoc->SetEngBufInitPos(_tstof(pDoc->WorkingInfo.Motion.sEngBuffInitPos));
 			break;
 		case _ItemInx::_EngBuffCurrPos:
 			pDoc->WorkingInfo.Motion.sEngBuffCurrPos = CharToString(SockData.strData);
@@ -2121,32 +2338,32 @@ BOOL CEngrave::SetSysSignal()
 
 void CEngrave::SetSignalMain()
 {
-	if (pDoc->BtnStatus.Main.PrevReady != pDoc->BtnStatus.Main.Ready)
+	//if (pDoc->BtnStatus.Main.PrevReady != pDoc->BtnStatus.Main.Ready)
 	{
 		pDoc->BtnStatus.Main.PrevReady = pDoc->BtnStatus.Main.Ready;
 		SwReady(pDoc->BtnStatus.Main.Ready);		// 마킹부 운전준비 스위치 "MB005503" IDC_CHK_34
 	}
-	if (pDoc->BtnStatus.Main.PrevRun != pDoc->BtnStatus.Main.Run)
+	//if (pDoc->BtnStatus.Main.PrevRun != pDoc->BtnStatus.Main.Run)
 	{
 		pDoc->BtnStatus.Main.PrevRun = pDoc->BtnStatus.Main.Run;
 		SwRun(pDoc->BtnStatus.Main.Run);			// 마킹부 운전 스위치 "MB005501" IDC_CHK_0
 	}
-	if (pDoc->BtnStatus.Main.PrevReset != pDoc->BtnStatus.Main.Reset)
+	//if (pDoc->BtnStatus.Main.PrevReset != pDoc->BtnStatus.Main.Reset)
 	{
 		pDoc->BtnStatus.Main.PrevReset = pDoc->BtnStatus.Main.Reset;
 		SwReset(pDoc->BtnStatus.Main.Reset);		// 마킹부 리셋 스위치 "MB005504" IDC_CHK_1
 	}
-	if (pDoc->BtnStatus.Main.PrevStop != pDoc->BtnStatus.Main.Stop)
+	//if (pDoc->BtnStatus.Main.PrevStop != pDoc->BtnStatus.Main.Stop)
 	{
 		pDoc->BtnStatus.Main.PrevStop = pDoc->BtnStatus.Main.Stop;
 		SwStop(pDoc->BtnStatus.Main.Stop);			// 마킹부 정지 스위치 "MB005502" IDC_CHK_33
 	}
-	if (pDoc->BtnStatus.Main.PrevAuto != pDoc->BtnStatus.Main.Auto)
+	//if (pDoc->BtnStatus.Main.PrevAuto != pDoc->BtnStatus.Main.Auto)
 	{
 		pDoc->BtnStatus.Main.PrevAuto = pDoc->BtnStatus.Main.Auto;
 		SwAuto(pDoc->BtnStatus.Main.Auto);			// 마킹부 자동 스위치 MB005505,	X4205	,	마킹부 자동/수동 (ON)
 	}
-	if (pDoc->BtnStatus.Main.PrevManual != pDoc->BtnStatus.Main.Manual)
+	//if (pDoc->BtnStatus.Main.PrevManual != pDoc->BtnStatus.Main.Manual)
 	{
 		pDoc->BtnStatus.Main.PrevManual = pDoc->BtnStatus.Main.Manual;
 		SwManual(pDoc->BtnStatus.Main.Manual);		// 마킹부 수동 스위치 MB005505,	X4205	,	마킹부 자동/수동 (OFF)
@@ -2155,19 +2372,19 @@ void CEngrave::SetSignalMain()
 
 void CEngrave::SetSignalTorqueMotor()
 {
-	if (pDoc->BtnStatus.Tq.PrevMk != pDoc->BtnStatus.Tq.Mk)
+	//if (pDoc->BtnStatus.Tq.PrevMk != pDoc->BtnStatus.Tq.Mk)
 	{
 		pDoc->BtnStatus.Tq.PrevMk = pDoc->BtnStatus.Tq.Mk;
 		SwMkTq(pDoc->BtnStatus.Tq.Mk); 				// 마킹부 텐션 ON (PC가 ON/OFF시킴) "MB440155" IDC_CHK_2
 		// pDoc->WorkingInfo.Motion.bMkTq
 	}
-	if (pDoc->BtnStatus.Tq.PrevAoi != pDoc->BtnStatus.Tq.Aoi)
+	//if (pDoc->BtnStatus.Tq.PrevAoi != pDoc->BtnStatus.Tq.Aoi)
 	{
 		pDoc->BtnStatus.Tq.PrevAoi = pDoc->BtnStatus.Tq.Aoi;
 		SwAoiTq(pDoc->BtnStatus.Tq.Aoi); 			// 검사부 텐션 ON (PC가 ON/OFF시킴) "MB440156" IDC_CHK_3
 		// pDoc->WorkingInfo.Motion.bAoiTq
 	}
-	if (pDoc->BtnStatus.Tq.PrevEng != pDoc->BtnStatus.Tq.Eng)
+	//if (pDoc->BtnStatus.Tq.PrevEng != pDoc->BtnStatus.Tq.Eng)
 	{
 		pDoc->BtnStatus.Tq.PrevEng = pDoc->BtnStatus.Tq.Eng;
 		SwEngTq(pDoc->BtnStatus.Tq.Eng); 			// 각인부 텐션 ON (PC가 ON/OFF시킴) "MB440154" IDC_CHK_84
@@ -2177,13 +2394,13 @@ void CEngrave::SetSignalTorqueMotor()
 
 void CEngrave::SetSignalInductionMotor()
 {
-	if (pDoc->BtnStatus.Induct.PrevRc != pDoc->BtnStatus.Induct.Rc)
+	//if (pDoc->BtnStatus.Induct.PrevRc != pDoc->BtnStatus.Induct.Rc)
 	{
 		pDoc->BtnStatus.Induct.PrevRc = pDoc->BtnStatus.Induct.Rc;
 		SwRcInductionCcw(pDoc->BtnStatus.Induct.Rc);	// One Metal IDC_CHK_68		
 		//pView->SetTwoMetal(FALSE, TRUE);
 	}
-	if (pDoc->BtnStatus.Induct.PrevUc != pDoc->BtnStatus.Induct.Uc)
+	//if (pDoc->BtnStatus.Induct.PrevUc != pDoc->BtnStatus.Induct.Uc)
 	{
 		pDoc->BtnStatus.Induct.PrevUc = pDoc->BtnStatus.Induct.Uc;
 		SwUcInductionCcw(pDoc->BtnStatus.Induct.Uc);	// Two Metal IDC_CHK_69
@@ -2193,13 +2410,13 @@ void CEngrave::SetSignalInductionMotor()
 
 void CEngrave::SetSignalCore150mm()
 {
-	if (pDoc->BtnStatus.Core150.PrevRc != pDoc->BtnStatus.Core150.Rc)
+	//if (pDoc->BtnStatus.Core150.PrevRc != pDoc->BtnStatus.Core150.Rc)
 	{
 		pDoc->BtnStatus.Core150.PrevRc = pDoc->BtnStatus.Core150.Rc;
 		SwRcCore150mm(pDoc->BtnStatus.Core150.Rc);	// Recoiler IDC_CHK_70		
 		//SetCore150mmRecoiler(TRUE);
 	}
-	if (pDoc->BtnStatus.Core150.PrevUc != pDoc->BtnStatus.Core150.Uc)
+	//if (pDoc->BtnStatus.Core150.PrevUc != pDoc->BtnStatus.Core150.Uc)
 	{
 		pDoc->BtnStatus.Core150.PrevUc = pDoc->BtnStatus.Core150.Uc;
 		SwUcCore150mm(pDoc->BtnStatus.Core150.Uc);	// Uncoiler IDC_CHK_71		
@@ -2214,67 +2431,67 @@ void CEngrave::SetSignalEtc()
 
 void CEngrave::SetSignalRecoiler()
 {
-	if (pDoc->BtnStatus.Rc.PrevRelation != pDoc->BtnStatus.Rc.Relation)
+	//if (pDoc->BtnStatus.Rc.PrevRelation != pDoc->BtnStatus.Rc.Relation)
 	{
 		pDoc->BtnStatus.Rc.PrevRelation = pDoc->BtnStatus.Rc.Relation;
 		SwRcRelation(pDoc->BtnStatus.Rc.Relation);						// 리코일러 연동 온/오프 스위치 "MB005801" IDC_CHK_4
 	}
-	if (pDoc->BtnStatus.Rc.PrevFdCw != pDoc->BtnStatus.Rc.FdCw)
+	//if (pDoc->BtnStatus.Rc.PrevFdCw != pDoc->BtnStatus.Rc.FdCw)
 	{
 		pDoc->BtnStatus.Rc.PrevFdCw = pDoc->BtnStatus.Rc.FdCw;
 		SwRcFdCw(pDoc->BtnStatus.Rc.FdCw);								// 리코일러 제품휠 정회전 스위치 "MB00580C" IDC_CHK_5
 	}
-	if (pDoc->BtnStatus.Rc.PrevFdCcw != pDoc->BtnStatus.Rc.FdCcw)
+	//if (pDoc->BtnStatus.Rc.PrevFdCcw != pDoc->BtnStatus.Rc.FdCcw)
 	{
 		pDoc->BtnStatus.Rc.PrevFdCcw = pDoc->BtnStatus.Rc.FdCcw;
 		SwRcFdCcw(pDoc->BtnStatus.Rc.FdCcw);							// 리코일러 제품휠 역회전 스위치 "MB00580D" IDC_CHK_6
 	}
-	if (pDoc->BtnStatus.Rc.PrevReelChuck != pDoc->BtnStatus.Rc.ReelChuck)
+	//if (pDoc->BtnStatus.Rc.PrevReelChuck != pDoc->BtnStatus.Rc.ReelChuck)
 	{
 		pDoc->BtnStatus.Rc.PrevReelChuck = pDoc->BtnStatus.Rc.ReelChuck;
 		SwRcReelChuck(pDoc->BtnStatus.Rc.ReelChuck);					// 리코일러 제품척 클램프 스위치 "MB00580B" IDC_CHK_41
 	}
-	if (pDoc->BtnStatus.Rc.PrevDcRlUpDn != pDoc->BtnStatus.Rc.DcRlUpDn)
+	//if (pDoc->BtnStatus.Rc.PrevDcRlUpDn != pDoc->BtnStatus.Rc.DcRlUpDn)
 	{
 		pDoc->BtnStatus.Rc.PrevDcRlUpDn = pDoc->BtnStatus.Rc.DcRlUpDn;
 		SwRcDcRlUpDn(pDoc->BtnStatus.Rc.DcRlUpDn);						// 리코일러 댄서롤 상승/하강 스위치 "MB005802" IDC_CHK_42
 	}
-	if (pDoc->BtnStatus.Rc.PrevReelJoinL != pDoc->BtnStatus.Rc.ReelJoinL)
+	//if (pDoc->BtnStatus.Rc.PrevReelJoinL != pDoc->BtnStatus.Rc.ReelJoinL)
 	{
 		pDoc->BtnStatus.Rc.PrevReelJoinL = pDoc->BtnStatus.Rc.ReelJoinL;
 		SwRcReelJoinL(pDoc->BtnStatus.Rc.ReelJoinL);					// 리코일러 제품 이음매(상/좌) 스위치 "MB005805" IDC_CHK_43
 	}
-	if (pDoc->BtnStatus.Rc.PrevReelJoinR != pDoc->BtnStatus.Rc.ReelJoinR)
+	//if (pDoc->BtnStatus.Rc.PrevReelJoinR != pDoc->BtnStatus.Rc.ReelJoinR)
 	{
 		pDoc->BtnStatus.Rc.PrevReelJoinR = pDoc->BtnStatus.Rc.ReelJoinR;
 		SwRcReelJoinR(pDoc->BtnStatus.Rc.ReelJoinR);					// 리코일러 제품 이음매(하/우) 스위치 "MB005806" IDC_CHK_7
 	}
-	if (pDoc->BtnStatus.Rc.PrevReelJoinVac != pDoc->BtnStatus.Rc.ReelJoinVac)
+	//if (pDoc->BtnStatus.Rc.PrevReelJoinVac != pDoc->BtnStatus.Rc.ReelJoinVac)
 	{
 		pDoc->BtnStatus.Rc.PrevReelJoinVac = pDoc->BtnStatus.Rc.ReelJoinVac;
 		SwRcReelJoinVac(pDoc->BtnStatus.Rc.ReelJoinVac);				// 리코일러 제품 이음매 진공 스위치 "MB00580F" IDC_CHK_8
 	}
-	if (pDoc->BtnStatus.Rc.PrevPprChuck != pDoc->BtnStatus.Rc.PprChuck)
+	//if (pDoc->BtnStatus.Rc.PrevPprChuck != pDoc->BtnStatus.Rc.PprChuck)
 	{
 		pDoc->BtnStatus.Rc.PrevPprChuck = pDoc->BtnStatus.Rc.PprChuck;
 		SwRcPaperChuck(pDoc->BtnStatus.Rc.PprChuck);					// 리코일러 간지척 클램프 스위치 "MB005808" IDC_CHK_44
 	}
-	if (pDoc->BtnStatus.Rc.PrevPprCw != pDoc->BtnStatus.Rc.PprCw)
+	//if (pDoc->BtnStatus.Rc.PrevPprCw != pDoc->BtnStatus.Rc.PprCw)
 	{
 		pDoc->BtnStatus.Rc.PrevPprCw = pDoc->BtnStatus.Rc.PprCw;
 		SwRcPaperCw(pDoc->BtnStatus.Rc.PprCw);							// 리코일러 간지휠 정회전 스위치 "MB005809" IDC_CHK_45
 	}
-	if (pDoc->BtnStatus.Rc.PrevPprCcw != pDoc->BtnStatus.Rc.PprCcw)
+	//if (pDoc->BtnStatus.Rc.PrevPprCcw != pDoc->BtnStatus.Rc.PprCcw)
 	{
 		pDoc->BtnStatus.Rc.PrevPprCcw = pDoc->BtnStatus.Rc.PprCcw;
 		SwRcPaperCcw(pDoc->BtnStatus.Rc.PprCcw);						// 리코일러 간지휠 역회전 스위치 "MB00580A" IDC_CHK_46
 	}
-	if (pDoc->BtnStatus.Rc.PrevRewine != pDoc->BtnStatus.Rc.Rewine)
+	//if (pDoc->BtnStatus.Rc.PrevRewine != pDoc->BtnStatus.Rc.Rewine)
 	{
 		pDoc->BtnStatus.Rc.PrevRewine = pDoc->BtnStatus.Rc.Rewine;
 		SwRcRewinder(pDoc->BtnStatus.Rc.Rewine);						// 리코일러 Rewinder 동작 스위치 "MB005803" IDC_CHK_66
 	}
-	if (pDoc->BtnStatus.Rc.PrevRewineReelPpr != pDoc->BtnStatus.Rc.RewineReelPpr)
+	//if (pDoc->BtnStatus.Rc.PrevRewineReelPpr != pDoc->BtnStatus.Rc.RewineReelPpr)
 	{
 		pDoc->BtnStatus.Rc.PrevRewineReelPpr = pDoc->BtnStatus.Rc.RewineReelPpr;
 		SwRcRewinderReelPaper(pDoc->BtnStatus.Rc.RewineReelPpr);		// 리코일러 Rewinder 제품 & 간지 스위치 "MB005804" IDC_CHK_67
@@ -2283,62 +2500,62 @@ void CEngrave::SetSignalRecoiler()
 
 void CEngrave::SetSignalPunch()
 {
-	if (pDoc->BtnStatus.Mk.PrevRelation != pDoc->BtnStatus.Mk.Relation)
+	//if (pDoc->BtnStatus.Mk.PrevRelation != pDoc->BtnStatus.Mk.Relation)
 	{
 		pDoc->BtnStatus.Mk.PrevRelation = pDoc->BtnStatus.Mk.Relation;
 		SwMkRelation(pDoc->BtnStatus.Mk.Relation);			// 마킹부 연동 온/오프 스위치 "MB005511" IDC_CHK_9
 	}
-	if (pDoc->BtnStatus.Mk.PrevFdCw != pDoc->BtnStatus.Mk.FdCw)
+	//if (pDoc->BtnStatus.Mk.PrevFdCw != pDoc->BtnStatus.Mk.FdCw)
 	{
 		pDoc->BtnStatus.Mk.PrevFdCw = pDoc->BtnStatus.Mk.FdCw;
 		SwMkFdCw(pDoc->BtnStatus.Mk.FdCw);					// 마킹부 피딩 정회전 스위치 "MB005513" IDC_CHK_10
 	}
-	if (pDoc->BtnStatus.Mk.PrevFdCcw != pDoc->BtnStatus.Mk.FdCcw)
+	//if (pDoc->BtnStatus.Mk.PrevFdCcw != pDoc->BtnStatus.Mk.FdCcw)
 	{
 		pDoc->BtnStatus.Mk.PrevFdCcw = pDoc->BtnStatus.Mk.FdCcw;
 		SwMkFdCcw(pDoc->BtnStatus.Mk.FdCcw);				// 마킹부 피딩 역회전 스위치 "MB005514" IDC_CHK_11
 	}
-	if (pDoc->BtnStatus.Mk.PrevFdVac != pDoc->BtnStatus.Mk.FdVac)
+	//if (pDoc->BtnStatus.Mk.PrevFdVac != pDoc->BtnStatus.Mk.FdVac)
 	{
 		pDoc->BtnStatus.Mk.PrevFdVac = pDoc->BtnStatus.Mk.FdVac;
 		SwMkFdVac(pDoc->BtnStatus.Mk.FdVac);				// 마킹부 피딩 진공 스위치 "MB005515" IDC_CHK_12
 	}
-	if (pDoc->BtnStatus.Mk.PrevPushUp != pDoc->BtnStatus.Mk.PushUp)
+	//if (pDoc->BtnStatus.Mk.PrevPushUp != pDoc->BtnStatus.Mk.PushUp)
 	{
 		pDoc->BtnStatus.Mk.PrevPushUp = pDoc->BtnStatus.Mk.PushUp;
 		SwMkPushUp(pDoc->BtnStatus.Mk.PushUp);				// 마킹부 제품푸쉬 스위치 "MB005516" // (토크 진공 스위치) - X IDC_CHK_13
 	}
-	if (pDoc->BtnStatus.Mk.PrevTblBlw != pDoc->BtnStatus.Mk.TblBlw)
+	//if (pDoc->BtnStatus.Mk.PrevTblBlw != pDoc->BtnStatus.Mk.TblBlw)
 	{
 		pDoc->BtnStatus.Mk.PrevTblBlw = pDoc->BtnStatus.Mk.TblBlw;
 		SwMkTblBlw(pDoc->BtnStatus.Mk.TblBlw);				// 마킹부 테이블 브로워 스위치 "MB005512" IDC_CHK_14
 	}
-	if (pDoc->BtnStatus.Mk.PrevTblVac != pDoc->BtnStatus.Mk.TblVac)
+	//if (pDoc->BtnStatus.Mk.PrevTblVac != pDoc->BtnStatus.Mk.TblVac)
 	{
 		pDoc->BtnStatus.Mk.PrevTblVac = pDoc->BtnStatus.Mk.TblVac;
 		SwMkTblVac(pDoc->BtnStatus.Mk.TblVac);				// 마킹부 테이블 진공 스위치 "MB005517" IDC_CHK_15
 	}
-	if (pDoc->BtnStatus.Mk.PrevFdClp != pDoc->BtnStatus.Mk.FdClp)
+	//if (pDoc->BtnStatus.Mk.PrevFdClp != pDoc->BtnStatus.Mk.FdClp)
 	{
 		pDoc->BtnStatus.Mk.PrevFdClp = pDoc->BtnStatus.Mk.FdClp;
 		SwMkFdClp(pDoc->BtnStatus.Mk.FdClp);				// 마킹부 피딩 클램프 스위치 "MB005519" IDC_CHK_51
 	}
-	if (pDoc->BtnStatus.Mk.PrevTqClp != pDoc->BtnStatus.Mk.TqClp)
+	//if (pDoc->BtnStatus.Mk.PrevTqClp != pDoc->BtnStatus.Mk.TqClp)
 	{
 		pDoc->BtnStatus.Mk.PrevTqClp = pDoc->BtnStatus.Mk.TqClp;
 		SwMkTqClp(pDoc->BtnStatus.Mk.TqClp);				// 마킹부 텐션 클램프 스위치 "MB00551A" IDC_CHK_52
 	}
-	if (pDoc->BtnStatus.Mk.PrevMvOne != pDoc->BtnStatus.Mk.MvOne)
+	//if (pDoc->BtnStatus.Mk.PrevMvOne != pDoc->BtnStatus.Mk.MvOne)
 	{
 		pDoc->BtnStatus.Mk.PrevMvOne = pDoc->BtnStatus.Mk.MvOne;
 		SwMkMvOne(pDoc->BtnStatus.Mk.MvOne);				// 마킹부 한판넬 이송 스위치 "MB440151" IDC_CHK_16
 	}
-	if (pDoc->BtnStatus.Mk.PrevLsrPt != pDoc->BtnStatus.Mk.LsrPt)
+	//if (pDoc->BtnStatus.Mk.PrevLsrPt != pDoc->BtnStatus.Mk.LsrPt)
 	{
 		pDoc->BtnStatus.Mk.PrevLsrPt = pDoc->BtnStatus.Mk.LsrPt;
 		SwMkLsrPt(pDoc->BtnStatus.Mk.LsrPt);				// 마킹부 레이져마크 스위치 "MB005518" IDC_CHK_49
 	}
-	if (pDoc->BtnStatus.Mk.PrevDcRSol != pDoc->BtnStatus.Mk.DcRSol)
+	//if (pDoc->BtnStatus.Mk.PrevDcRSol != pDoc->BtnStatus.Mk.DcRSol)
 	{
 		pDoc->BtnStatus.Mk.PrevDcRSol = pDoc->BtnStatus.Mk.DcRSol;
 		SwMkDcRSol(pDoc->BtnStatus.Mk.DcRSol);				// 마킹부 댄서롤 상승/하강 스위치 "MB00551B", "X421B" IDC_CHK_48
@@ -2347,62 +2564,62 @@ void CEngrave::SetSignalPunch()
 
 void CEngrave::SetSignalAOIDn()
 {
-	if (pDoc->BtnStatus.AoiDn.PrevRelation != pDoc->BtnStatus.AoiDn.Relation)
+	//if (pDoc->BtnStatus.AoiDn.PrevRelation != pDoc->BtnStatus.AoiDn.Relation)
 	{
 		pDoc->BtnStatus.AoiDn.PrevRelation = pDoc->BtnStatus.AoiDn.Relation;
 		SwAoiDnRelation(pDoc->BtnStatus.AoiDn.Relation);			// 검사부 하 연동 온/오프 스위치 "MB005701" IDC_CHK_55
 	}
-	if (pDoc->BtnStatus.AoiDn.PrevFdCw != pDoc->BtnStatus.AoiDn.FdCw)
+	//if (pDoc->BtnStatus.AoiDn.PrevFdCw != pDoc->BtnStatus.AoiDn.FdCw)
 	{
 		pDoc->BtnStatus.AoiDn.PrevFdCw = pDoc->BtnStatus.AoiDn.FdCw;
 		SwAoiDnFdCw(pDoc->BtnStatus.AoiDn.FdCw);					// 검사부 하 피딩 정회전 스위치 "MB005703" IDC_CHK_56
 	}
-	if (pDoc->BtnStatus.AoiDn.PrevFdCcw != pDoc->BtnStatus.AoiDn.FdCcw)
+	//if (pDoc->BtnStatus.AoiDn.PrevFdCcw != pDoc->BtnStatus.AoiDn.FdCcw)
 	{
 		pDoc->BtnStatus.AoiDn.PrevFdCcw = pDoc->BtnStatus.AoiDn.FdCcw;
 		SwAoiDnFdCcw(pDoc->BtnStatus.AoiDn.FdCcw);					// 검사부 하 피딩 역회전 스위치 "MB005704" IDC_CHK_57
 	}
-	if (pDoc->BtnStatus.AoiDn.PrevFdVac != pDoc->BtnStatus.AoiDn.FdVac)
+	//if (pDoc->BtnStatus.AoiDn.PrevFdVac != pDoc->BtnStatus.AoiDn.FdVac)
 	{
 		pDoc->BtnStatus.AoiDn.PrevFdVac = pDoc->BtnStatus.AoiDn.FdVac;
 		SwAoiDnFdVac(pDoc->BtnStatus.AoiDn.FdVac);					// 검사부 하 피딩 진공 스위치 "MB005705" IDC_CHK_58
 	}
-	if (pDoc->BtnStatus.AoiDn.PrevPushUp != pDoc->BtnStatus.AoiDn.PushUp)
+	//if (pDoc->BtnStatus.AoiDn.PrevPushUp != pDoc->BtnStatus.AoiDn.PushUp)
 	{
 		pDoc->BtnStatus.AoiDn.PrevPushUp = pDoc->BtnStatus.AoiDn.PushUp;
 		SwAoiDnPushUp(pDoc->BtnStatus.AoiDn.PushUp);				// 검사부 하 제품푸쉬 스위치 "MB005706" IDC_CHK_59 // (토크 진공 스위치) - X
 	}
-	if (pDoc->BtnStatus.AoiDn.PrevTblBlw != pDoc->BtnStatus.AoiDn.TblBlw)
+	//if (pDoc->BtnStatus.AoiDn.PrevTblBlw != pDoc->BtnStatus.AoiDn.TblBlw)
 	{
 		pDoc->BtnStatus.AoiDn.PrevTblBlw = pDoc->BtnStatus.AoiDn.TblBlw;
 		SwAoiDnTblBlw(pDoc->BtnStatus.AoiDn.TblBlw);				// 검사부 하 테이블 브로워 스위치 "MB005702" IDC_CHK_60
 	}
-	if (pDoc->BtnStatus.AoiDn.PrevTblVac != pDoc->BtnStatus.AoiDn.TblVac)
+	//if (pDoc->BtnStatus.AoiDn.PrevTblVac != pDoc->BtnStatus.AoiDn.TblVac)
 	{
 		pDoc->BtnStatus.AoiDn.PrevTblVac = pDoc->BtnStatus.AoiDn.TblVac;
 		SwAoiDnTblVac(pDoc->BtnStatus.AoiDn.TblVac);				// 검사부 하 테이블 진공 스위치 "MB005707" IDC_CHK_61
 	}
-	if (pDoc->BtnStatus.AoiDn.PrevFdClp != pDoc->BtnStatus.AoiDn.FdClp)
+	//if (pDoc->BtnStatus.AoiDn.PrevFdClp != pDoc->BtnStatus.AoiDn.FdClp)
 	{
 		pDoc->BtnStatus.AoiDn.PrevFdClp = pDoc->BtnStatus.AoiDn.FdClp;
 		SwAoiDnFdClp(pDoc->BtnStatus.AoiDn.FdClp);					// 검사부 하 피딩 클램프 스위치 "MB005709" IDC_CHK_64
 	}
-	if (pDoc->BtnStatus.AoiDn.PrevTqClp != pDoc->BtnStatus.AoiDn.TqClp)
+	//if (pDoc->BtnStatus.AoiDn.PrevTqClp != pDoc->BtnStatus.AoiDn.TqClp)
 	{
 		pDoc->BtnStatus.AoiDn.PrevTqClp = pDoc->BtnStatus.AoiDn.TqClp;
 		SwAoiDnTqClp(pDoc->BtnStatus.AoiDn.TqClp);					// 검사부 하 텐션 클램프 스위치 "MB00570A" IDC_CHK_65
 	}
-	if (pDoc->BtnStatus.AoiDn.PrevMvOne != pDoc->BtnStatus.AoiDn.MvOne)
+	//if (pDoc->BtnStatus.AoiDn.PrevMvOne != pDoc->BtnStatus.AoiDn.MvOne)
 	{
 		pDoc->BtnStatus.AoiDn.PrevMvOne = pDoc->BtnStatus.AoiDn.MvOne;
 		SwAoiDnMvOne(pDoc->BtnStatus.AoiDn.MvOne);					// 검사부 하 한판넬 이송 스위치 "MB440151" IDC_CHK_62
 	}
-	if (pDoc->BtnStatus.AoiDn.PrevLsrPt != pDoc->BtnStatus.AoiDn.LsrPt)
+	//if (pDoc->BtnStatus.AoiDn.PrevLsrPt != pDoc->BtnStatus.AoiDn.LsrPt)
 	{
 		pDoc->BtnStatus.AoiDn.PrevLsrPt = pDoc->BtnStatus.AoiDn.LsrPt;
 		SwAoiDnLsrPt(pDoc->BtnStatus.AoiDn.LsrPt);					// 검사부 하 레이져마크 스위치 "MB005708" IDC_CHK_63
 	}
-	if (pDoc->BtnStatus.AoiDn.PrevVelSonicBlw != pDoc->BtnStatus.AoiDn.VelSonicBlw)
+	//if (pDoc->BtnStatus.AoiDn.PrevVelSonicBlw != pDoc->BtnStatus.AoiDn.VelSonicBlw)
 	{
 		pDoc->BtnStatus.AoiDn.PrevVelSonicBlw = pDoc->BtnStatus.AoiDn.VelSonicBlw;
 		SwAoiDnVelSonicBlw(pDoc->BtnStatus.AoiDn.VelSonicBlw);		// 검사부 하 초음파 세정기 속도 스위치 "MB44014F"  IDC_CHK_88 // pDoc->WorkingInfo.LastJob.bAoiDnCleanner
@@ -2411,57 +2628,57 @@ void CEngrave::SetSignalAOIDn()
 
 void CEngrave::SetSignalAOIUp()
 {
-	if (pDoc->BtnStatus.AoiUp.PrevRelation != pDoc->BtnStatus.AoiUp.Relation)
+	//if (pDoc->BtnStatus.AoiUp.PrevRelation != pDoc->BtnStatus.AoiUp.Relation)
 	{
 		pDoc->BtnStatus.AoiUp.PrevRelation = pDoc->BtnStatus.AoiUp.Relation;
 		SwAoiUpRelation(pDoc->BtnStatus.AoiUp.Relation);	// 검사부 상 연동 온/오프 스위치 "MB005601" IDC_CHK_17
 	}
-	if (pDoc->BtnStatus.AoiUp.PrevFdCw != pDoc->BtnStatus.AoiUp.FdCw)
+	//if (pDoc->BtnStatus.AoiUp.PrevFdCw != pDoc->BtnStatus.AoiUp.FdCw)
 	{
 		pDoc->BtnStatus.AoiUp.PrevFdCw = pDoc->BtnStatus.AoiUp.FdCw;
 		SwAoiUpFdCw(pDoc->BtnStatus.AoiUp.FdCw);			// 검사부 상 피딩 정회전 스위치 "MB005603" IDC_CHK_18
 	}
-	if (pDoc->BtnStatus.AoiUp.PrevFdCcw != pDoc->BtnStatus.AoiUp.FdCcw)
+	//if (pDoc->BtnStatus.AoiUp.PrevFdCcw != pDoc->BtnStatus.AoiUp.FdCcw)
 	{
 		pDoc->BtnStatus.AoiUp.PrevFdCcw = pDoc->BtnStatus.AoiUp.FdCcw;
 		SwAoiUpFdCcw(pDoc->BtnStatus.AoiUp.FdCcw);			// 검사부 상 피딩 역회전 스위치 "MB005604" IDC_CHK_19
 	}
-	if (pDoc->BtnStatus.AoiUp.PrevFdVac != pDoc->BtnStatus.AoiUp.FdVac)
+	//if (pDoc->BtnStatus.AoiUp.PrevFdVac != pDoc->BtnStatus.AoiUp.FdVac)
 	{
 		pDoc->BtnStatus.AoiUp.PrevFdVac = pDoc->BtnStatus.AoiUp.FdVac;
 		SwAoiUpFdVac(pDoc->BtnStatus.AoiUp.FdVac);			// 검사부 상 피딩 진공 스위치 "MB005605" IDC_CHK_20
 	}
-	if (pDoc->BtnStatus.AoiUp.PrevPushUp != pDoc->BtnStatus.AoiUp.PushUp)
+	//if (pDoc->BtnStatus.AoiUp.PrevPushUp != pDoc->BtnStatus.AoiUp.PushUp)
 	{
 		pDoc->BtnStatus.AoiUp.PrevPushUp = pDoc->BtnStatus.AoiUp.PushUp;
 		SwAoiUpPushUp(pDoc->BtnStatus.AoiUp.PushUp);		// 검사부 상 제품푸쉬 스위치 "MB005606" IDC_CHK_21 // (토크 진공 스위치) - X
 	}
-	if (pDoc->BtnStatus.AoiUp.PrevTblBlw != pDoc->BtnStatus.AoiUp.TblBlw)
+	//if (pDoc->BtnStatus.AoiUp.PrevTblBlw != pDoc->BtnStatus.AoiUp.TblBlw)
 	{
 		pDoc->BtnStatus.AoiUp.PrevTblBlw = pDoc->BtnStatus.AoiUp.TblBlw;
 		SwAoiUpTblBlw(pDoc->BtnStatus.AoiUp.TblBlw);		// 검사부 상 테이블 브로워 스위치 "MB005602" IDC_CHK_22
 	}
-	if (pDoc->BtnStatus.AoiUp.PrevTblVac != pDoc->BtnStatus.AoiUp.TblVac)
+	//if (pDoc->BtnStatus.AoiUp.PrevTblVac != pDoc->BtnStatus.AoiUp.TblVac)
 	{
 		pDoc->BtnStatus.AoiUp.PrevTblVac = pDoc->BtnStatus.AoiUp.TblVac;
 		SwAoiUpTblVac(pDoc->BtnStatus.AoiUp.TblVac);		// 검사부 상 테이블 진공 스위치 "MB005607" IDC_CHK_23
 	}
-	if (pDoc->BtnStatus.AoiUp.PrevFdClp != pDoc->BtnStatus.AoiUp.FdClp)
+	//if (pDoc->BtnStatus.AoiUp.PrevFdClp != pDoc->BtnStatus.AoiUp.FdClp)
 	{
 		pDoc->BtnStatus.AoiUp.PrevFdClp = pDoc->BtnStatus.AoiUp.FdClp;
 		SwAoiUpFdClp(pDoc->BtnStatus.AoiUp.FdClp);			// 검사부 상 피딩 클램프 스위치 "MB005609" IDC_CHK_53
 	}
-	if (pDoc->BtnStatus.AoiUp.PrevTqClp != pDoc->BtnStatus.AoiUp.TqClp)
+	//if (pDoc->BtnStatus.AoiUp.PrevTqClp != pDoc->BtnStatus.AoiUp.TqClp)
 	{
 		pDoc->BtnStatus.AoiUp.PrevTqClp = pDoc->BtnStatus.AoiUp.TqClp;
 		SwAoiUpTqClp(pDoc->BtnStatus.AoiUp.TqClp);			// 검사부 상 텐션 클램프 스위치 "MB00560A" IDC_CHK_54
 	}
-	if (pDoc->BtnStatus.AoiUp.PrevMvOne != pDoc->BtnStatus.AoiUp.MvOne)
+	//if (pDoc->BtnStatus.AoiUp.PrevMvOne != pDoc->BtnStatus.AoiUp.MvOne)
 	{
 		pDoc->BtnStatus.AoiUp.PrevMvOne = pDoc->BtnStatus.AoiUp.MvOne;
 		SwAoiUpMvOne(pDoc->BtnStatus.AoiUp.MvOne);			// 검사부 상 한판넬 이송 스위치  "MB440151" IDC_CHK_24
 	}
-	if (pDoc->BtnStatus.AoiUp.PrevLsrPt != pDoc->BtnStatus.AoiUp.LsrPt)
+	//if (pDoc->BtnStatus.AoiUp.PrevLsrPt != pDoc->BtnStatus.AoiUp.LsrPt)
 	{
 		pDoc->BtnStatus.AoiUp.PrevLsrPt = pDoc->BtnStatus.AoiUp.LsrPt;
 		SwAoiUpLsrPt(pDoc->BtnStatus.AoiUp.LsrPt);			// 검사부 상 레이져마크 스위치 "MB005608" IDC_CHK_50
@@ -2470,67 +2687,67 @@ void CEngrave::SetSignalAOIUp()
 
 void CEngrave::SetSignalEngrave()
 {
-	if (pDoc->BtnStatus.Eng.PrevRelation != pDoc->BtnStatus.Eng.Relation)
+	//if (pDoc->BtnStatus.Eng.PrevRelation != pDoc->BtnStatus.Eng.Relation)
 	{
 		pDoc->BtnStatus.Eng.PrevRelation = pDoc->BtnStatus.Eng.Relation;
 		SwEngRelation(pDoc->BtnStatus.Eng.Relation);		// 각인부 연동 온/오프 스위치 IDC_CHK_72
 	}
-	if (pDoc->BtnStatus.Eng.PrevFdCw != pDoc->BtnStatus.Eng.FdCw)
+	//if (pDoc->BtnStatus.Eng.PrevFdCw != pDoc->BtnStatus.Eng.FdCw)
 	{
 		pDoc->BtnStatus.Eng.PrevFdCw = pDoc->BtnStatus.Eng.FdCw;
 		SwEngFdCw(pDoc->BtnStatus.Eng.FdCw);				// 각인부 피딩 정회전 스위치 IDC_CHK_73
 	}
-	if (pDoc->BtnStatus.Eng.PrevFdCcw != pDoc->BtnStatus.Eng.FdCcw)
+	//if (pDoc->BtnStatus.Eng.PrevFdCcw != pDoc->BtnStatus.Eng.FdCcw)
 	{
 		pDoc->BtnStatus.Eng.PrevFdCcw = pDoc->BtnStatus.Eng.FdCcw;
 		SwEngFdCcw(pDoc->BtnStatus.Eng.FdCcw);				// 각인부 피딩 역회전 스위치 IDC_CHK_74
 	}
-	if (pDoc->BtnStatus.Eng.PrevFdVac != pDoc->BtnStatus.Eng.FdVac)
+	//if (pDoc->BtnStatus.Eng.PrevFdVac != pDoc->BtnStatus.Eng.FdVac)
 	{
 		pDoc->BtnStatus.Eng.PrevFdVac = pDoc->BtnStatus.Eng.FdVac;
 		SwEngFdVac(pDoc->BtnStatus.Eng.FdVac);				// 각인부 피딩 진공 스위치 IDC_CHK_75
 	}
-	if (pDoc->BtnStatus.Eng.PrevPushUp != pDoc->BtnStatus.Eng.PushUp)
+	//if (pDoc->BtnStatus.Eng.PrevPushUp != pDoc->BtnStatus.Eng.PushUp)
 	{
 		pDoc->BtnStatus.Eng.PrevPushUp = pDoc->BtnStatus.Eng.PushUp;
 		SwEngPushUp(pDoc->BtnStatus.Eng.PushUp);			// 각인부 제품푸쉬 스위치 IDC_CHK_76 // (토크 진공 스위치) - X
 	}
-	if (pDoc->BtnStatus.Eng.PrevTblBlw != pDoc->BtnStatus.Eng.TblBlw)
+	//if (pDoc->BtnStatus.Eng.PrevTblBlw != pDoc->BtnStatus.Eng.TblBlw)
 	{
 		pDoc->BtnStatus.Eng.PrevTblBlw = pDoc->BtnStatus.Eng.TblBlw;
 		SwEngTblBlw(pDoc->BtnStatus.Eng.TblBlw);			// 각인부 테이블 브로워 스위치 IDC_CHK_77
 	}
-	if (pDoc->BtnStatus.Eng.PrevTblVac != pDoc->BtnStatus.Eng.TblVac)
+	//if (pDoc->BtnStatus.Eng.PrevTblVac != pDoc->BtnStatus.Eng.TblVac)
 	{
 		pDoc->BtnStatus.Eng.PrevTblVac = pDoc->BtnStatus.Eng.TblVac;
 		SwEngTblVac(pDoc->BtnStatus.Eng.TblVac);			// 각인부 테이블 진공 스위치 IDC_CHK_78
 	}
-	if (pDoc->BtnStatus.Eng.PrevFdClp != pDoc->BtnStatus.Eng.FdClp)
+	//if (pDoc->BtnStatus.Eng.PrevFdClp != pDoc->BtnStatus.Eng.FdClp)
 	{
 		pDoc->BtnStatus.Eng.PrevFdClp = pDoc->BtnStatus.Eng.FdClp;
 		SwEngFdClp(pDoc->BtnStatus.Eng.FdClp);				// 각인부 피딩 클램프 스위치 IDC_CHK_82
 	}
-	if (pDoc->BtnStatus.Eng.PrevTqClp != pDoc->BtnStatus.Eng.TqClp)
+	//if (pDoc->BtnStatus.Eng.PrevTqClp != pDoc->BtnStatus.Eng.TqClp)
 	{
 		pDoc->BtnStatus.Eng.PrevTqClp = pDoc->BtnStatus.Eng.TqClp;
 		SwEngTqClp(pDoc->BtnStatus.Eng.TqClp);				// 각인부 텐션 클램프 스위치 IDC_CHK_83
 	}
-	if (pDoc->BtnStatus.Eng.PrevMvOne != pDoc->BtnStatus.Eng.MvOne)
+	//if (pDoc->BtnStatus.Eng.PrevMvOne != pDoc->BtnStatus.Eng.MvOne)
 	{
 		pDoc->BtnStatus.Eng.PrevMvOne = pDoc->BtnStatus.Eng.MvOne;
 		SwEngMvOne(pDoc->BtnStatus.Eng.MvOne);				// 각인부 한판넬 이송 스위치  "MB440151" IDC_CHK_79
 	}
-	if (pDoc->BtnStatus.Eng.PrevLsrPt != pDoc->BtnStatus.Eng.LsrPt)
+	//if (pDoc->BtnStatus.Eng.PrevLsrPt != pDoc->BtnStatus.Eng.LsrPt)
 	{
 		pDoc->BtnStatus.Eng.PrevLsrPt = pDoc->BtnStatus.Eng.LsrPt;
 		SwEngLsrPt(pDoc->BtnStatus.Eng.LsrPt);				// 각인부 레이져마크 스위치 "" IDC_CHK_81
 	}
-	if (pDoc->BtnStatus.Eng.PrevVelSonicBlw != pDoc->BtnStatus.Eng.VelSonicBlw)
+	//if (pDoc->BtnStatus.Eng.PrevVelSonicBlw != pDoc->BtnStatus.Eng.VelSonicBlw)
 	{
 		pDoc->BtnStatus.Eng.PrevVelSonicBlw = pDoc->BtnStatus.Eng.VelSonicBlw;
 		SwEngVelSonicBlw(pDoc->BtnStatus.Eng.VelSonicBlw);		// 각인부 초음파 세정기 스위치 "MB44014E" IDC_CHK_87 pDoc->WorkingInfo.LastJob.bEngraveCleanner
 	}
-	if (pDoc->BtnStatus.Eng.PrevDcRSol != pDoc->BtnStatus.Eng.DcRSol)
+	//if (pDoc->BtnStatus.Eng.PrevDcRSol != pDoc->BtnStatus.Eng.DcRSol)
 	{
 		pDoc->BtnStatus.Eng.PrevDcRSol = pDoc->BtnStatus.Eng.DcRSol;
 		SwEngDcRSol(pDoc->BtnStatus.Eng.DcRSol);			// 각인부 댄서롤 상승/하강 스위치 IDC_CHK_80
@@ -2539,67 +2756,67 @@ void CEngrave::SetSignalEngrave()
 
 void CEngrave::SetSignalUncoiler()
 {
-	if (pDoc->BtnStatus.Uc.PrevRelation != pDoc->BtnStatus.Uc.Relation)
+	//if (pDoc->BtnStatus.Uc.PrevRelation != pDoc->BtnStatus.Uc.Relation)
 	{
 		pDoc->BtnStatus.Uc.PrevRelation = pDoc->BtnStatus.Uc.Relation;
 		SwUcRelation(pDoc->BtnStatus.Uc.Relation);			// 언코일러 연동 온/오프 스위치 "MB005401" IDC_CHK_25
 	}
-	if (pDoc->BtnStatus.Uc.PrevFdCw != pDoc->BtnStatus.Uc.FdCw)
+	//if (pDoc->BtnStatus.Uc.PrevFdCw != pDoc->BtnStatus.Uc.FdCw)
 	{
 		pDoc->BtnStatus.Uc.PrevFdCw = pDoc->BtnStatus.Uc.FdCw;
 		SwUcFdCw(pDoc->BtnStatus.Uc.FdCw);					// 언코일러 제품휠 정회전 스위치 "MB00540C" IDC_CHK_26
 	}
-	if (pDoc->BtnStatus.Uc.PrevFdCcw != pDoc->BtnStatus.Uc.FdCcw)
+	//if (pDoc->BtnStatus.Uc.PrevFdCcw != pDoc->BtnStatus.Uc.FdCcw)
 	{
 		pDoc->BtnStatus.Uc.PrevFdCcw = pDoc->BtnStatus.Uc.FdCcw;
 		SwUcFdCcw(pDoc->BtnStatus.Uc.FdCcw);				// 언코일러 제품휠 역회전 스위치 "MB00540D" IDC_CHK_27
 	}
-	if (pDoc->BtnStatus.Uc.PrevReelChuck != pDoc->BtnStatus.Uc.ReelChuck)
+	//if (pDoc->BtnStatus.Uc.PrevReelChuck != pDoc->BtnStatus.Uc.ReelChuck)
 	{
 		pDoc->BtnStatus.Uc.PrevReelChuck = pDoc->BtnStatus.Uc.ReelChuck;
 		SwUcReelChuck(pDoc->BtnStatus.Uc.ReelChuck);		// 언코일러 제품척 클램프 스위치 "MB00540B" IDC_CHK_35
 	}
-	if (pDoc->BtnStatus.Uc.PrevDcRlUpDn != pDoc->BtnStatus.Uc.DcRlUpDn)
+	//if (pDoc->BtnStatus.Uc.PrevDcRlUpDn != pDoc->BtnStatus.Uc.DcRlUpDn)
 	{
 		pDoc->BtnStatus.Uc.PrevDcRlUpDn = pDoc->BtnStatus.Uc.DcRlUpDn;
 		SwUcDcRlUpDn(pDoc->BtnStatus.Uc.DcRlUpDn);			// 언코일러 댄서롤 상승/하강 스위치 "MB005402" IDC_CHK_28
 	}
-	if (pDoc->BtnStatus.Uc.PrevReelJoinL != pDoc->BtnStatus.Uc.ReelJoinL)
+	//if (pDoc->BtnStatus.Uc.PrevReelJoinL != pDoc->BtnStatus.Uc.ReelJoinL)
 	{
 		pDoc->BtnStatus.Uc.PrevReelJoinL = pDoc->BtnStatus.Uc.ReelJoinL;
 		SwUcReelJoinL(pDoc->BtnStatus.Uc.ReelJoinL);		// 언코일러 제품 이음매(상/좌) 스위치 "MB005405" IDC_CHK_30
 	}
-	if (pDoc->BtnStatus.Uc.PrevReelJoinR != pDoc->BtnStatus.Uc.ReelJoinR)
+	//if (pDoc->BtnStatus.Uc.PrevReelJoinR != pDoc->BtnStatus.Uc.ReelJoinR)
 	{
 		pDoc->BtnStatus.Uc.PrevReelJoinR = pDoc->BtnStatus.Uc.ReelJoinR;
 		SwUcReelJoinR(pDoc->BtnStatus.Uc.ReelJoinR);		// 언코일러 제품 이음매(하/우) 스위치 "MB005406" IDC_CHK_37
 	}
-	if (pDoc->BtnStatus.Uc.PrevReelJoinVac != pDoc->BtnStatus.Uc.ReelJoinVac)
+	//if (pDoc->BtnStatus.Uc.PrevReelJoinVac != pDoc->BtnStatus.Uc.ReelJoinVac)
 	{
 		pDoc->BtnStatus.Uc.PrevReelJoinVac = pDoc->BtnStatus.Uc.ReelJoinVac;
 		SwUcReelJoinVac(pDoc->BtnStatus.Uc.ReelJoinVac);	// 언코일러 제품 이음매 진공 스위치 "MB00540F" IDC_CHK_38
 	}
-	if (pDoc->BtnStatus.Uc.PrevPprChuck != pDoc->BtnStatus.Uc.PprChuck)
+	//if (pDoc->BtnStatus.Uc.PrevPprChuck != pDoc->BtnStatus.Uc.PprChuck)
 	{
 		pDoc->BtnStatus.Uc.PrevPprChuck = pDoc->BtnStatus.Uc.PprChuck;
 		SwUcPaperChuck(pDoc->BtnStatus.Uc.PprChuck);		// 언코일러 간지척 클램프 스위치 "MB005408" IDC_CHK_31
 	}
-	if (pDoc->BtnStatus.Uc.PrevPprCw != pDoc->BtnStatus.Uc.PprCw)
+	//if (pDoc->BtnStatus.Uc.PrevPprCw != pDoc->BtnStatus.Uc.PprCw)
 	{
 		pDoc->BtnStatus.Uc.PrevPprCw = pDoc->BtnStatus.Uc.PprCw;
 		SwUcPaperCw(pDoc->BtnStatus.Uc.PprCw);				// 언코일러 간지휠 정회전 스위치 "MB005409" IDC_CHK_32
 	}
-	if (pDoc->BtnStatus.Uc.PrevPprCcw != pDoc->BtnStatus.Uc.PprCcw)
+	//if (pDoc->BtnStatus.Uc.PrevPprCcw != pDoc->BtnStatus.Uc.PprCcw)
 	{
 		pDoc->BtnStatus.Uc.PrevPprCcw = pDoc->BtnStatus.Uc.PprCcw;
 		SwUcPaperCcw(pDoc->BtnStatus.Uc.PprCcw);			// 언코일러 간지휠 역회전 스위치 "MB00540A" IDC_CHK_39
 	}
-	if (pDoc->BtnStatus.Uc.PrevClRlUpDn != pDoc->BtnStatus.Uc.ClRlUpDn)
+	//if (pDoc->BtnStatus.Uc.PrevClRlUpDn != pDoc->BtnStatus.Uc.ClRlUpDn)
 	{
 		pDoc->BtnStatus.Uc.PrevClRlUpDn = pDoc->BtnStatus.Uc.ClRlUpDn;
 		SwUcClRlUpDn(pDoc->BtnStatus.Uc.ClRlUpDn);			// 언코일러 클린롤러 상승/하강 스위치 "MB005403" IDC_CHK_29
 	}
-	if (pDoc->BtnStatus.Uc.PrevClRlPshUpDn != pDoc->BtnStatus.Uc.ClRlPshUpDn)
+	//if (pDoc->BtnStatus.Uc.PrevClRlPshUpDn != pDoc->BtnStatus.Uc.ClRlPshUpDn)
 	{
 		pDoc->BtnStatus.Uc.PrevClRlPshUpDn = pDoc->BtnStatus.Uc.ClRlPshUpDn;
 		SwUcClRlPshUpDn(pDoc->BtnStatus.Uc.ClRlPshUpDn);	// 언코일러 클린롤러누름 상승/하강 스위치 "MB005404" IDC_CHK_36
@@ -2672,6 +2889,7 @@ void CEngrave::SetOpInfo()
 	SetFixDef();
 	SetNumContFixDef();
 	SetUltraSonicStTim();
+	SetEngOrderNum();
 }
 
 void CEngrave::SetInfo()
@@ -2682,7 +2900,7 @@ void CEngrave::SetInfo()
 	SetLotDnName();
 	SetLayerUpName();
 	SetLayerDnName();
-	SetOrderNum();
+	//SetOrderNum();
 	SetShotNum();
 	SetTotOpRto();
 	SetTotVel();
@@ -2725,7 +2943,7 @@ void CEngrave::SetStTime()
 		{
 			str = pView->m_pDlgMenu01->GetStTime();
 			char cData[BUFFER_DATA_SIZE];
-			SocketData.nMsgID = _LotStTime;
+			SocketData.nMsgID = _stItemInx::_LotStTime;
 			StringToChar(str, cData);
 			sprintf(SocketData.strData, "%s", cData);
 			SendCommand(SocketData);
@@ -2745,7 +2963,7 @@ void CEngrave::SetRunTime()
 		{
 			str = pView->m_pDlgMenu01->GetRunTime();
 			char cData[BUFFER_DATA_SIZE];
-			SocketData.nMsgID = _LotRunTime;
+			SocketData.nMsgID = _stItemInx::_LotRunTime;
 			StringToChar(str, cData);
 			sprintf(SocketData.strData, "%s", cData);
 			SendCommand(SocketData);
@@ -2765,7 +2983,7 @@ void CEngrave::SetEdTime()
 		{
 			str = pView->m_pDlgMenu01->GetEdTime();
 			char cData[BUFFER_DATA_SIZE];
-			SocketData.nMsgID = _LotEdTime;
+			SocketData.nMsgID = _stItemInx::_LotEdTime;
 			StringToChar(str, cData);
 			sprintf(SocketData.strData, "%s", cData);
 			SendCommand(SocketData);
@@ -2803,7 +3021,7 @@ void CEngrave::SetStripRatio()
 	else
 		dRatio = 0.0;
 
-	SocketData.nMsgID = _1LnGoodRtoUp;
+	SocketData.nMsgID = _stItemInx::_1LnGoodRtoUp;
 	SocketData.fData1 = dRatio;
 	SendCommand(SocketData);
 
@@ -2814,7 +3032,7 @@ void CEngrave::SetStripRatio()
 	else
 		dRatio = 0.0;
 
-	SocketData.nMsgID = _2LnGoodRtoUp;
+	SocketData.nMsgID = _stItemInx::_2LnGoodRtoUp;
 	SocketData.fData1 = dRatio;
 	SendCommand(SocketData);
 
@@ -2825,7 +3043,7 @@ void CEngrave::SetStripRatio()
 	else
 		dRatio = 0.0;
 
-	SocketData.nMsgID = _3LnGoodRtoUp;
+	SocketData.nMsgID = _stItemInx::_3LnGoodRtoUp;
 	SocketData.fData1 = dRatio;
 	SendCommand(SocketData);
 
@@ -2836,7 +3054,7 @@ void CEngrave::SetStripRatio()
 	else
 		dRatio = 0.0;
 
-	SocketData.nMsgID = _4LnGoodRtoUp;
+	SocketData.nMsgID = _stItemInx::_4LnGoodRtoUp;
 	SocketData.fData1 = dRatio;
 	SendCommand(SocketData);
 
@@ -2845,7 +3063,7 @@ void CEngrave::SetStripRatio()
 	else
 		dRatio = 0.0;
 
-	SocketData.nMsgID = _AllLnGoodRtoUp;
+	SocketData.nMsgID = _stItemInx::_AllLnGoodRtoUp;
 	SocketData.fData1 = dRatio;
 	SendCommand(SocketData);
 
@@ -2861,7 +3079,7 @@ void CEngrave::SetStripRatio()
 		else
 			dRatio = 0.0;
 
-		SocketData.nMsgID = _1LnGoodRtoDn;
+		SocketData.nMsgID = _stItemInx::_1LnGoodRtoDn;
 		SocketData.fData1 = dRatio;
 		SendCommand(SocketData);
 
@@ -2872,7 +3090,7 @@ void CEngrave::SetStripRatio()
 		else
 			dRatio = 0.0;
 
-		SocketData.nMsgID = _2LnGoodRtoDn;
+		SocketData.nMsgID = _stItemInx::_2LnGoodRtoDn;
 		SocketData.fData1 = dRatio;
 		SendCommand(SocketData);
 
@@ -2883,7 +3101,7 @@ void CEngrave::SetStripRatio()
 		else
 			dRatio = 0.0;
 
-		SocketData.nMsgID = _3LnGoodRtoDn;
+		SocketData.nMsgID = _stItemInx::_3LnGoodRtoDn;
 		SocketData.fData1 = dRatio;
 		SendCommand(SocketData);
 
@@ -2894,7 +3112,7 @@ void CEngrave::SetStripRatio()
 		else
 			dRatio = 0.0;
 
-		SocketData.nMsgID = _4LnGoodRtoDn;
+		SocketData.nMsgID = _stItemInx::_4LnGoodRtoDn;
 		SocketData.fData1 = dRatio;
 		SendCommand(SocketData);
 
@@ -2903,7 +3121,7 @@ void CEngrave::SetStripRatio()
 		else
 			dRatio = 0.0;
 
-		SocketData.nMsgID = _AllLnGoodRtoDn;
+		SocketData.nMsgID = _stItemInx::_AllLnGoodRtoDn;
 		SocketData.fData1 = dRatio;
 		SendCommand(SocketData);
 
@@ -2916,7 +3134,7 @@ void CEngrave::SetStripRatio()
 		else
 			dRatio = 0.0;
 
-		SocketData.nMsgID = _1LnGoodRtoTot;
+		SocketData.nMsgID = _stItemInx::_1LnGoodRtoTot;
 		SocketData.fData1 = dRatio;
 		SendCommand(SocketData);
 
@@ -2927,7 +3145,7 @@ void CEngrave::SetStripRatio()
 		else
 			dRatio = 0.0;
 
-		SocketData.nMsgID = _2LnGoodRtoTot;
+		SocketData.nMsgID = _stItemInx::_2LnGoodRtoTot;
 		SocketData.fData1 = dRatio;
 		SendCommand(SocketData);
 
@@ -2938,7 +3156,7 @@ void CEngrave::SetStripRatio()
 		else
 			dRatio = 0.0;
 
-		SocketData.nMsgID = _3LnGoodRtoTot;
+		SocketData.nMsgID = _stItemInx::_3LnGoodRtoTot;
 		SocketData.fData1 = dRatio;
 		SendCommand(SocketData);
 
@@ -2949,7 +3167,7 @@ void CEngrave::SetStripRatio()
 		else
 			dRatio = 0.0;
 
-		SocketData.nMsgID = _4LnGoodRtoTot;
+		SocketData.nMsgID = _stItemInx::_4LnGoodRtoTot;
 		SocketData.fData1 = dRatio;
 		SendCommand(SocketData);
 
@@ -2958,7 +3176,7 @@ void CEngrave::SetStripRatio()
 		else
 			dRatio = 0.0;
 
-		SocketData.nMsgID = _AllLnGoodRtoTot;
+		SocketData.nMsgID = _stItemInx::_AllLnGoodRtoTot;
 		SocketData.fData1 = dRatio;
 		SendCommand(SocketData);
 	}
@@ -2972,7 +3190,7 @@ void CEngrave::SetDef()
 	int nNum = 0;
 	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
 
-	CReelMap* pReelMap;
+	CReelMap* pReelMap=NULL;
 
 	if (bDualTest)
 	{
@@ -2995,131 +3213,133 @@ void CEngrave::SetDef()
 	else
 		pReelMap = pDoc->m_pReelMapUp;
 
+	if(pReelMap)
+	{
 	nNum = pReelMap->GetDefNum(DEF_OPEN); // IDC_STC_DEF_OPEN
-	SocketData.nMsgID = _DefNumOpen;
+	SocketData.nMsgID = _stItemInx::_DefNumOpen;
 	SocketData.nData1 = nNum;
 	SendCommand(SocketData);
 
 	nNum = pReelMap->GetDefNum(DEF_SHORT); // IDC_STC_DEF_SHORT
-	SocketData.nMsgID = _DefNumShort;
+	SocketData.nMsgID = _stItemInx::_DefNumShort;
 	SocketData.nData1 = nNum;
 	SendCommand(SocketData);
 
 	nNum = pReelMap->GetDefNum(DEF_USHORT); // IDC_STC_DEF_U_SHORT
-	SocketData.nMsgID = _DefNumUshort;
+	SocketData.nMsgID = _stItemInx::_DefNumUshort;
 	SocketData.nData1 = nNum;
 	SendCommand(SocketData);
 
 	nNum = pReelMap->GetDefNum(DEF_SPACE); // IDC_STC_DEF_SPACE
-	SocketData.nMsgID = _DefNumLnW;
+	SocketData.nMsgID = _stItemInx::_DefNumLnW;
 	SocketData.nData1 = nNum;
 	SendCommand(SocketData);
 
 	nNum = pReelMap->GetDefNum(DEF_EXTRA); // IDC_STC_DEF_EXTRA
-	SocketData.nMsgID = _DefExtr;
+	SocketData.nMsgID = _stItemInx::_DefExtr;
 	SocketData.nData1 = nNum;
 	SendCommand(SocketData);
 
 	nNum = pReelMap->GetDefNum(DEF_PROTRUSION); // IDC_STC_DEF_PROT
-	SocketData.nMsgID = _DefNumProt;
+	SocketData.nMsgID = _stItemInx::_DefNumProt;
 	SocketData.nData1 = nNum;
 	SendCommand(SocketData);
 
 	nNum = pReelMap->GetDefNum(DEF_PINHOLE); // IDC_STC_DEF_P_HOLE
-	SocketData.nMsgID = _DefNumPhole;
+	SocketData.nMsgID = _stItemInx::_DefNumPhole;
 	SocketData.nData1 = nNum;
 	SendCommand(SocketData);
 
 	nNum = pReelMap->GetDefNum(DEF_PAD); // IDC_STC_DEF_PAD
-	SocketData.nMsgID = _DefNumPad;
+	SocketData.nMsgID = _stItemInx::_DefNumPad;
 	SocketData.nData1 = nNum;
 	SendCommand(SocketData);
 
 	nNum = pReelMap->GetDefNum(DEF_HOLE_OPEN); // IDC_STC_DEF_H_OPEN
-	SocketData.nMsgID = _DefNumHopen;
+	SocketData.nMsgID = _stItemInx::_DefNumHopen;
 	SocketData.nData1 = nNum;
 	SendCommand(SocketData);
 
 	nNum = pReelMap->GetDefNum(DEF_HOLE_MISS); // IDC_STC_DEF_H_MISS
-	SocketData.nMsgID = _DefNumHmiss;
+	SocketData.nMsgID = _stItemInx::_DefNumHmiss;
 	SocketData.nData1 = nNum;
 	SendCommand(SocketData);
 
 	nNum = pReelMap->GetDefNum(DEF_HOLE_POSITION); // IDC_STC_DEF_H_POS
-	SocketData.nMsgID = _DefNumHpos;
+	SocketData.nMsgID = _stItemInx::_DefNumHpos;
 	SocketData.nData1 = nNum;
 	SendCommand(SocketData);
 
 	nNum = pReelMap->GetDefNum(DEF_HOLE_DEFECT); // IDC_STC_DEF_H_DEF
-	SocketData.nMsgID = _DefNumHdef;
+	SocketData.nMsgID = _stItemInx::_DefNumHdef;
 	SocketData.nData1 = nNum;
 	SendCommand(SocketData);
 
 	nNum = pReelMap->GetDefNum(DEF_NICK); // IDC_STC_DEF_NICK
-	SocketData.nMsgID = _DefNumNick;
+	SocketData.nMsgID = _stItemInx::_DefNumNick;
 	SocketData.nData1 = nNum;
 	SendCommand(SocketData);
 
 	nNum = pReelMap->GetDefNum(DEF_POI); // IDC_STC_DEF_POI
-	SocketData.nMsgID = _DefNumPoi;
+	SocketData.nMsgID = _stItemInx::_DefNumPoi;
 	SocketData.nData1 = nNum;
 	SendCommand(SocketData);
 
 	nNum = pReelMap->GetDefNum(DEF_VH_OPEN); // IDC_STC_DEF_VH_OPEN
-	SocketData.nMsgID = _DefNumVhOpen;
+	SocketData.nMsgID = _stItemInx::_DefNumVhOpen;
 	SocketData.nData1 = nNum;
 	SendCommand(SocketData);
 
 	nNum = pReelMap->GetDefNum(DEF_VH_MISS); // IDC_STC_DEF_VH_MISS
-	SocketData.nMsgID = _DefNumVhMiss;
+	SocketData.nMsgID = _stItemInx::_DefNumVhMiss;
 	SocketData.nData1 = nNum;
 	SendCommand(SocketData);
 
 	nNum = pReelMap->GetDefNum(DEF_VH_POSITION); // IDC_STC_DEF_VH_POS
-	SocketData.nMsgID = _DefNumVhPos;
+	SocketData.nMsgID = _stItemInx::_DefNumVhPos;
 	SocketData.nData1 = nNum;
 	SendCommand(SocketData);
 
 	nNum = pReelMap->GetDefNum(DEF_VH_DEF); // IDC_STC_DEF_VH_DEF
-	SocketData.nMsgID = _DefNumVhd;
+	SocketData.nMsgID = _stItemInx::_DefNumVhd;
 	SocketData.nData1 = nNum;
 	SendCommand(SocketData);
 
 	nNum = pReelMap->GetDefNum(DEF_LIGHT); // IDC_STC_DEF_LIGHT
-	SocketData.nMsgID = _DefNumLight;
+	SocketData.nMsgID = _stItemInx::_DefNumLight;
 	SocketData.nData1 = nNum;
 	SendCommand(SocketData);
 
 	nNum = pReelMap->GetDefNum(DEF_EDGE_NICK);
-	SocketData.nMsgID = _DefNumEnick;
+	SocketData.nMsgID = _stItemInx::_DefNumEnick;
 	SocketData.nData1 = nNum;
 	SendCommand(SocketData);
 
 	nNum = pReelMap->GetDefNum(DEF_EDGE_PROT);
-	SocketData.nMsgID = _DefNumEprot;
+	SocketData.nMsgID = _stItemInx::_DefNumEprot;
 	SocketData.nData1 = nNum;
 	SendCommand(SocketData);
 
 	nNum = pReelMap->GetDefNum(DEF_EDGE_SPACE);
-	SocketData.nMsgID = _DefNumEspace;
+	SocketData.nMsgID = _stItemInx::_DefNumEspace;
 	SocketData.nData1 = nNum;
 	SendCommand(SocketData);
 
 	nNum = pReelMap->GetDefNum(DEF_USER_DEFINE_1);
-	SocketData.nMsgID = _DefNumUdd1;
+	SocketData.nMsgID = _stItemInx::_DefNumUdd1;
 	SocketData.nData1 = nNum;
 	SendCommand(SocketData);
 
 	nNum = pReelMap->GetDefNum(DEF_NARROW);
-	SocketData.nMsgID = _DefNumNrw;
+	SocketData.nMsgID = _stItemInx::_DefNumNrw;
 	SocketData.nData1 = nNum;
 	SendCommand(SocketData);
 
 	nNum = pReelMap->GetDefNum(DEF_WIDE);
-	SocketData.nMsgID = _DefNumWide;
+	SocketData.nMsgID = _stItemInx::_DefNumWide;
 	SocketData.nData1 = nNum;
 	SendCommand(SocketData);
-	
+	}
 }
 
 void CEngrave::Set2DReader()
@@ -3228,7 +3448,7 @@ void CEngrave::SetOpName()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _OpName;
+	SocketData.nMsgID = _stItemInx::_OpName;
 	StringToChar(pDoc->WorkingInfo.LastJob.sSelUserName, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -3268,7 +3488,7 @@ void CEngrave::SetSampleShotNum()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _SampleShotNum;
+	SocketData.nMsgID = _stItemInx::_SampleShotNum;
 	SocketData.nData1 = _ttoi(pDoc->WorkingInfo.LastJob.sSampleTestShotNum);
 	SendCommand(SocketData);
 }
@@ -3279,10 +3499,11 @@ void CEngrave::SetTestMode()
 		return;
 
 	SOCKET_DATA SocketData;
-	SocketData.nCmdCode = _SetData;
+	SocketData.nCmdCode = _SetSig;
 
-	SocketData.nMsgID = _TestMode;
-	SocketData.nData1 = pDoc->WorkingInfo.LastJob.nTestMode; // MODE_NONE = 0, MODE_INNER = 1, MODE_OUTER = 2
+	SocketData.nMsgID = _stSigInx::_TestMode;
+	SocketData.nData1 = pDoc->GetTestMode(); // MODE_NONE = 0, MODE_INNER = 1, MODE_OUTER = 2
+	//SocketData.nData1 = pDoc->WorkingInfo.LastJob.nTestMode; // MODE_NONE = 0, MODE_INNER = 1, MODE_OUTER = 2
 	SendCommand(SocketData);
 }
 
@@ -3318,9 +3539,9 @@ void CEngrave::SetAlignMethode()
 		return;
 
 	SOCKET_DATA SocketData;
-	SocketData.nCmdCode = _SetData;
+	SocketData.nCmdCode = _SetSig;
 
-	SocketData.nMsgID = _AlignMethode;
+	SocketData.nMsgID = _stSigInx::_AlignMethode;
 	SocketData.nData1 = pDoc->WorkingInfo.LastJob.nAlignMethode; // TWO_POINT, FOUR_POINT
 	SendCommand(SocketData);
 }
@@ -3477,7 +3698,7 @@ void CEngrave::SetTotReelLen()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _TotReelLen;
+	SocketData.nMsgID = _stItemInx::_TotReelLen;
 	StringToChar(pDoc->WorkingInfo.LastJob.sReelTotLen, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -3491,7 +3712,7 @@ void CEngrave::SetOnePnlLen()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _OnePnlLen;
+	SocketData.nMsgID = _stItemInx::_OnePnlLen;
 	sprintf(SocketData.strData, "%.3f", pDoc->GetOnePnlLen());
 	SendCommand(SocketData);
 }
@@ -3518,7 +3739,7 @@ void CEngrave::SetTempStopLen()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _TempStopLen;
+	SocketData.nMsgID = _stItemInx::_TempStopLen;
 	StringToChar(pDoc->WorkingInfo.LastJob.sTempPauseLen, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -3530,9 +3751,9 @@ void CEngrave::SetLotCut()
 		return;
 
 	SOCKET_DATA SocketData;
-	SocketData.nCmdCode = _SetData;
+	SocketData.nCmdCode = _SetSig;
 
-	SocketData.nMsgID = _LotCut;
+	SocketData.nMsgID = _SigInx::_LotCut;
 	SocketData.nData1 = pDoc->WorkingInfo.LastJob.bLotSep ? 1 : 0;	// pDoc->m_pReelMap->m_bUseLotSep
 	SendCommand(SocketData);
 }
@@ -3546,7 +3767,7 @@ void CEngrave::SetLotCutLen()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _LotCutLen;
+	SocketData.nMsgID = _stItemInx::_LotCutLen;
 	StringToChar(pDoc->WorkingInfo.LastJob.sLotSepLen, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -3561,7 +3782,7 @@ void CEngrave::SetLotCutPosLen()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _LotCutPosLen;
+	SocketData.nMsgID = _stItemInx::_LotCutPosLen;
 	StringToChar(pDoc->WorkingInfo.LastJob.sLotCutPosLen, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -3576,7 +3797,7 @@ void CEngrave::SetLmtTotYld()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _LmtTotYld;
+	SocketData.nMsgID = _stItemInx::_LmtTotYld;
 	StringToChar(pDoc->WorkingInfo.LastJob.sLmtTotYld, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -3591,7 +3812,7 @@ void CEngrave::SetLmtPatlYld()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _LmtPatlYld;
+	SocketData.nMsgID = _stItemInx::_LmtPatlYld;
 	StringToChar(pDoc->WorkingInfo.LastJob.sLmtPatlYld, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -3606,7 +3827,7 @@ void CEngrave::SetStripOutRatio()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _StripOutRatio;
+	SocketData.nMsgID = _stItemInx::_StripOutRatio;
 	StringToChar(pDoc->WorkingInfo.LastJob.sStripOutRatio, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -3621,7 +3842,7 @@ void CEngrave::SetCustomNeedRatio()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _CustomNeedRatio;
+	SocketData.nMsgID = _stItemInx::_CustomNeedRatio;
 	StringToChar(pDoc->WorkingInfo.LastJob.sCustomNeedRatio, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -3636,7 +3857,7 @@ void CEngrave::SetNumRangeFixDef()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _NumRangeFixDef;
+	SocketData.nMsgID = _stItemInx::_NumRangeFixDef;
 	StringToChar(pDoc->WorkingInfo.LastJob.sNumRangeFixDef, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -3664,7 +3885,7 @@ void CEngrave::SetNumContFixDef()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _NumContFixDef;
+	SocketData.nMsgID = _stItemInx::_NumContFixDef;
 	StringToChar(pDoc->WorkingInfo.LastJob.sNumContFixDef, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -3679,8 +3900,23 @@ void CEngrave::SetUltraSonicStTim()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _UltraSonicStTim;
+	SocketData.nMsgID = _stItemInx::_UltraSonicStTim;
 	StringToChar(pDoc->WorkingInfo.LastJob.sUltraSonicCleannerStTim, cData);
+	sprintf(SocketData.strData, "%s", cData);
+	SendCommand(SocketData);
+}
+
+void CEngrave::SetEngOrderNum()
+{
+	if (!pDoc)
+		return;
+
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetData;
+	char cData[BUFFER_DATA_SIZE];
+
+	SocketData.nMsgID = _stItemInx::_EngOrderNum;
+	StringToChar(pDoc->WorkingInfo.LastJob.sEngOrderNum, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
 }
@@ -3695,7 +3931,7 @@ void CEngrave::SetModelUpName()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _ModelUpName;
+	SocketData.nMsgID = _stItemInx::_ModelUpName;
 	StringToChar(pDoc->WorkingInfo.LastJob.sModelUp, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -3710,7 +3946,7 @@ void CEngrave::SetModelDnName()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _ModelDnName;
+	SocketData.nMsgID = _stItemInx::_ModelDnName;
 	StringToChar(pDoc->WorkingInfo.LastJob.sModelDn, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -3725,7 +3961,7 @@ void CEngrave::SetLotUpName()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _LotUpName;
+	SocketData.nMsgID = _stItemInx::_LotUpName;
 	StringToChar(pDoc->WorkingInfo.LastJob.sLotUp, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -3740,7 +3976,7 @@ void CEngrave::SetLotDnName()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _LotDnName;
+	SocketData.nMsgID = _stItemInx::_LotDnName;
 	StringToChar(pDoc->WorkingInfo.LastJob.sLotDn, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -3755,7 +3991,7 @@ void CEngrave::SetLayerUpName()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _LayerUpName;
+	SocketData.nMsgID = _stItemInx::_LayerUpName;
 	StringToChar(pDoc->WorkingInfo.LastJob.sLayerUp, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -3770,7 +4006,7 @@ void CEngrave::SetLayerDnName()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _LayerDnName;
+	SocketData.nMsgID = _stItemInx::_LayerDnName;
 	StringToChar(pDoc->WorkingInfo.LastJob.sLayerDn, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -3785,7 +4021,7 @@ void CEngrave::SetOrderNum()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _OrderNum;
+	SocketData.nMsgID = _stItemInx::_OrderNum;
 	StringToChar(pDoc->WorkingInfo.LastJob.sEngraveOrderNum, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -3800,7 +4036,7 @@ void CEngrave::SetShotNum()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _ShotNum;
+	SocketData.nMsgID = _stItemInx::_ShotNum;
 	StringToChar(pDoc->WorkingInfo.LastJob.sEngraveLastShot, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -3816,7 +4052,7 @@ void CEngrave::SetTotOpRto()
 	char cData[BUFFER_DATA_SIZE];
 	CString sVal;
 
-	SocketData.nMsgID = _TotOpRto;
+	SocketData.nMsgID = _stItemInx::_TotOpRto;
 	double dFdTotLen = (double)pView->m_pDlgFrameHigh->m_nMkLastShot * _tstof(pDoc->WorkingInfo.LastJob.sOnePnlLen);
 	sVal.Format(_T("%d"), (int)(dFdTotLen / _tstof(pDoc->WorkingInfo.LastJob.sReelTotLen) * 100.0));
 	StringToChar(sVal, cData);
@@ -3834,7 +4070,7 @@ void CEngrave::SetTotVel()
 	char cData[BUFFER_DATA_SIZE];
 	CString sVal;
 
-	SocketData.nMsgID = _TotVel;
+	SocketData.nMsgID = _stItemInx::_TotVel;
 	sVal.Format(_T("%.1f"), pView->GetTotVel());
 	StringToChar(sVal, cData);
 	sprintf(SocketData.strData, "%s", cData);
@@ -3850,7 +4086,7 @@ void CEngrave::SetPartVel()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _PartVel;
+	SocketData.nMsgID = _stItemInx::_PartVel;
 	StringToChar(pDoc->WorkingInfo.LastJob.sPartialSpd, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -3866,7 +4102,7 @@ void CEngrave::SetMkDoneLen()
 	char cData[BUFFER_DATA_SIZE];
 	CString sVal;
 
-	SocketData.nMsgID = _MkDoneLen;
+	SocketData.nMsgID = _stItemInx::_MkDoneLen;
 	double dFdTotLen = (double)pView->m_pDlgFrameHigh->m_nMkLastShot * _tstof(pDoc->WorkingInfo.LastJob.sOnePnlLen);
 	sVal.Format(_T("%.2f"), dFdTotLen / 1000.0);	// [M]
 	StringToChar(sVal, cData);
@@ -3884,7 +4120,7 @@ void CEngrave::SetAoiDnDoneLen()
 	char cData[BUFFER_DATA_SIZE];
 	CString sVal;
 
-	SocketData.nMsgID = _AoiDnDoneLen;
+	SocketData.nMsgID = _stItemInx::_AoiDnDoneLen;
 	sVal.Format(_T("%.2f"), pView->GetAoiDnFdLen() / 1000.0);	// [M]
 	StringToChar(sVal, cData);
 	sprintf(SocketData.strData, "%s", cData);
@@ -3901,7 +4137,7 @@ void CEngrave::SetAoiUpDoneLen()
 	char cData[BUFFER_DATA_SIZE];
 	CString sVal;
 
-	SocketData.nMsgID = _AoiUpDoneLen;
+	SocketData.nMsgID = _stItemInx::_AoiUpDoneLen;
 	sVal.Format(_T("%.2f"), pView->GetAoiUpFdLen() / 1000.0);	// [M]
 	StringToChar(sVal, cData);
 	sprintf(SocketData.strData, "%s", cData);
@@ -3917,7 +4153,7 @@ void CEngrave::SetLotSerial()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _LotSerial;
+	SocketData.nMsgID = _stItemInx::_LotSerial;
 	StringToChar(pDoc->WorkingInfo.LastJob.sLotSerial, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -3932,7 +4168,7 @@ void CEngrave::SetMkVerfyLen()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _MkVerfyLen;
+	SocketData.nMsgID = _stItemInx::_MkVerfyLen;
 	StringToChar(pDoc->WorkingInfo.LastJob.sVerifyLen, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -3952,7 +4188,7 @@ void CEngrave::SetDefNumUp()
 	pDoc->m_pReelMapUp->GetPcsNum(nGood, nBad); // 상면
 	nTot = nGood + nBad;
 
-	SocketData.nMsgID = _DefNumUp;
+	SocketData.nMsgID = _stItemInx::_DefNumUp;
 	SocketData.nData1 = nBad;
 	SendCommand(SocketData);
 }
@@ -3974,7 +4210,7 @@ void CEngrave::SetDefRtoUp()
 	else
 		dRatio = 0.0;
 
-	SocketData.nMsgID = _DefRtoUp;
+	SocketData.nMsgID = _stItemInx::_DefRtoUp;
 	SocketData.fData1 = dRatio;
 	SendCommand(SocketData);
 }
@@ -3990,7 +4226,7 @@ void CEngrave::SetGoodNumUp()
 	
 	pDoc->m_pReelMapUp->GetPcsNum(nGood, nBad); // 상면
 
-	SocketData.nMsgID = _GoodNumUp;
+	SocketData.nMsgID = _stItemInx::_GoodNumUp;
 	SocketData.nData1 = nGood;
 	SendCommand(SocketData);
 }
@@ -4012,7 +4248,7 @@ void CEngrave::SetGoodRtoUp()
 	else
 		dRatio = 0.0;
 
-	SocketData.nMsgID = _GoodRtoUp;
+	SocketData.nMsgID = _stItemInx::_GoodRtoUp;
 	SocketData.fData1 = dRatio;
 	SendCommand(SocketData);
 }
@@ -4029,7 +4265,7 @@ void CEngrave::SetTestNumUp()
 	pDoc->m_pReelMapUp->GetPcsNum(nGood, nBad); // 상면
 	nTot = nGood + nBad;
 
-	SocketData.nMsgID = _TestNumUp;
+	SocketData.nMsgID = _stItemInx::_TestNumUp;
 	SocketData.nData1 = nTot;
 	SendCommand(SocketData);
 }
@@ -4049,7 +4285,7 @@ void CEngrave::SetDefNumDn()
 		pDoc->m_pReelMapDn->GetPcsNum(nGood, nBad); // 하면
 		nTot = nGood + nBad;
 
-		SocketData.nMsgID = _DefNumDn;
+		SocketData.nMsgID = _stItemInx::_DefNumDn;
 		SocketData.nData1 = nBad;
 		SendCommand(SocketData);
 	}
@@ -4076,7 +4312,7 @@ void CEngrave::SetDefRtoDn()
 		else
 			dRatio = 0.0;
 
-		SocketData.nMsgID = _DefRtoDn;
+		SocketData.nMsgID = _stItemInx::_DefRtoDn;
 		SocketData.fData1 = dRatio;
 		SendCommand(SocketData);
 	}
@@ -4096,7 +4332,7 @@ void CEngrave::SetGoodNumDn()
 	{
 		pDoc->m_pReelMapDn->GetPcsNum(nGood, nBad); // 하면
 
-		SocketData.nMsgID = _GoodNumDn;
+		SocketData.nMsgID = _stItemInx::_GoodNumDn;
 		SocketData.nData1 = nGood;
 		SendCommand(SocketData);
 	}
@@ -4123,7 +4359,7 @@ void CEngrave::SetGoodRtoDn()
 		else
 			dRatio = 0.0;
 
-		SocketData.nMsgID = _GoodRtoDn;
+		SocketData.nMsgID = _stItemInx::_GoodRtoDn;
 		SocketData.fData1 = dRatio;
 		SendCommand(SocketData);
 	}
@@ -4144,7 +4380,7 @@ void CEngrave::SetTestNumDn()
 		pDoc->m_pReelMapDn->GetPcsNum(nGood, nBad); // 하면
 		nTot = nGood + nBad;
 
-		SocketData.nMsgID = _TestNumDn;
+		SocketData.nMsgID = _stItemInx::_TestNumDn;
 		SocketData.nData1 = nTot;
 		SendCommand(SocketData);
 	}
@@ -4165,7 +4401,7 @@ void CEngrave::SetDefNumTot()
 		pDoc->m_pReelMapAllDn->GetPcsNum(nGood, nBad); // 전체
 		nTot = nGood + nBad;
 
-		SocketData.nMsgID = _DefNumTot;
+		SocketData.nMsgID = _stItemInx::_DefNumTot;
 		SocketData.nData1 = nTot;
 		SendCommand(SocketData);
 	}
@@ -4192,7 +4428,7 @@ void CEngrave::SetDefRtoTot()
 		else
 			dRatio = 0.0;
 
-		SocketData.nMsgID = _DefRtoTot;
+		SocketData.nMsgID = _stItemInx::_DefRtoTot;
 		SocketData.fData1 = dRatio;
 		SendCommand(SocketData);
 	}
@@ -4212,7 +4448,7 @@ void CEngrave::SetGoodNumTot()
 	{
 		pDoc->m_pReelMapAllDn->GetPcsNum(nGood, nBad); // 전체
 
-		SocketData.nMsgID = _GoodNumTot;
+		SocketData.nMsgID = _stItemInx::_GoodNumTot;
 		SocketData.nData1 = nGood;
 		SendCommand(SocketData);
 	}
@@ -4239,7 +4475,7 @@ void CEngrave::SetGoodRtoTot()
 		else
 			dRatio = 0.0;
 
-		SocketData.nMsgID = _GoodRtoTot;
+		SocketData.nMsgID = _stItemInx::_GoodRtoTot;
 		SocketData.fData1 = dRatio;
 		SendCommand(SocketData);
 	}
@@ -4260,7 +4496,7 @@ void CEngrave::SetTestNumTot()
 		pDoc->m_pReelMapAllDn->GetPcsNum(nGood, nBad); // 전체
 		nTot = nGood + nBad;
 
-		SocketData.nMsgID = _TestNumTot;
+		SocketData.nMsgID = _stItemInx::_TestNumTot;
 		SocketData.nData1 = nTot;
 		SendCommand(SocketData);
 	}
@@ -4276,7 +4512,7 @@ void CEngrave::Set2DEngLen()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _2DEngLen;
+	SocketData.nMsgID = _stItemInx::_2DEngLen;
 	StringToChar(pDoc->WorkingInfo.Motion.s2DEngLen, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4291,7 +4527,7 @@ void CEngrave::Set2DAoiLen()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _2DAoiLen;
+	SocketData.nMsgID = _stItemInx::_2DAoiLen;
 	StringToChar(pDoc->WorkingInfo.Motion.s2DAoiLen, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4306,7 +4542,7 @@ void CEngrave::Set2DMkLen()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _2DMkLen;
+	SocketData.nMsgID = _stItemInx::_2DMkLen;
 	StringToChar(pDoc->WorkingInfo.Motion.s2DMkLen, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4321,7 +4557,7 @@ void CEngrave::Set2DMoveVel()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _2DMoveVel;
+	SocketData.nMsgID = _stItemInx::_2DMoveVel;
 	StringToChar(pDoc->WorkingInfo.Motion.s2DMoveVel, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4336,7 +4572,7 @@ void CEngrave::Set2DMoveAcc()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _2DMoveAcc;
+	SocketData.nMsgID = _stItemInx::_2DMoveAcc;
 	StringToChar(pDoc->WorkingInfo.Motion.s2DMoveAcc, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4351,7 +4587,7 @@ void CEngrave::Set2DOneShotLen()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _2DOneShotLen;
+	SocketData.nMsgID = _stItemInx::_2DOneShotLen;
 	StringToChar(pDoc->WorkingInfo.Motion.s2DOneShotRemainLen, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4367,7 +4603,7 @@ void CEngrave::SetEngLeadPitch()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _EngLeadPitch;
+	SocketData.nMsgID = _stItemInx::_EngLeadPitch;
 	StringToChar(pDoc->WorkingInfo.Motion.sEngraveFdLead, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4382,7 +4618,7 @@ void CEngrave::SetEngPushOffLen()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _EngPushOffLen;
+	SocketData.nMsgID = _stItemInx::_EngPushOffLen;
 	StringToChar(pDoc->WorkingInfo.Motion.sEngraveFdVacOff, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4397,7 +4633,7 @@ void CEngrave::SetEngTqVal()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _EngTqVal;
+	SocketData.nMsgID = _stItemInx::_EngTqVal;
 	StringToChar(pDoc->WorkingInfo.Motion.sEngraveTq, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4412,7 +4648,8 @@ void CEngrave::SetEngAoiLen()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _EngAoiLen;
+	SocketData.nMsgID = _stItemInx::_EngAoiLen;
+	pDoc->WorkingInfo.Motion.sEngAoiLen = pDoc->WorkingInfo.Motion.sFdEngraveAoiInitDist;
 	StringToChar(pDoc->WorkingInfo.Motion.sEngAoiLen, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4427,7 +4664,7 @@ void CEngrave::SetEngFdDiffMax()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _EngFdDiffMax;
+	SocketData.nMsgID = _stItemInx::_EngFdDiffMax;
 	StringToChar(pDoc->WorkingInfo.Motion.sEngFdDiffMax, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4442,7 +4679,7 @@ void CEngrave::SetEngFdDiffRng()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _EngFdDiffRng;
+	SocketData.nMsgID = _stItemInx::_EngFdDiffRng;
 	StringToChar(pDoc->WorkingInfo.Motion.sEngFdDiffRng, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4457,7 +4694,7 @@ void CEngrave::SetEngFdDiffNum()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _EngFdDiffNum;
+	SocketData.nMsgID = _stItemInx::_EngFdDiffNum;
 	StringToChar(pDoc->WorkingInfo.Motion.sEngFdDiffNum, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4472,7 +4709,7 @@ void CEngrave::SetEngBuffInitPos()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _EngBuffInitPos;
+	SocketData.nMsgID = _stItemInx::_EngBuffInitPos;
 	StringToChar(pDoc->WorkingInfo.Motion.sEngBuffInitPos, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4492,7 +4729,7 @@ void CEngrave::SetEngBuffCurrPos()
 	str.Format(_T("%.1f"), dBufEnc);
 	pDoc->WorkingInfo.Motion.sEngBuffCurrPos = str;
 
-	SocketData.nMsgID = _EngBuffCurrPos;
+	SocketData.nMsgID = _stItemInx::_EngBuffCurrPos;
 	StringToChar(pDoc->WorkingInfo.Motion.sEngBuffCurrPos, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4600,7 +4837,7 @@ void CEngrave::SetFdVel()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _FdVel;
+	SocketData.nMsgID = _stItemInx::_FdVel;
 	//StringToChar(pDoc->WorkingInfo.Motion.sMkFdVel, cData);
 	StringToChar(pDoc->WorkingInfo.Motion.sMkJogVel, cData);
 	sprintf(SocketData.strData, "%s", cData);
@@ -4616,7 +4853,7 @@ void CEngrave::SetFdAcc()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _FdAcc;
+	SocketData.nMsgID = _stItemInx::_FdAcc;
 	//StringToChar(pDoc->WorkingInfo.Motion.sMkFdAcc, cData);
 	StringToChar(pDoc->WorkingInfo.Motion.sMkJogAcc, cData);
 	sprintf(SocketData.strData, "%s", cData);
@@ -4631,7 +4868,7 @@ void CEngrave::SetOnePnlVel()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _OnePnlVel;
+	SocketData.nMsgID = _stItemInx::_OnePnlVel;
 	sprintf(SocketData.strData, "%.3f", pDoc->GetOnePnlVel());
 	SendCommand(SocketData);
 }
@@ -4644,7 +4881,7 @@ void CEngrave::SetOnePnlAcc()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _OnePnlAcc;
+	SocketData.nMsgID = _stItemInx::_OnePnlAcc;
 	sprintf(SocketData.strData, "%.3f", pDoc->GetOnePnlAcc());
 	SendCommand(SocketData);
 }
@@ -4657,7 +4894,7 @@ void CEngrave::SetFdDiffMax()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _FdDiffMax;
+	SocketData.nMsgID = _stItemInx::_FdDiffMax;
 	sprintf(SocketData.strData, "%.3f", pDoc->GetFdErrLmt());
 	SendCommand(SocketData);
 }
@@ -4670,7 +4907,7 @@ void CEngrave::SetFdDiffRng()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _FdDiffRng;
+	SocketData.nMsgID = _stItemInx::_FdDiffRng;
 	sprintf(SocketData.strData, "%.3f", pDoc->GetFdErrRng());
 	SendCommand(SocketData);
 }
@@ -4683,7 +4920,7 @@ void CEngrave::SetFdDiffNum()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _FdDiffNum;
+	SocketData.nMsgID = _stItemInx::_FdDiffNum;
 	sprintf(SocketData.strData, "%d", pDoc->GetFdErrNum());
 	SendCommand(SocketData);
 }
@@ -4698,7 +4935,7 @@ void CEngrave::SetAoiLeadPitch()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _AoiLeadPitch;
+	SocketData.nMsgID = _stItemInx::_AoiLeadPitch;
 	StringToChar(pDoc->WorkingInfo.Motion.sAoiFdLead, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4713,7 +4950,7 @@ void CEngrave::SetAoiPushOffLen()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _AoiPushOffLen;
+	SocketData.nMsgID = _stItemInx::_AoiPushOffLen;
 	StringToChar(pDoc->WorkingInfo.Motion.sAoiFdVacOff, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4728,7 +4965,7 @@ void CEngrave::SetAoiTqVal()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _AoiTqVal;
+	SocketData.nMsgID = _stItemInx::_AoiTqVal;
 	StringToChar(pDoc->WorkingInfo.Motion.sAoiTq, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4743,7 +4980,7 @@ void CEngrave::SetAoiBuffShotNum()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _AoiBuffShotNum;
+	SocketData.nMsgID = _stItemInx::_AoiBuffShotNum;
 	StringToChar(pDoc->WorkingInfo.Motion.sFdAoiAoiDistShot, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4758,7 +4995,7 @@ void CEngrave::SetAoiMkLen()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _AoiMkLen;
+	SocketData.nMsgID = _stItemInx::_AoiMkLen;
 	StringToChar(pDoc->WorkingInfo.Motion.sFdMkAoiInitDist, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4774,7 +5011,7 @@ void CEngrave::SetMkLeadPitch()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _MkLeadPitch;
+	SocketData.nMsgID = _stItemInx::_MkLeadPitch;
 	StringToChar(pDoc->WorkingInfo.Motion.sMkFdLead, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4789,7 +5026,7 @@ void CEngrave::SetMkPushOffLen()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _MkPushOffLen;
+	SocketData.nMsgID = _stItemInx::_MkPushOffLen;
 	StringToChar(pDoc->WorkingInfo.Motion.sMkFdVacOff, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4804,7 +5041,7 @@ void CEngrave::SetMkTqVal()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _MkTqVal;
+	SocketData.nMsgID = _stItemInx::_MkTqVal;
 	StringToChar(pDoc->WorkingInfo.Motion.sMkTq, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4819,7 +5056,7 @@ void CEngrave::SetMkBuffInitPos()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _MkBuffInitPos;
+	SocketData.nMsgID = _stItemInx::_MkBuffInitPos;
 	StringToChar(pDoc->WorkingInfo.Motion.sStBufPos, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4833,7 +5070,7 @@ void CEngrave::SetMkBuffCurrPos() // (Engrave)
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _MkBuffCurrPos;
+	SocketData.nMsgID = _stItemInx::_MkBuffCurrPos;
 	double dBufEnc = (double)pDoc->m_pMpeData[0][1] / 1000.0;	// 각인부 버퍼 엔코더 값(단위 mm * 1000)
 																//sprintf(SocketData.strData, "%.1f", dBufEnc);
 	SocketData.fData1 = (float)dBufEnc;
@@ -4848,7 +5085,7 @@ void CEngrave::SetMkNumLf()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _MkNumLf;
+	SocketData.nMsgID = _stItemInx::_MkNumLf;
 	SocketData.nData1 = pDoc->GetMkCntL();
 	//sprintf(SocketData.strData, "%d", pDoc->GetMkCntL());
 	SendCommand(SocketData);
@@ -4862,7 +5099,7 @@ void CEngrave::SetMkNumRt()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _MkNumRt;
+	SocketData.nMsgID = _stItemInx::_MkNumRt;
 	SocketData.nData1 = pDoc->GetMkCntR();
 	//sprintf(SocketData.strData, "%d", pDoc->GetMkCntR());
 	SendCommand(SocketData);
@@ -4876,7 +5113,7 @@ void CEngrave::SetMkMaxNumLf()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _MkMaxNumLf;
+	SocketData.nMsgID = _stItemInx::_MkMaxNumLf;
 	SocketData.nData1 = pDoc->GetMkLimitL();
 	//sprintf(SocketData.strData, "%d", pDoc->GetMkLimitL());
 	SendCommand(SocketData);
@@ -4890,7 +5127,7 @@ void CEngrave::SetMkMaxNumRt()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _MkMaxNumRt;
+	SocketData.nMsgID = _stItemInx::_MkMaxNumRt;
 	SocketData.nData1 = pDoc->GetMkLimitR();
 	//sprintf(SocketData.strData, "%d", pDoc->GetMkLimitR());
 	SendCommand(SocketData);
@@ -4906,7 +5143,7 @@ void CEngrave::SetMkInitPosLf()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _MkInitPosLf;
+	SocketData.nMsgID = _stItemInx::_MkInitPosLf;
 	StringToChar(pDoc->WorkingInfo.Marking[0].sWaitPos, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4921,7 +5158,7 @@ void CEngrave::SetMkInitVelLf()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _MkInitVelLf;
+	SocketData.nMsgID = _stItemInx::_MkInitVelLf;
 	StringToChar(pDoc->WorkingInfo.Marking[0].sWaitVel, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4936,7 +5173,7 @@ void CEngrave::SetMkInitAccLf()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _MkInitAccLf;
+	SocketData.nMsgID = _stItemInx::_MkInitAccLf;
 	StringToChar(pDoc->WorkingInfo.Marking[0].sWaitAcc, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4951,7 +5188,7 @@ void CEngrave::SetMkFnlPosLf()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _MkFnlPosLf;
+	SocketData.nMsgID = _stItemInx::_MkFnlPosLf;
 	StringToChar(pDoc->WorkingInfo.Marking[0].sMarkingPos, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4966,7 +5203,7 @@ void CEngrave::SetMkFnlVelLf()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _MkFnlVelLf;
+	SocketData.nMsgID = _stItemInx::_MkFnlVelLf;
 	StringToChar(pDoc->WorkingInfo.Marking[0].sMarkingVel, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4981,7 +5218,7 @@ void CEngrave::SetMkFnlAccLf()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _MkFnlAccLf;
+	SocketData.nMsgID = _stItemInx::_MkFnlAccLf;
 	StringToChar(pDoc->WorkingInfo.Marking[0].sMarkingAcc, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -4996,7 +5233,7 @@ void CEngrave::SetMkFnlTqLf()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _MkFnlTqLf;
+	SocketData.nMsgID = _stItemInx::_MkFnlTqLf;
 	StringToChar(pDoc->WorkingInfo.Marking[0].sMarkingToq, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -5010,7 +5247,7 @@ void CEngrave::SetMkHgtPosX1Lf()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _MkHgtPosX1Lf;
+	SocketData.nMsgID = _stItemInx::_MkHgtPosX1Lf;
 	sprintf(SocketData.strData, "%.3f", pDoc->GetPosX1_1());
 	SendCommand(SocketData);
 }
@@ -5023,7 +5260,7 @@ void CEngrave::SetMkHgtPosY1Lf()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _MkHgtPosY1Lf;
+	SocketData.nMsgID = _stItemInx::_MkHgtPosY1Lf;
 	sprintf(SocketData.strData, "%.3f", pDoc->GetPosY1_1());
 	SendCommand(SocketData);
 }
@@ -5036,7 +5273,7 @@ void CEngrave::SetMkHgtPosX2Lf()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _MkHgtPosX2Lf;
+	SocketData.nMsgID = _stItemInx::_MkHgtPosX2Lf;
 	sprintf(SocketData.strData, "%.3f", pDoc->GetPosX1_2());
 	SendCommand(SocketData);
 }
@@ -5049,7 +5286,7 @@ void CEngrave::SetMkHgtPosY2Lf()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _MkHgtPosY2Lf;
+	SocketData.nMsgID = _stItemInx::_MkHgtPosY2Lf;
 	sprintf(SocketData.strData, "%.3f", pDoc->GetPosY1_2());
 	SendCommand(SocketData);
 }
@@ -5062,7 +5299,7 @@ void CEngrave::SetMkHgtPosX3Lf()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _MkHgtPosX3Lf;
+	SocketData.nMsgID = _stItemInx::_MkHgtPosX3Lf;
 	sprintf(SocketData.strData, "%.3f", pDoc->GetPosX1_3());
 	SendCommand(SocketData);
 }
@@ -5075,7 +5312,7 @@ void CEngrave::SetMkHgtPosY3Lf()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _MkHgtPosY3Lf;
+	SocketData.nMsgID = _stItemInx::_MkHgtPosY3Lf;
 	sprintf(SocketData.strData, "%.3f", pDoc->GetPosY1_3());
 	SendCommand(SocketData);
 }
@@ -5088,7 +5325,7 @@ void CEngrave::SetMkHgtPosX4Lf()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _MkHgtPosX4Lf;
+	SocketData.nMsgID = _stItemInx::_MkHgtPosX4Lf;
 	sprintf(SocketData.strData, "%.3f", pDoc->GetPosX1_4());
 	SendCommand(SocketData);
 }
@@ -5101,7 +5338,7 @@ void CEngrave::SetMkHgtPosY4Lf()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _MkHgtPosY4Lf;
+	SocketData.nMsgID = _stItemInx::_MkHgtPosY4Lf;
 	sprintf(SocketData.strData, "%.3f", pDoc->GetPosY1_4());
 	SendCommand(SocketData);
 }
@@ -5114,7 +5351,7 @@ void CEngrave::SetMkHgtAvgPosLf()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _MkHgtAvgPosLf;
+	SocketData.nMsgID = _stItemInx::_MkHgtAvgPosLf;
 	sprintf(SocketData.strData, "%.3f", pDoc->GetAverDist1());
 	SendCommand(SocketData);
 }
@@ -5129,7 +5366,7 @@ void CEngrave::SetMkInitPosRt()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _ItemInx::_MkInitPosRt;
+	SocketData.nMsgID = _stItemInx::_MkInitPosRt;
 	StringToChar(pDoc->WorkingInfo.Marking[1].sWaitPos, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -5159,7 +5396,7 @@ void CEngrave::SetMkInitAccRt()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _MkInitAccRt;
+	SocketData.nMsgID = _stItemInx::_MkInitAccRt;
 	StringToChar(pDoc->WorkingInfo.Marking[1].sWaitAcc, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -5174,7 +5411,7 @@ void CEngrave::SetMkFnlPosRt()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _MkFnlPosRt;
+	SocketData.nMsgID = _stItemInx::_MkFnlPosRt;
 	StringToChar(pDoc->WorkingInfo.Marking[1].sMarkingPos, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -5189,7 +5426,7 @@ void CEngrave::SetMkFnlVelRt()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _MkFnlVelRt;
+	SocketData.nMsgID = _stItemInx::_MkFnlVelRt;
 	StringToChar(pDoc->WorkingInfo.Marking[1].sMarkingVel, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -5204,7 +5441,7 @@ void CEngrave::SetMkFnlAccRt()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _MkFnlAccRt;
+	SocketData.nMsgID = _stItemInx::_MkFnlAccRt;
 	StringToChar(pDoc->WorkingInfo.Marking[1].sMarkingAcc, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -5219,7 +5456,7 @@ void CEngrave::SetMkFnlTqRt()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _MkFnlTqRt;
+	SocketData.nMsgID = _stItemInx::_MkFnlTqRt;
 	StringToChar(pDoc->WorkingInfo.Marking[1].sMarkingToq, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
@@ -5233,7 +5470,7 @@ void CEngrave::SetMkHgtPosX1Rt()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _MkHgtPosX1Rt;
+	SocketData.nMsgID = _stItemInx::_MkHgtPosX1Rt;
 	sprintf(SocketData.strData, "%.3f", pDoc->GetPosX2_1());
 	SendCommand(SocketData);
 }
@@ -5246,7 +5483,7 @@ void CEngrave::SetMkHgtPosY1Rt()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _MkHgtPosY1Rt;
+	SocketData.nMsgID = _stItemInx::_MkHgtPosY1Rt;
 	sprintf(SocketData.strData, "%.3f", pDoc->GetPosY2_1());
 	SendCommand(SocketData);
 }
@@ -5259,7 +5496,7 @@ void CEngrave::SetMkHgtPosX2Rt()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _MkHgtPosX2Rt;
+	SocketData.nMsgID = _stItemInx::_MkHgtPosX2Rt;
 	sprintf(SocketData.strData, "%.3f", pDoc->GetPosX2_2());
 	SendCommand(SocketData);
 }
@@ -5272,7 +5509,7 @@ void CEngrave::SetMkHgtPosY2Rt()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _MkHgtPosY2Rt;
+	SocketData.nMsgID = _stItemInx::_MkHgtPosY2Rt;
 	sprintf(SocketData.strData, "%.3f", pDoc->GetPosY2_2());
 	SendCommand(SocketData);
 }
@@ -5285,7 +5522,7 @@ void CEngrave::SetMkHgtPosX3Rt()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _MkHgtPosX3Rt;
+	SocketData.nMsgID = _stItemInx::_MkHgtPosX3Rt;
 	sprintf(SocketData.strData, "%.3f", pDoc->GetPosX2_3());
 	SendCommand(SocketData);
 }
@@ -5298,7 +5535,7 @@ void CEngrave::SetMkHgtPosY3Rt()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _MkHgtPosY3Rt;
+	SocketData.nMsgID = _stItemInx::_MkHgtPosY3Rt;
 	sprintf(SocketData.strData, "%.3f", pDoc->GetPosY2_3());
 	SendCommand(SocketData);
 }
@@ -5311,7 +5548,7 @@ void CEngrave::SetMkHgtPosX4Rt()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _MkHgtPosX4Rt;
+	SocketData.nMsgID = _stItemInx::_MkHgtPosX4Rt;
 	sprintf(SocketData.strData, "%.3f", pDoc->GetPosX2_4());
 	SendCommand(SocketData);
 }
@@ -5324,7 +5561,7 @@ void CEngrave::SetMkHgtPosY4Rt()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _MkHgtPosY4Rt;
+	SocketData.nMsgID = _stItemInx::_MkHgtPosY4Rt;
 	sprintf(SocketData.strData, "%.3f", pDoc->GetPosY2_4());
 	SendCommand(SocketData);
 }
@@ -5337,7 +5574,7 @@ void CEngrave::SetMkHgtAvgPosRt()
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetData;
 
-	SocketData.nMsgID = _MkHgtAvgPosRt;
+	SocketData.nMsgID = _stItemInx::_MkHgtAvgPosRt;
 	sprintf(SocketData.strData, "%.3f", pDoc->GetAverDist2());
 	SendCommand(SocketData);
 }
@@ -6329,21 +6566,34 @@ void CEngrave::SwAoiEmg(BOOL bOn)
 
 // EngraveAutoSequence
 
+void CEngrave::SwEngAutoInit(BOOL bOn) // 각인부 초기화(Reset)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	pDoc->BtnStatus.EngAuto.Init = bOn;
+	SocketData.nMsgID = _SigInx::_EngAutoInit;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwEngAutoMkSt(BOOL bOn) // 각인부 마킹시작 ON (PC가 ON, OFF)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
+	pDoc->BtnStatus.EngAuto.MkSt = bOn;
 	SocketData.nMsgID = _SigInx::_EngAutoSeqMkSt;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
 
-void CEngrave::SwEngAutoOnMking(BOOL bOn) // // 각인부 마킹중 ON (PC가 ON, OFF)
+void CEngrave::SwEngAutoOnMking(BOOL bOn) // 각인부 마킹중 ON (PC가 ON, OFF)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
+	pDoc->BtnStatus.EngAuto.OnMking = bOn;
 	SocketData.nMsgID = _SigInx::_EngAutoSeqOnMkIng;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
@@ -6354,6 +6604,7 @@ void CEngrave::SwEngAutoMkDone(BOOL bOn) // 각인부 마킹완료 ON (PC가 ON, OFF)
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
+	pDoc->BtnStatus.EngAuto.MkDone = bOn;
 	SocketData.nMsgID = _SigInx::_EngAutoSeqMkDone;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
@@ -6364,6 +6615,7 @@ void CEngrave::SwEngAuto2dReadSt(BOOL bOn) // 각인부 2D Read 시작 ON (PC가 ON, O
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
+	pDoc->BtnStatus.EngAuto.Read2dSt = bOn;
 	SocketData.nMsgID = _SigInx::_EngAutoSeq2dReadSt;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
@@ -6374,6 +6626,7 @@ void CEngrave::SwEngAutoOnReading2d(BOOL bOn) // 각인부 Read중 ON (PC가 ON, OFF)
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
+	pDoc->BtnStatus.EngAuto.OnRead2d = bOn;
 	SocketData.nMsgID = _SigInx::_EngAutoSeqOnReading2d;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
@@ -6384,9 +6637,43 @@ void CEngrave::SwEngAuto2dReadDone(BOOL bOn) // 각인부 2D Read 완료 ON (PC가 ON,
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
+	pDoc->BtnStatus.EngAuto.Read2dDone = bOn;
 	SocketData.nMsgID = _SigInx::_EngAutoSeq2dReadDone;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
+
+
+// Set Engrave Data
+void CEngrave::SetEngraveAoiDist()
+{
+	if (!pDoc)
+		return;
+
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetData;
+	char cData[BUFFER_DATA_SIZE];
+
+	SocketData.nMsgID = _stItemInx::_EngAoiLen;
+	StringToChar(pDoc->WorkingInfo.Motion.sFdEngraveAoiInitDist, cData);
+	sprintf(SocketData.strData, "%s", cData);
+	SendCommand(SocketData);
+}
+
+void CEngrave::SetEngraveFdPitch()
+{
+	if (!pDoc)
+		return;
+
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetData;
+	char cData[BUFFER_DATA_SIZE];
+
+	SocketData.nMsgID = _stItemInx::_EngLeadPitch;
+	StringToChar(pDoc->WorkingInfo.Motion.sEngraveFdLead, cData);
+	sprintf(SocketData.strData, "%s", cData);
+	SendCommand(SocketData);
+}
+
 
 // End Switch

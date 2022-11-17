@@ -11,7 +11,9 @@
 
 
 //#define TEST_MODE		1
-#define MAX_STRIP				4
+#ifndef MAX_STRIP
+	#define MAX_STRIP				4
+#endif
 
 #ifdef TEST_MODE
 	#define TEST_SHOT				2
@@ -623,6 +625,9 @@ struct stSystem
 	CString sPathVrsShareDn, sPathVrsBufDn;
 	CString sPathVsShareDn;
 
+	CString sPathEng, sPathEngCurrInfo, sPathEngOffset;
+
+
 	CString sPathOldFile;
 	CString sPathSapp3;
 	BOOL bSaveLog;
@@ -652,6 +657,8 @@ struct stSystem
 		sPathAoiDnOffset = _T(""); sPathAoiDnVrsData = _T("");
 		sPathVrsShareDn = _T(""); sPathVrsBufDn = _T("");
 		sPathVsShareDn = _T("");
+
+		sPathEng = _T(""); sPathEngCurrInfo = _T(""); sPathEngOffset = _T("");
 
 		sPathOldFile = _T("");
 		bSaveLog = FALSE;
@@ -686,7 +693,7 @@ struct stLastJob
 	CString sTempPauseLen, sLmtTotYld, sLmtPatlYld;
 	CString sStripOutRatio, sCustomNeedRatio;
 	BOOL bContFixDef;
-	CString sNumRangeFixDef, sNumContFixDef, sUltraSonicCleannerStTim;
+	CString sNumRangeFixDef, sNumContFixDef, sUltraSonicCleannerStTim, sEngOrderNum;
 	BOOL bRclDrSen, bMkDrSen, bBufDrSen, bAoiUpDrSen, bAoiDnDrSen, bEngvDrSen, bUclDrSen;
 	BOOL bDispMkPcs, bStopFixDef, bMkSftySen, bAoiSftySen;
 	CString sJogSpd, sLotSerial; //sLightVal, 
@@ -757,6 +764,7 @@ struct stLastJob
 		nAlignMethode = TWO_POINT;
 
 		bUseAoiUpCleanRoler = FALSE; bUseAoiDnCleanRoler = FALSE;
+		sEngOrderNum = _T("");
 	}
 };
 

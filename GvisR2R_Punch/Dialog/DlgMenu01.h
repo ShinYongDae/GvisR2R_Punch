@@ -93,7 +93,7 @@ public:
 	~CDlgMenu01();
 
 	CRect* m_pRect;
-	BOOL m_bLastProc, m_bLastProcFromUp;
+	BOOL m_bLastProc, m_bLastProcFromUp, m_bLastProcFromEng;
 	BOOL m_bLotEnd, m_bEnableMkStrip;
 
 	BOOL Create();
