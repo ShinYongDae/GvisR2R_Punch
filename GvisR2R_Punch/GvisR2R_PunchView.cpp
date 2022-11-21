@@ -4209,6 +4209,7 @@ void CGvisR2R_PunchView::DoIO()
 
 	DoModeSel();
 	DoMainSw();
+	DoEngraveSens();
 
 	DoInterlock();
 
@@ -4903,6 +4904,50 @@ void CGvisR2R_PunchView::DoDoorSens()
 	{
 		*usInF &= ~(0x01 << 13);
 		pDoc->Status.bDoorEngv[DOOR_BR_ENGV] = FALSE;
+	}
+
+	usIn = pDoc->m_pMpeIb[28];
+	usInF = &pDoc->m_pMpeIF[28];
+
+
+	if ((usIn & (0x01 << 4)) && !(*usInF & (0x01 << 4)))
+	{
+		*usInF |= (0x01 << 4);								// 2D 리셋 스위치
+		m_bSwStopNow = FALSE;
+		if (m_pDlgMenu03)
+			m_pDlgMenu03->SwReset();
+	}
+	else if (!(usIn & (0x01 << 4)) && (*usInF & (0x01 << 4)))
+	{
+		*usInF &= ~(0x01 << 4);
+	}
+
+#endif
+}
+
+void CGvisR2R_PunchView::DoEngraveSens()
+{
+#ifdef USE_MPE
+	unsigned short usIn;
+	unsigned short *usInF;
+
+	if (!pDoc->m_pMpeIb || !pDoc->m_pMpeIF)
+		return;
+
+	usIn = pDoc->m_pMpeIb[28];
+	usInF = &pDoc->m_pMpeIF[28];
+
+
+	if ((usIn & (0x01 << 4)) && !(*usInF & (0x01 << 4)))
+	{
+		*usInF |= (0x01 << 4);								// 2D 리셋 스위치
+		m_bSwStopNow = FALSE;
+		if (m_pDlgMenu03)
+			m_pDlgMenu03->SwReset();
+	}
+	else if (!(usIn & (0x01 << 4)) && (*usInF & (0x01 << 4)))
+	{
+		*usInF &= ~(0x01 << 4);
 	}
 #endif
 }
@@ -15700,12 +15745,12 @@ void CGvisR2R_PunchView::DoAtuoGetMkStSignal()
 	{
 		if (!m_bMkSt)
 		{
-			if (pDoc->m_pMpeSignal[1] & (0x01 << 0) || m_bMkStSw) // AlignTest		// 마킹시작(PC가 확인하고 Reset시킴.)-20141029
+			if (IsRun())
 			{
-				m_bMkStSw = FALSE;
-
-				if (IsRun())
+				if (pDoc->m_pMpeSignal[1] & (0x01 << 0) || m_bMkStSw) // AlignTest		// 마킹시작(PC가 확인하고 Reset시킴.)-20141029
 				{
+					m_bMkStSw = FALSE;
+
 					m_pMpe->Write(_T("MB440110"), 0);			// 마킹시작(PC가 확인하고 Reset시킴.)-20141029
 
 					if (pDoc->m_pMpeSignal[0] & (0x01 << 1))	// 마킹부 Feeding완료(PLC가 On시키고 PC가 확인하고 Reset시킴.)-20141030
@@ -17822,6 +17867,7 @@ void CGvisR2R_PunchView::Mk2PtShift2Mk()
 		case MK_ST + (Mk2PtIdx::Shift2Mk) :
 			m_pMpe->Write(_T("MB440150"), 0);	// 마킹부 마킹중 ON (PC가 ON, OFF)
 			m_pMpe->Write(_T("MB440170"), 1);	// 마킹완료(PLC가 확인하고 Reset시킴.)-20141029
+			m_nMkStAuto++;
 			break;
 
 		case MK_ST + (Mk2PtIdx::Shift2Mk) + 1:
@@ -21270,7 +21316,14 @@ void CGvisR2R_PunchView::MonDispMain()
 	if (pDoc->m_pMpeSignal[2] & (0x01 << 0))		// 운전중(PLC가 PC에 알려주는 설비 상태) - 20141031
 	{
 		if (m_sDispMain != _T("운전중"))
+		{
 			DispMain(_T("운전중"), RGB_GREEN);
+			if (m_pEngrave)
+			{
+				m_pEngrave->SetDispRun();
+				m_pEngrave->SwRun(TRUE);
+			}
+		}
 	}
 
 	if (pDoc->m_pMpeSignal[2] & (0x01 << 2))		// 운전준비(PLC가 PC에 알려주는 설비 상태) - 20141031
@@ -21281,6 +21334,11 @@ void CGvisR2R_PunchView::MonDispMain()
 			if (m_sDispMain != _T("운전준비"))
 			{
 				DispMain(_T("운전준비"), RGB_GREEN);
+				if (m_pEngrave)
+				{
+					m_pEngrave->SetDispReady();
+					m_pEngrave->SwReady(TRUE);
+				}
 			}
 		}
 	}
@@ -21298,6 +21356,12 @@ void CGvisR2R_PunchView::MonDispMain()
 						if (m_sDispMain != _T("양면샘플"))
 						{
 							DispMain(_T("양면샘플"), RGB_GREEN);
+							if (m_pEngrave)
+							{
+								m_pEngrave->SetDispDualSample();
+								m_pEngrave->SetSampleTest();
+								m_pEngrave->SetDualTest();
+							}
 						}
 						else
 						{
@@ -21309,6 +21373,12 @@ void CGvisR2R_PunchView::MonDispMain()
 						if (m_sDispMain != _T("단면샘플"))
 						{
 							DispMain(_T("단면샘플"), RGB_GREEN);
+							if (m_pEngrave)
+							{
+								m_pEngrave->SetDispSingleSample();
+								m_pEngrave->SetSampleTest();
+								m_pEngrave->SetDualTest();
+							}
 						}
 						else
 						{
@@ -21321,6 +21391,12 @@ void CGvisR2R_PunchView::MonDispMain()
 					if (m_sDispMain != _T("양면검사"))
 					{
 						DispMain(_T("양면검사"), RGB_GREEN);
+						if (m_pEngrave)
+						{
+							m_pEngrave->SetDispDualTest();
+							m_pEngrave->SetSampleTest();
+							m_pEngrave->SetDualTest();
+						}
 					}
 					else
 					{
@@ -21332,6 +21408,12 @@ void CGvisR2R_PunchView::MonDispMain()
 					if (m_sDispMain != _T("단면검사"))
 					{
 						DispMain(_T("단면검사"), RGB_GREEN);
+						if (m_pEngrave)
+						{
+							m_pEngrave->SetDispSingleTest();
+							m_pEngrave->SetSampleTest();
+							m_pEngrave->SetDualTest();
+						}
 					}
 					else
 					{
@@ -21345,9 +21427,13 @@ void CGvisR2R_PunchView::MonDispMain()
 		else
 		{
 			if (m_sDispMain != _T("운전준비"))
+			{
 				bDispStop = TRUE;
+			}
 			else
+			{
 				bDispStop = FALSE;
+			}
 		}
 	}
 
@@ -21360,6 +21446,11 @@ void CGvisR2R_PunchView::MonDispMain()
 			{
 				pView->DispStsBar(_T("정지-44"), 0);
 				DispMain(_T("정 지"), RGB_RED);
+				if (m_pEngrave)
+				{
+					m_pEngrave->SetDispStop();
+					m_pEngrave->SwStop(TRUE);
+				}
 			}
 		}
 	}
@@ -23142,23 +23233,6 @@ void CGvisR2R_PunchView::DoAtuoGetEngStSignal()
 #ifdef USE_MPE
 	if (m_pMpe)
 	{
-		if (!m_bEngSt)
-		{
-			if (pDoc->m_pMpeSignal[0] & (0x01 << 3) || m_bEngStSw) // 2D(GUI) 각인 동작 Start신호(PLC On->PC Off)
-			{
-				m_bEngStSw = FALSE;
-
-				if (m_pEngrave)
-				{ 
-					m_pEngrave->SwEngAutoMkSt(TRUE);
-					pDoc->BtnStatus.EngAuto.MkStF = TRUE;
-				}
-			}
-		}
-	}
-
-	if (IsRun())
-	{
 		if (!pDoc->BtnStatus.EngAuto.MkSt && pDoc->BtnStatus.EngAuto.MkStF)
 		{
 			pDoc->BtnStatus.EngAuto.MkStF = FALSE;
@@ -23168,34 +23242,78 @@ void CGvisR2R_PunchView::DoAtuoGetEngStSignal()
 			if (pDoc->m_pMpeSignal[0] & (0x01 << 2))	// 각인부 Feeding완료(PLC가 On시키고 PC가 확인하고 Reset시킴.)
 				m_pMpe->Write(_T("MB440102"), 0);		// 각인부 Feeding완료
 
-			m_bEngSt = TRUE;
-			m_nEngStAuto = ENG_ST;
+			//m_bEngSt = TRUE;
+			//m_nEngStAuto = ENG_ST;
+		}
+
+		if ((pDoc->m_pMpeSignal[0] & (0x01 << 3) || m_bEngStSw) && !pDoc->BtnStatus.EngAuto.MkStF)// 2D(GUI) 각인 동작 Start신호(PLC On->PC Off)
+		{
+			pDoc->BtnStatus.EngAuto.MkStF = TRUE;
+			m_bEngStSw = FALSE;
+
+			if (m_pEngrave)
+			{ 
+				pDoc->BtnStatus.EngAuto.IsMkSt = FALSE;
+				m_pEngrave->SwEngAutoMkSt(TRUE);
+			}
+		}
+		else if ((pDoc->m_pMpeSignal[0] & (0x01 << 3) || m_bEngStSw) && pDoc->BtnStatus.EngAuto.MkStF)
+		{
+			if (m_pEngrave)
+			{
+				m_pEngrave->IsSwEngAutoMkSt(TRUE);
+				if (!pDoc->BtnStatus.EngAuto.IsMkSt)
+					m_pEngrave->SwEngAutoMkSt(TRUE);
+			}
 		}
 	}
+
 #endif
 }
+
+//void CGvisR2R_PunchView::DoAtuoGet2dReadStSignal()
+//{
+//#ifdef USE_MPE
+//	if (m_pMpe)
+//	{
+//		//if (IsRun())
+//		//{
+//			if (!pDoc->BtnStatus.EngAuto.Read2dSt)// && pDoc->BtnStatus.EngAuto.Read2dStF)
+//			{
+//				pDoc->BtnStatus.EngAuto.Read2dStF = FALSE;
+//
+//				m_pMpe->Write(_T("MB440105"), 0);			// 각인부 2D 리더 시작신호(PLC On->PC Off)
+//
+//				if (pDoc->m_pMpeSignal[0] & (0x01 << 2))	// 각인부 Feeding완료(PLC가 On시키고 PC가 확인하고 Reset시킴.)
+//					m_pMpe->Write(_T("MB440102"), 0);		// 각인부 Feeding완료
+//
+//				//m_bEng2dSt = TRUE;
+//				//m_nEng2dStAuto = ENG_2D_ST;
+//			}
+//		//}
+//
+//		//if (!m_bEng2dSt)
+//		{
+//			if ((pDoc->m_pMpeSignal[0] & (0x01 << 5) || m_bEng2dStSw))// && !pDoc->BtnStatus.EngAuto.Read2dStF)// 각인부 2D 리더 시작신호(PLC On->PC Off)
+//			{
+//				pDoc->BtnStatus.EngAuto.Read2dStF = TRUE;
+//				m_bEng2dStSw = FALSE;
+//
+//				if (m_pEngrave)
+//				{
+//					m_pEngrave->SwEngAuto2dReadSt(TRUE);
+//				}
+//			}
+//		}
+//	}
+//
+//#endif
+//}
 
 void CGvisR2R_PunchView::DoAtuoGet2dReadStSignal()
 {
 #ifdef USE_MPE
 	if (m_pMpe)
-	{
-		if (!m_bEng2dSt)
-		{
-			if (pDoc->m_pMpeSignal[0] & (0x01 << 5) || m_bEng2dStSw) // 각인부 2D 리더 시작신호(PLC On->PC Off)
-			{
-				m_bEng2dStSw = FALSE;
-
-				if (m_pEngrave)
-				{
-					m_pEngrave->SwEngAuto2dReadSt(TRUE);
-					pDoc->BtnStatus.EngAuto.Read2dStF = TRUE;
-				}
-			}
-		}
-	}
-
-	if (IsRun())
 	{
 		if (!pDoc->BtnStatus.EngAuto.Read2dSt && pDoc->BtnStatus.EngAuto.Read2dStF)
 		{
@@ -23206,13 +23324,33 @@ void CGvisR2R_PunchView::DoAtuoGet2dReadStSignal()
 			if (pDoc->m_pMpeSignal[0] & (0x01 << 2))	// 각인부 Feeding완료(PLC가 On시키고 PC가 확인하고 Reset시킴.)
 				m_pMpe->Write(_T("MB440102"), 0);		// 각인부 Feeding완료
 
-			m_bEng2dSt = TRUE;
-			m_nEng2dStAuto = ENG_2D_ST;
+			//m_bEng2dSt = TRUE;
+			//m_nEng2dStAuto = ENG_2D_ST;
 		}
+
+		if ((pDoc->m_pMpeSignal[0] & (0x01 << 5) || m_bEng2dStSw) && !pDoc->BtnStatus.EngAuto.Read2dStF)// 각인부 2D 리더 시작신호(PLC On->PC Off)
+		{
+			pDoc->BtnStatus.EngAuto.Read2dStF = TRUE;
+			m_bEng2dStSw = FALSE;
+
+			if (m_pEngrave)
+			{
+				pDoc->BtnStatus.EngAuto.IsRead2dSt = FALSE;
+				m_pEngrave->SwEngAuto2dReadSt(TRUE);
+			}
+		}
+		else if ((pDoc->m_pMpeSignal[0] & (0x01 << 5) || m_bEng2dStSw) && pDoc->BtnStatus.EngAuto.Read2dStF)
+		{
+			if (m_pEngrave)
+			{
+				m_pEngrave->IsSwEngAuto2dReadSt(TRUE);
+				if (!pDoc->BtnStatus.EngAuto.IsRead2dSt)
+					m_pEngrave->SwEngAuto2dReadSt(TRUE);
+			}
+		}		
 	}
 #endif
 }
-
 
 
 void CGvisR2R_PunchView::DoAutoSetFdOffsetEngrave()
@@ -23222,23 +23360,29 @@ void CGvisR2R_PunchView::DoAutoSetFdOffsetEngrave()
 	double dAveX, dAveY;
 	CfPoint OfSt;
 	
-	if (pDoc->m_pMpeSignal[1] & (0x01 << 6) && !m_bEngTestF)		// 각인부 검사중
+	//if (pDoc->m_pMpeSignal[1] & (0x01 << 6) && !m_bEngTestF)
+	//else if (!(pDoc->m_pMpeSignal[1] & (0x01 << 6)) && m_bEngTestF)
+	if ((pDoc->BtnStatus.EngAuto.OnMking && !m_bEngTestF) || (pDoc->BtnStatus.EngAuto.OnRead2d && !m_bEngTestF)) // 각인부 검사중
 	{
 		m_bEngTestF = TRUE;
 		m_bEngTest = TRUE;
 	}
-	else if (!(pDoc->m_pMpeSignal[1] & (0x01 << 6)) && m_bEngTestF)
+	else if((!pDoc->BtnStatus.EngAuto.OnMking && m_bEngTestF) || (!pDoc->BtnStatus.EngAuto.OnRead2d && m_bEngTestF))
 	{
-		m_bEngTestF = TRUE;
-		m_bEngTest = TRUE;
+		m_bEngTestF = FALSE;
+		m_bEngTest = FALSE;
 		m_bEngFdWriteF = FALSE;
 		pView->m_pMpe->Write(_T("MB440115"), 0);					// 각인부 Feeding Offset Write 완료(PC가 확인하고 Reset시킴.)
 	}
 
 	if (pDoc->m_pMpeSignal[1] & (0x01 << 5) && !m_bEngFdWrite)		// 각인부 Feeding Offset Write 완료(PC가 확인하고 Reset시킴.)
+	{
 		m_bEngFdWrite = TRUE;
+	}
 	else if (!(pDoc->m_pMpeSignal[1] & (0x01 << 5)) && m_bEngFdWrite)
+	{
 		m_bEngFdWrite = FALSE;
+	}
 
 
 	if (m_bEngFdWrite&& !m_bEngFdWriteF)
@@ -23263,30 +23407,6 @@ void CGvisR2R_PunchView::DoAutoSetFdOffsetEngrave()
 	{
 		m_bEngFdWriteF = FALSE;
 		m_bEngTest = FALSE;
-	}
-
-	if (m_bEngTest && !m_bEngTest)
-	{
-		if (m_bEngFdWrite && !m_bEngFdWriteF)
-		{
-			m_bEngFdWriteF = TRUE;
-
-			GetEngOffset(OfSt);
-
-			if (m_pDlgMenu02)
-			{
-				m_pDlgMenu02->m_dEngFdOffsetX = OfSt.x;
-				m_pDlgMenu02->m_dEngFdOffsetY = OfSt.y;
-			}
-
-			pView->m_pMpe->Write(_T("ML45078"), (long)(OfSt.x*1000.0)); // 각인부 Feeding 롤러 Offset(*1000, +:더 보냄, -덜 보냄, PC가 쓰고 PLC에서 지움)
-			pView->m_pMpe->Write(_T("MB440115"), 0);					// 각인부 Feeding Offset Write 완료(PC가 확인하고 Reset시킴.)
-		}
-		else if (!m_bAoiFdWrite[0] && m_bAoiFdWriteF[0])
-		{
-			m_bAoiFdWriteF[0] = FALSE;
-			m_bAoiTest[0] = FALSE;
-		}
 	}
 #endif
 }
@@ -23334,5 +23454,27 @@ void CGvisR2R_PunchView::MoveEng(double dOffset)
 	long lData = (long)(dOffset * 1000.0);
 	pView->m_pMpe->Write(_T("MB440160"), 1);	// 검사부 피딩 ON (PLC가 피딩완료 후 OFF)
 	pView->m_pMpe->Write(_T("ML45064"), lData);	// 검사부 Feeding 롤러 Offset(*1000, +:더 보냄, -덜 보냄)
+}
+
+void CGvisR2R_PunchView::SetMyMsgYes()
+{
+	if (m_pDlgMyMsg)
+	{
+		if (m_pDlgMyMsg->m_pDlgMyMsgSub01)
+		{
+			((CDlgMyMsgSub01*)(m_pDlgMyMsg->m_pDlgMyMsgSub01))->ClickYes();
+		}
+	}
+}
+
+void CGvisR2R_PunchView::SetMyMsgNo()
+{
+	if (m_pDlgMyMsg)
+	{
+		if (m_pDlgMyMsg->m_pDlgMyMsgSub01)
+		{
+			((CDlgMyMsgSub01*)(m_pDlgMyMsg->m_pDlgMyMsgSub01))->ClickNo();
+		}
+	}
 }
 

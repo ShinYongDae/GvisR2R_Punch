@@ -6,11 +6,19 @@
 #include "DlgMyMsg.h"
 #include "DlgMyMsgSub01.h"
 
+#include "../MainFrm.h"
+#include "../GvisR2R_PunchDoc.h"
+#include "../GvisR2R_PunchView.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
+
+extern CMainFrame* pFrm;
+extern CGvisR2R_PunchDoc* pDoc;
+extern CGvisR2R_PunchView* pView;
 
 /////////////////////////////////////////////////////////////////////////////
 // CDlgMyMsgSub01 dialog
@@ -136,9 +144,17 @@ LRESULT CDlgMyMsgSub01::OnMyBtnDown(WPARAM wPara, LPARAM lPara)
 	int nCtrlID = (int)lPara;
 	switch(nCtrlID)
 	{
-	case IDC_BTN_00:
+	case IDC_BTN_00: // Yes
+#ifdef USE_ENGRAVE
+		if (pView && pView->m_pEngrave)
+			pView->m_pEngrave->SetMyMsgYes();	//_SigInx::_MyMsgYes
+#endif
 		break;
-	case IDC_BTN_01:
+	case IDC_BTN_01: // No
+#ifdef USE_ENGRAVE
+		if (pView && pView->m_pEngrave)
+			pView->m_pEngrave->SetMyMsgNo();	//_SigInx::_MyMsgNo
+#endif
 		break;
 	}
 	return 0L;
@@ -148,24 +164,34 @@ LRESULT CDlgMyMsgSub01::OnMyBtnDown(WPARAM wPara, LPARAM lPara)
 LRESULT CDlgMyMsgSub01::OnMyBtnUp(WPARAM wPara, LPARAM lPara)
 {
 	int nCtrlID = (int)lPara;
-	switch(nCtrlID)
+	switch (nCtrlID)
 	{
 	case IDC_BTN_00:
-		SetRtnVal(IDYES);
-		if(myBtn00.m_hParentWnd)
-			myBtn00.Refresh();
-		OnOK();
+		ClickYes();
 		break;
 	case IDC_BTN_01:
-		SetRtnVal(IDNO);
-		if(myBtn00.m_hParentWnd)
-			myBtn01.Refresh();
-		OnCancel();
+		ClickNo();
 		break;
 	}
 
 	::PostMessage(m_hParentWnd, WM_MYMSG_EXIT, (WPARAM)NULL, (LPARAM)NULL);
 	return 0L;
+}
+
+void CDlgMyMsgSub01::ClickYes()
+{
+	SetRtnVal(IDYES);
+	if (myBtn00.m_hParentWnd)
+		myBtn00.Refresh();
+	OnOK();
+}
+
+void CDlgMyMsgSub01::ClickNo()
+{
+	SetRtnVal(IDNO);
+	if (myBtn00.m_hParentWnd)
+		myBtn01.Refresh();
+	OnCancel();
 }
 
 void CDlgMyMsgSub01::OnShowWindow(BOOL bShow, UINT nStatus) 

@@ -537,7 +537,7 @@ void CDlgFrameHigh::DispFdOffset()
 		dOfsX = 1.0*pView->m_pDlgMenu02->m_dEngFdOffsetX;
 		dOfsY = pView->m_pDlgMenu02->m_dEngFdOffsetY;
 		str.Format(_T("%.1f\r%.1f"), dOfsY, dOfsX);
-		if (str != m_sStc[2])
+		if (str != m_sStc[3])
 		{
 			m_sStc[3] = str;
 			myStc[10].SetText(str);

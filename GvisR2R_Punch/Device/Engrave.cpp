@@ -445,6 +445,7 @@ void CEngrave::GetSysSignal(SOCKET_DATA SockData)
 	GetSignalUncoiler(SockData);
 
 	GetSignalEngraveAutoSequence(SockData);
+	GetSignalMyMsg(SockData);
 }
 
 void CEngrave::GetSignalMain(SOCKET_DATA SockData)
@@ -462,18 +463,41 @@ void CEngrave::GetSignalMain(SOCKET_DATA SockData)
 			break;
 		case _SigInx::_Run:
 			pDoc->BtnStatus.Main.Run = (SockData.nData1 > 0) ? TRUE : FALSE;
+			pDoc->BtnStatus.Main.Stop = (SockData.nData1 > 0) ? FALSE : pDoc->BtnStatus.Main.Stop;
 			break;
 		case _SigInx::_Reset:
 			pDoc->BtnStatus.Main.Reset = (SockData.nData1 > 0) ? TRUE : FALSE;
 			break;
 		case _SigInx::_Stop:
 			pDoc->BtnStatus.Main.Stop = (SockData.nData1 > 0) ? TRUE : FALSE;
+			pDoc->BtnStatus.Main.Run = (SockData.nData1 > 0) ? FALSE : pDoc->BtnStatus.Main.Run;
 			break;
 		case _SigInx::_Auto:
 			pDoc->BtnStatus.Main.Auto = (SockData.nData1 > 0) ? TRUE : FALSE;
+			pDoc->BtnStatus.Main.Manual = (SockData.nData1 > 0) ? FALSE : pDoc->BtnStatus.Main.Manual;
 			break;
 		case _SigInx::_Manual:
 			pDoc->BtnStatus.Main.Manual = (SockData.nData1 > 0) ? TRUE : FALSE;
+			pDoc->BtnStatus.Main.Auto = (SockData.nData1 > 0) ? FALSE : pDoc->BtnStatus.Main.Auto;
+			break;
+			// Is
+		case _SigInx::_IsReady:
+			pDoc->BtnStatus.Main.IsReady = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsRun:
+			pDoc->BtnStatus.Main.IsRun = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsReset:
+			pDoc->BtnStatus.Main.IsReset = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsStop:
+			pDoc->BtnStatus.Main.IsStop = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsAuto:
+			pDoc->Status.bAuto = pDoc->BtnStatus.Main.IsAuto = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsManual:
+			pDoc->Status.bManual = pDoc->BtnStatus.Main.IsManual = (SockData.nData1 > 0) ? TRUE : FALSE;
 			break;
 		}
 	}
@@ -498,6 +522,16 @@ void CEngrave::GetSignalTorqueMotor(SOCKET_DATA SockData)
 		case _SigInx::_EngTq:
 			pDoc->BtnStatus.Tq.Eng = (SockData.nData1 > 0) ? TRUE : FALSE;
 			break;
+			// Is
+		case _SigInx::_IsMkTq:
+			pDoc->BtnStatus.Tq.IsMk = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsAoiTq:
+			pDoc->BtnStatus.Tq.IsAoi = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsEngTq:
+			pDoc->BtnStatus.Tq.IsEng = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
 		}
 	}
 }
@@ -517,6 +551,13 @@ void CEngrave::GetSignalInductionMotor(SOCKET_DATA SockData)
 			break;
 		case _SigInx::_CcwModUn:
 			pDoc->BtnStatus.Induct.Uc = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+			// Is
+		case _SigInx::_IsCcwModRe:
+			pDoc->BtnStatus.Induct.IsRc = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsCcwModUn:
+			pDoc->BtnStatus.Induct.IsUc = (SockData.nData1 > 0) ? TRUE : FALSE;
 			break;
 		}
 	}
@@ -538,6 +579,13 @@ void CEngrave::GetSignalCore150mm(SOCKET_DATA SockData)
 		case _SigInx::_Core150Un:
 			pDoc->BtnStatus.Core150.Uc = (SockData.nData1 > 0) ? TRUE : FALSE;
 			break;
+			// Is
+		case _SigInx::_IsCore150Re:
+			pDoc->BtnStatus.Core150.IsRc = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsCore150Un:
+			pDoc->BtnStatus.Core150.IsUc = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
 		}
 	}
 }
@@ -554,6 +602,10 @@ void CEngrave::GetSignalEtc(SOCKET_DATA SockData)
 		{
 		case _SigInx::_EmgAoi:
 			pDoc->BtnStatus.Etc.EmgAoi = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+			// Is
+		case _SigInx::_IsEmgAoi:
+			pDoc->BtnStatus.Etc.IsEmgAoi = (SockData.nData1 > 0) ? TRUE : FALSE;
 			break;
 		}
 	}
@@ -637,6 +689,46 @@ void CEngrave::GetSignalRecoiler(SOCKET_DATA SockData)
 			if (pView && pView->m_pDlgMenu03)
 				pView->m_pDlgMenu03->SwMpeBtn(IDC_CHK_67, 1);	// 리코일러 Rewinder 제품 & 간지 스위치
 			break;
+			// Is
+		case _SigInx::_IsRelation:
+			pDoc->BtnStatus.Rc.IsRelation = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsMvCwRe:
+			pDoc->BtnStatus.Rc.IsFdCw = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsMvCcwRe:
+			pDoc->BtnStatus.Rc.IsFdCcw = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsPrdChuckRe:
+			pDoc->BtnStatus.Rc.IsReelChuck = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsDancerUpRe:
+			pDoc->BtnStatus.Rc.IsDcRlUpDn = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsPasteUpLfRe:
+			pDoc->BtnStatus.Rc.ReelJoinL = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsPasteUpRtRe:
+			pDoc->BtnStatus.Rc.IsReelJoinR = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsPasteVacRe:
+			pDoc->BtnStatus.Rc.IsReelJoinVac = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsPprChuckRe:
+			pDoc->BtnStatus.Rc.IsPprChuck = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsPprCwRe:
+			pDoc->BtnStatus.Rc.IsPprCw = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsPprCcwRe:
+			pDoc->BtnStatus.Rc.IsPprCcw = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsDoRe:
+			pDoc->BtnStatus.Rc.IsRewine = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsPrdPprRe:
+			pDoc->BtnStatus.Rc.IsRewineReelPpr = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
 		}
 	}
 }
@@ -708,6 +800,40 @@ void CEngrave::GetSignalPunch(SOCKET_DATA SockData)
 			pDoc->BtnStatus.Mk.DcRSol = (SockData.nData1 > 0) ? TRUE : FALSE;
 			if (pView && pView->m_pDlgMenu03)
 				pView->m_pDlgMenu03->SwMpeBtn(IDC_CHK_48, 1);	// 마킹부 댄서롤 상승/하강 스위치
+			break;
+			// Is
+		case _SigInx::_IsRelation:
+			pDoc->BtnStatus.Mk.IsRelation = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsMvCwMk:
+			pDoc->BtnStatus.Mk.IsFdCw = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsMvCcwMk:
+			pDoc->BtnStatus.Mk.IsFdCcw = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsFdVacMk:
+			pDoc->BtnStatus.Mk.IsFdVac = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsPushUpMk:
+			pDoc->BtnStatus.Mk.IsPushUp = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsTblBlwMk:
+			pDoc->BtnStatus.Mk.IsTblBlw = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsTblVacMk:
+			pDoc->BtnStatus.Mk.IsTblVac = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsFdClampMk:
+			pDoc->BtnStatus.Mk.IsFdClp = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsTensClampMk:
+			pDoc->BtnStatus.Mk.IsTqClp = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsOnePnlMk:
+			pDoc->BtnStatus.Mk.IsMvOne = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsDancerUpMk:
+			pDoc->BtnStatus.Mk.IsDcRSol = (SockData.nData1 > 0) ? TRUE : FALSE;
 			break;
 		}
 	}
@@ -791,6 +917,52 @@ void CEngrave::GetSignalAOIDn(SOCKET_DATA SockData)
 		case _SigInx::_LotEndAoiDn:
 			pDoc->BtnStatus.AoiDn.LotEnd = (SockData.nData1 > 0) ? TRUE : FALSE;
 			break;
+			// Is
+		case _SigInx::_IsRelation:
+			pDoc->BtnStatus.AoiDn.IsRelation = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsMvCwAoiDn:
+			pDoc->BtnStatus.AoiDn.IsFdCw = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsMvCcwAoiDn:
+			pDoc->BtnStatus.AoiDn.IsFdCcw = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsFdVacAoiDn:
+			pDoc->BtnStatus.AoiDn.IsFdVac = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsPushUpAoiDn:
+			pDoc->BtnStatus.AoiDn.IsPushUp = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsTblBlwAoiDn:
+			pDoc->BtnStatus.AoiDn.IsTblBlw = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsTblVacAoiDn:
+			pDoc->BtnStatus.AoiDn.IsTblVac = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsFdClampAoiDn:
+			pDoc->BtnStatus.AoiDn.IsFdClp = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsTensClampAoiDn:
+			pDoc->BtnStatus.AoiDn.IsTqClp = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsOnePnlAoiDn:
+			pDoc->BtnStatus.AoiDn.IsMvOne = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsClrRollAoiDn:
+			pDoc->BtnStatus.AoiDn.IsClrRoll = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsVelClrSonicAoiDn:
+			pDoc->BtnStatus.AoiDn.IsVelSonicBlw = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsTestAoiDn:
+			pDoc->BtnStatus.AoiDn.IsTest = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsResetAoiDn:
+			pDoc->BtnStatus.AoiDn.IsReset = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsLotEndAoiDn:
+			pDoc->BtnStatus.AoiDn.IsLotEnd = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
 		}
 	}
 }
@@ -852,6 +1024,49 @@ void CEngrave::GetSignalAOIUp(SOCKET_DATA SockData)
 		case _SigInx::_LotEndAoiUp:
 			pDoc->BtnStatus.AoiUp.LotEnd = (SockData.nData1 > 0) ? TRUE : FALSE;
 			break;
+			// Is
+		case _SigInx::_IsRelation:
+			pDoc->BtnStatus.AoiUp.IsRelation = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsMvCwAoiUp:
+			pDoc->BtnStatus.AoiUp.IsFdCw = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsMvCcwAoiUp:
+			pDoc->BtnStatus.AoiUp.IsFdCcw = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsFdVacAoiUp:
+			pDoc->BtnStatus.AoiUp.IsFdVac = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsPushUpAoiUp:
+			pDoc->BtnStatus.AoiUp.IsPushUp = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsTblBlwAoiUp:
+			pDoc->BtnStatus.AoiUp.IsTblBlw = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsTblVacAoiUp:
+			pDoc->BtnStatus.AoiUp.IsTblVac = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsFdClampAoiUp:
+			pDoc->BtnStatus.AoiUp.IsFdClp = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsTensClampAoiUp:
+			pDoc->BtnStatus.AoiUp.IsTqClp = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsOnePnlAoiUp:
+			pDoc->BtnStatus.AoiUp.IsMvOne = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsClrRollAoiUp:
+			pDoc->BtnStatus.AoiUp.IsClrRoll = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsTestAoiUp:
+			pDoc->BtnStatus.AoiUp.IsTest = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsResetAoiUp:
+			pDoc->BtnStatus.AoiUp.IsReset = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsLotEndAoiUp:
+			pDoc->BtnStatus.AoiUp.IsLotEnd = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
 		}
 	}
 }
@@ -908,6 +1123,43 @@ void CEngrave::GetSignalEngrave(SOCKET_DATA SockData)
 			pDoc->BtnStatus.Eng.VelSonicBlw = (SockData.nData1 > 0) ? TRUE : FALSE;
 			if (pView && pView->m_pDlgMenu03)
 				pView->m_pDlgMenu03->SwMpeBtn(IDC_CHK_87, 1);	// 각인부 초음파 세정기 속도 ON (PC가 ON/OFF시킴)
+			break;
+			// Is
+		case _SigInx::_IsRelation:
+			pDoc->BtnStatus.Eng.IsRelation = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsMvCwEng:
+			pDoc->BtnStatus.Eng.IsFdCw = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsMvCcwEng:
+			pDoc->BtnStatus.Eng.IsFdCcw = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsFdVacEng:
+			pDoc->BtnStatus.Eng.IsFdVac = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsPushUpEng:
+			pDoc->BtnStatus.Eng.IsPushUp = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _IsTblBlwEng:
+			pDoc->BtnStatus.Eng.IsTblBlw = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsTblVacEng:
+			pDoc->BtnStatus.Eng.IsTblVac = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsFdClampEng:
+			pDoc->BtnStatus.Eng.IsFdClp = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsTensClampEng:
+			pDoc->BtnStatus.Eng.IsTqClp = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsOnePnlEng:
+			pDoc->BtnStatus.Eng.IsMvOne = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsDancerUpEng:
+			pDoc->BtnStatus.Eng.IsDcRSol = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsVelClrSonicEng:
+			pDoc->BtnStatus.Eng.IsVelSonicBlw = (SockData.nData1 > 0) ? TRUE : FALSE;
 			break;
 		}
 	}
@@ -967,6 +1219,46 @@ void CEngrave::GetSignalUncoiler(SOCKET_DATA SockData)
 		case _SigInx::_ClrRollPushUn:
 			pDoc->BtnStatus.Uc.ClRlPshUpDn = (SockData.nData1 > 0) ? TRUE : FALSE;
 			break;
+			// Is
+		case _SigInx::_IsRelation:
+			pDoc->BtnStatus.Uc.IsRelation = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsMvCwUn:
+			pDoc->BtnStatus.Uc.IsFdCw = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsMvCcwUn:
+			pDoc->BtnStatus.Uc.IsFdCcw = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsPrdChuckUn:
+			pDoc->BtnStatus.Uc.IsReelChuck = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsDancerUpUn:
+			pDoc->BtnStatus.Uc.IsDcRlUpDn = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsPasteUpLfUn:
+			pDoc->BtnStatus.Uc.IsReelJoinL = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsPasteUpRtUn:
+			pDoc->BtnStatus.Uc.IsReelJoinR = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsPasteVacUn:
+			pDoc->BtnStatus.Uc.IsReelJoinVac = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsPprChuckUn:
+			pDoc->BtnStatus.Uc.IsPprChuck = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsPprCwUn:
+			pDoc->BtnStatus.Uc.IsPprCw = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsPprCcwUn:
+			pDoc->BtnStatus.Uc.IsPprCcw = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsClrRollUpUn:
+			pDoc->BtnStatus.Uc.IsClRlUpDn = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsClrRollPushUn:
+			pDoc->BtnStatus.Uc.IsClRlPshUpDn = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
 		}
 	}
 }
@@ -1024,6 +1316,56 @@ void CEngrave::GetSignalEngraveAutoSequence(SOCKET_DATA SockData)
 			if (pView && pView->m_pMpe)
 				pView->m_pMpe->Write(_T("MB440179"), SockData.nData1);// 각인부 2D 리더 작업완료 신호.(PC가 On, PLC가 확인 후 Off)
 #endif
+			break;
+			// Is
+		case _SigInx::_IsEngAutoInit:
+			pDoc->BtnStatus.EngAuto.IsInit = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsEngAutoSeqMkSt:
+			pDoc->BtnStatus.EngAuto.IsMkSt = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsEngAutoSeqOnMkIng:
+			pDoc->BtnStatus.EngAuto.IsOnMking = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsEngAutoSeqMkDone:
+			pDoc->BtnStatus.EngAuto.IsMkDone = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsEngAutoSeq2dReadSt:
+			pDoc->BtnStatus.EngAuto.IsRead2dSt = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsEngAutoSeqOnReading2d:
+			pDoc->BtnStatus.EngAuto.IsOnRead2d = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsEngAutoSeq2dReadDone:
+			pDoc->BtnStatus.EngAuto.IsRead2dDone = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		}
+	}
+}
+
+
+void CEngrave::GetSignalMyMsg(SOCKET_DATA SockData)
+{
+	int nCmdCode = SockData.nCmdCode;
+	int nMsgId = SockData.nMsgID;
+	CString sVal;
+
+	if (nCmdCode == _SetSig)
+	{
+		switch (nMsgId)
+		{
+		case _SigInx::_MyMsgYes:
+			pView->SetMyMsgYes();
+			break;
+		case _SigInx::_MyMsgNo:
+			pView->SetMyMsgNo();
+			break;
+			// Is
+		case _SigInx::_IsMyMsgYes:
+			pDoc->BtnStatus.Msg.IsYes = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsMyMsgNo:
+			pDoc->BtnStatus.Msg.IsNo = (SockData.nData1 > 0) ? TRUE : FALSE;
 			break;
 		}
 	}
@@ -5590,7 +5932,18 @@ void CEngrave::SwReady(BOOL bOn)
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
+	pDoc->BtnStatus.Main.Ready = bOn;
 	SocketData.nMsgID = _SigInx::_Ready;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwReady(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsReady;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -5600,7 +5953,18 @@ void CEngrave::SwRun(BOOL bOn)
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
+	pDoc->BtnStatus.Main.Run = bOn;
 	SocketData.nMsgID = _SigInx::_Run;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwRun(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsRun;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -5615,12 +5979,32 @@ void CEngrave::SwReset(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwReset(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsReset;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwStop(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_Stop;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwStop(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsStop;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -5635,12 +6019,32 @@ void CEngrave::SwAuto(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwAuto(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsAuto;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwManual(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_Manual;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwManual(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsManual;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -5656,6 +6060,16 @@ void CEngrave::SwMkTq(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwMkTq(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsMkTq;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwAoiTq(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
@@ -5666,12 +6080,32 @@ void CEngrave::SwAoiTq(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwAoiTq(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsAoiTq;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwEngTq(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_EngTq;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwEngTq(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsEngTq;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -5687,12 +6121,32 @@ void CEngrave::SwRcInductionCcw(BOOL bOn)	// SetOneMetal
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwRcInductionCcw(BOOL bOn)	// SetOneMetal
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsCcwModRe;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwUcInductionCcw(BOOL bOn)	// SetTwoMetal
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_CcwModUn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwUcInductionCcw(BOOL bOn)	// SetTwoMetal
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsCcwModUn;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -5708,12 +6162,32 @@ void CEngrave::SwRcCore150mm(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwRcCore150mm(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsCore150Re;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwUcCore150mm(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_Core150Un;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwUcCore150mm(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsCore150Un;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -5729,12 +6203,32 @@ void CEngrave::SwRcRelation(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwRcRelation(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsRelation;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwRcFdCw(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_MvCwRe;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwRcFdCw(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsMvCwRe;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -5749,12 +6243,32 @@ void CEngrave::SwRcFdCcw(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwRcFdCcw(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsMvCcwRe;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwRcReelChuck(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_PrdChuckRe;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwRcReelChuck(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsPrdChuckRe;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -5769,12 +6283,32 @@ void CEngrave::SwRcDcRlUpDn(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwRcDcRlUpDn(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsDancerUpRe;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwRcReelJoinL(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_PasteUpLfRe;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwRcReelJoinL(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsPasteUpLfRe;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -5789,12 +6323,32 @@ void CEngrave::SwRcReelJoinR(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwRcReelJoinR(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsPasteUpRtRe;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwRcReelJoinVac(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_PasteVacRe;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwRcReelJoinVac(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsPasteVacRe;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -5809,12 +6363,32 @@ void CEngrave::SwRcPaperChuck(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwRcPaperChuck(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsPprChuckRe;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwRcPaperCw(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_PprCwRe;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwRcPaperCw(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsPprCwRe;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -5829,6 +6403,16 @@ void CEngrave::SwRcPaperCcw(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwRcPaperCcw(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsPprCcwRe;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwRcRewinder(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
@@ -5839,12 +6423,32 @@ void CEngrave::SwRcRewinder(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwRcRewinder(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsDoRe;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwRcRewinderReelPaper(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_PrdPprRe;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwRcRewinderReelPaper(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsPrdPprRe;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -5861,12 +6465,32 @@ void CEngrave::SwMkRelation(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwMkRelation(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsRelation;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwMkFdCw(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_MvCwMk;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwMkFdCw(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsMvCwMk;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -5881,12 +6505,32 @@ void CEngrave::SwMkFdCcw(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwMkFdCcw(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsMvCcwMk;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwMkFdVac(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_FdVacMk;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwMkFdVac(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsFdVacMk;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -5901,12 +6545,32 @@ void CEngrave::SwMkPushUp(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwMkPushUp(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsPushUpMk;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwMkTblBlw(BOOL bOn)	
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_TblBlwMk;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwMkTblBlw(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsTblBlwMk;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -5921,12 +6585,32 @@ void CEngrave::SwMkTblVac(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwMkTblVac(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsTblVacMk;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwMkFdClp(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_FdClampMk;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwMkFdClp(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsFdClampMk;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -5941,12 +6625,32 @@ void CEngrave::SwMkTqClp(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwMkTqClp(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsTensClampMk;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwMkMvOne(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_OnePnlMk;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwMkMvOne(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsOnePnlMk;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -5961,12 +6665,32 @@ void CEngrave::SwMkLsrPt(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwMkLsrPt(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsLsrMk;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwMkDcRSol(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_DancerUpMk;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwMkDcRSol(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsDancerUpMk;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -5982,12 +6706,32 @@ void CEngrave::SwAoiDnRelation(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwAoiDnRelation(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsRelation;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwAoiDnFdCw(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_MvCwAoiDn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwAoiDnFdCw(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsMvCwAoiDn;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6002,12 +6746,32 @@ void CEngrave::SwAoiDnFdCcw(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwAoiDnFdCcw(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsMvCcwAoiDn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwAoiDnFdVac(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_FdVacAoiDn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwAoiDnFdVac(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsFdVacAoiDn;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6022,12 +6786,32 @@ void CEngrave::SwAoiDnPushUp(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwAoiDnPushUp(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsPushUpAoiDn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwAoiDnTblBlw(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_TblBlwAoiDn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwAoiDnTblBlw(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsTblBlwAoiDn;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6042,12 +6826,32 @@ void CEngrave::SwAoiDnTblVac(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwAoiDnTblVac(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsTblVacAoiDn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwAoiDnFdClp(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_FdClampAoiDn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwAoiDnFdClp(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsFdClampAoiDn;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6062,6 +6866,16 @@ void CEngrave::SwAoiDnTqClp(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwAoiDnTqClp(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsTensClampAoiDn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwAoiDnMvOne(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
@@ -6072,12 +6886,32 @@ void CEngrave::SwAoiDnMvOne(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwAoiDnMvOne(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsOnePnlAoiDn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwAoiDnLsrPt(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_LsrAoiDn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwAoiDnLsrPt(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsLsrAoiDn;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6093,12 +6927,32 @@ void CEngrave::SwAoiDnClrRoll(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwAoiDnClrRoll(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsClrRollAoiDn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwAoiDnVelSonicBlw(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_VelClrSonicAoiDn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwAoiDnVelSonicBlw(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsVelClrSonicAoiDn;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6114,6 +6968,16 @@ void CEngrave::SwAoiDnTest(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwAoiDnTest(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsTestAoiDn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwAoiDnReset(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
@@ -6124,12 +6988,32 @@ void CEngrave::SwAoiDnReset(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwAoiDnReset(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsResetAoiDn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwAoiDnLotEnd(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_LotEndAoiDn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwAoiDnLotEnd(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsLotEndAoiDn;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6147,12 +7031,32 @@ void CEngrave::SwAoiUpRelation(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwAoiUpRelation(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsRelation;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwAoiUpFdCw(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_MvCwAoiUp;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwAoiUpFdCw(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsMvCwAoiUp;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6167,12 +7071,32 @@ void CEngrave::SwAoiUpFdCcw(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwAoiUpFdCcw(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsMvCcwAoiUp;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwAoiUpFdVac(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_FdVacAoiUp;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwAoiUpFdVac(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsFdVacAoiUp;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6187,12 +7111,32 @@ void CEngrave::SwAoiUpPushUp(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwAoiUpPushUp(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsPushUpAoiUp;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwAoiUpTblBlw(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_TblBlwAoiUp;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwAoiUpTblBlw(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsTblBlwAoiUp;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6207,12 +7151,32 @@ void CEngrave::SwAoiUpTblVac(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwAoiUpTblVac(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsTblVacAoiUp;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwAoiUpFdClp(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_FdClampAoiUp;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwAoiUpFdClp(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsFdClampAoiUp;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6227,12 +7191,32 @@ void CEngrave::SwAoiUpTqClp(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwAoiUpTqClp(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsTensClampAoiUp;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwAoiUpMvOne(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_OnePnlAoiUp;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwAoiUpMvOne(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsOnePnlAoiUp;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6247,12 +7231,32 @@ void CEngrave::SwAoiUpLsrPt(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwAoiUpLsrPt(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsLsrAoiUp;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwAoiUpClrRoll(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_ClrRollAoiUp;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwAoiUpClrRoll(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsClrRollAoiUp;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6268,6 +7272,16 @@ void CEngrave::SwAoiUpTest(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwAoiUpTest(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsTestAoiUp;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwAoiUpReset(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
@@ -6278,12 +7292,32 @@ void CEngrave::SwAoiUpReset(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwAoiUpReset(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsResetAoiUp;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwAoiUpLotEnd(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_LotEndAoiUp;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwAoiUpLotEnd(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsLotEndAoiUp;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6300,12 +7334,32 @@ void CEngrave::SwEngRelation(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwEngRelation(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsRelation;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwEngFdCw(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_MvCwEng;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwEngFdCw(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsMvCwEng;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6320,12 +7374,32 @@ void CEngrave::SwEngFdCcw(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwEngFdCcw(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsMvCcwEng;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwEngFdVac(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_FdVacEng;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwEngFdVac(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsFdVacEng;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6340,12 +7414,32 @@ void CEngrave::SwEngPushUp(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwEngPushUp(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsPushUpEng;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwEngTblBlw(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_TblBlwEng;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwEngTblBlw(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsTblBlwEng;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6360,12 +7454,32 @@ void CEngrave::SwEngTblVac(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwEngTblVac(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsTblVacEng;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwEngFdClp(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_FdClampEng;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwEngFdClp(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsFdClampEng;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6380,12 +7494,32 @@ void CEngrave::SwEngTqClp(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwEngTqClp(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsTensClampEng;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwEngMvOne(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_OnePnlEng;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwEngMvOne(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsOnePnlEng;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6400,6 +7534,16 @@ void CEngrave::SwEngLsrPt(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwEngLsrPt(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsLsrEng;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwEngDcRSol(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
@@ -6410,12 +7554,32 @@ void CEngrave::SwEngDcRSol(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwEngDcRSol(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsDancerUpEng;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwEngVelSonicBlw(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_VelClrSonicEng;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwEngVelSonicBlw(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsVelClrSonicEng;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6432,12 +7596,32 @@ void CEngrave::SwUcRelation(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwUcRelation(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsRelation;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwUcFdCw(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_MvCwUn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwUcFdCw(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsMvCwUn;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6452,12 +7636,32 @@ void CEngrave::SwUcFdCcw(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwUcFdCcw(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsMvCcwUn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwUcReelChuck(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_PrdChuckUn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwUcReelChuck(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsPrdChuckUn;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6472,12 +7676,32 @@ void CEngrave::SwUcDcRlUpDn(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwUcDcRlUpDn(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsDancerUpUn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwUcReelJoinL(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_PasteUpLfUn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwUcReelJoinL(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsPasteUpLfUn;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6492,12 +7716,32 @@ void CEngrave::SwUcReelJoinR(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwUcReelJoinR(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsPasteUpRtUn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwUcReelJoinVac(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_PasteVacUn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwUcReelJoinVac(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsPasteVacUn;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6512,12 +7756,32 @@ void CEngrave::SwUcPaperChuck(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwUcPaperChuck(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsPprChuckUn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwUcPaperCw(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_PprCwUn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwUcPaperCw(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsPprCwUn;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6532,12 +7796,32 @@ void CEngrave::SwUcPaperCcw(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwUcPaperCcw(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsPprCcwUn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwUcClRlUpDn(BOOL bOn)
 {
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_ClrRollUpUn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwUcClRlUpDn(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsClrRollUpUn;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6552,6 +7836,16 @@ void CEngrave::SwUcClRlPshUpDn(BOOL bOn)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwUcClRlPshUpDn(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsClrRollPushUn;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 
 // Etc
 void CEngrave::SwAoiEmg(BOOL bOn)
@@ -6560,6 +7854,16 @@ void CEngrave::SwAoiEmg(BOOL bOn)
 	SocketData.nCmdCode = _SetSig;
 
 	SocketData.nMsgID = _SigInx::_EmgAoi;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwAoiEmg(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsEmgAoi;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6577,6 +7881,17 @@ void CEngrave::SwEngAutoInit(BOOL bOn) // 각인부 초기화(Reset)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwEngAutoInit(BOOL bOn) // 각인부 초기화(Reset)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	pDoc->BtnStatus.EngAuto.Init = bOn;
+	SocketData.nMsgID = _SigInx::_IsEngAutoInit;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwEngAutoMkSt(BOOL bOn) // 각인부 마킹시작 ON (PC가 ON, OFF)
 {
 	SOCKET_DATA SocketData;
@@ -6584,6 +7899,17 @@ void CEngrave::SwEngAutoMkSt(BOOL bOn) // 각인부 마킹시작 ON (PC가 ON, OFF)
 
 	pDoc->BtnStatus.EngAuto.MkSt = bOn;
 	SocketData.nMsgID = _SigInx::_EngAutoSeqMkSt;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwEngAutoMkSt(BOOL bOn) // 각인부 마킹시작 ON (PC가 ON, OFF)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	//pDoc->BtnStatus.EngAuto.MkSt = bOn;
+	SocketData.nMsgID = _SigInx::_IsEngAutoSeqMkSt;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6599,6 +7925,17 @@ void CEngrave::SwEngAutoOnMking(BOOL bOn) // 각인부 마킹중 ON (PC가 ON, OFF)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwEngAutoOnMking(BOOL bOn) // 각인부 마킹중 ON (PC가 ON, OFF)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	pDoc->BtnStatus.EngAuto.OnMking = bOn;
+	SocketData.nMsgID = _SigInx::_IsEngAutoSeqOnMkIng;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwEngAutoMkDone(BOOL bOn) // 각인부 마킹완료 ON (PC가 ON, OFF)
 {
 	SOCKET_DATA SocketData;
@@ -6606,6 +7943,17 @@ void CEngrave::SwEngAutoMkDone(BOOL bOn) // 각인부 마킹완료 ON (PC가 ON, OFF)
 
 	pDoc->BtnStatus.EngAuto.MkDone = bOn;
 	SocketData.nMsgID = _SigInx::_EngAutoSeqMkDone;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwEngAutoMkDone(BOOL bOn) // 각인부 마킹완료 ON (PC가 ON, OFF)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	pDoc->BtnStatus.EngAuto.MkDone = bOn;
+	SocketData.nMsgID = _SigInx::_IsEngAutoSeqMkDone;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6621,6 +7969,17 @@ void CEngrave::SwEngAuto2dReadSt(BOOL bOn) // 각인부 2D Read 시작 ON (PC가 ON, O
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwEngAuto2dReadSt(BOOL bOn) // 각인부 2D Read 시작 ON (PC가 ON, OFF)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	//pDoc->BtnStatus.EngAuto.Read2dSt = bOn;
+	SocketData.nMsgID = _SigInx::_IsEngAutoSeq2dReadSt;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwEngAutoOnReading2d(BOOL bOn) // 각인부 Read중 ON (PC가 ON, OFF)
 {
 	SOCKET_DATA SocketData;
@@ -6632,6 +7991,17 @@ void CEngrave::SwEngAutoOnReading2d(BOOL bOn) // 각인부 Read중 ON (PC가 ON, OFF)
 	SendCommand(SocketData);
 }
 
+void CEngrave::IsSwEngAutoOnReading2d(BOOL bOn) // 각인부 Read중 ON (PC가 ON, OFF)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	pDoc->BtnStatus.EngAuto.OnRead2d = bOn;
+	SocketData.nMsgID = _SigInx::_IsEngAutoSeqOnReading2d;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
 void CEngrave::SwEngAuto2dReadDone(BOOL bOn) // 각인부 2D Read 완료 ON (PC가 ON, OFF)
 {
 	SOCKET_DATA SocketData;
@@ -6639,6 +8009,17 @@ void CEngrave::SwEngAuto2dReadDone(BOOL bOn) // 각인부 2D Read 완료 ON (PC가 ON,
 
 	pDoc->BtnStatus.EngAuto.Read2dDone = bOn;
 	SocketData.nMsgID = _SigInx::_EngAutoSeq2dReadDone;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwEngAuto2dReadDone(BOOL bOn) // 각인부 2D Read 완료 ON (PC가 ON, OFF)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	pDoc->BtnStatus.EngAuto.Read2dDone = bOn;
+	SocketData.nMsgID = _SigInx::_IsEngAutoSeq2dReadDone;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
 }
@@ -6675,5 +8056,166 @@ void CEngrave::SetEngraveFdPitch()
 	SendCommand(SocketData);
 }
 
+// DlgMyMsg
+void CEngrave::SetMyMsgYes()
+{
+	if (!pDoc)
+		return;
+
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	pDoc->BtnStatus.Msg.Yes = TRUE;
+	SocketData.nMsgID = _SigInx::_MyMsgYes;
+	SocketData.nData1 =1;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSetMyMsgYes()
+{
+	if (!pDoc)
+		return;
+
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	//pDoc->BtnStatus.Msg.IsYes = TRUE;
+	SocketData.nMsgID = _SigInx::_IsMyMsgYes;
+	SocketData.nData1 = 1;
+	SendCommand(SocketData);
+}
+
+void CEngrave::SetMyMsgNo()
+{
+	if (!pDoc)
+		return;
+
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	pDoc->BtnStatus.Msg.No = TRUE;
+	SocketData.nMsgID = _SigInx::_MyMsgNo;
+	SocketData.nData1 = 1;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSetMyMsgNo()
+{
+	if (!pDoc)
+		return;
+
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	//pDoc->BtnStatus.Msg.IsNo = TRUE;
+	SocketData.nMsgID = _SigInx::_IsMyMsgNo;
+	SocketData.nData1 = 1;
+	SendCommand(SocketData);
+}
+
+void CEngrave::SetDispReady()
+{
+	if (!pDoc)
+		return;
+
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	pDoc->BtnStatus.Disp.Init();
+	pDoc->BtnStatus.Disp.Ready = TRUE;
+	SocketData.nMsgID = _SigInx::_DispReady;
+	SocketData.nData1 = pDoc->BtnStatus.Disp.Ready > 0 ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::SetDispRun()
+{
+	if (!pDoc)
+		return;
+
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	pDoc->BtnStatus.Disp.Init();
+	pDoc->BtnStatus.Disp.Run = TRUE;
+	SocketData.nMsgID = _SigInx::_DispRun;
+	SocketData.nData1 = pDoc->BtnStatus.Disp.Run > 0 ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::SetDispStop()
+{
+	if (!pDoc)
+		return;
+
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	pDoc->BtnStatus.Disp.Init();
+	pDoc->BtnStatus.Disp.Stop = TRUE;
+	SocketData.nMsgID = _SigInx::_DispStop;
+	SocketData.nData1 = pDoc->BtnStatus.Disp.Stop > 0 ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::SetDispDualSample()
+{
+	if (!pDoc)
+		return;
+
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	pDoc->BtnStatus.Disp.Init();
+	pDoc->BtnStatus.Disp.DualSample = TRUE;
+	SocketData.nMsgID = _SigInx::_DispDualSample;
+	SocketData.nData1 = pDoc->BtnStatus.Disp.DualSample > 0 ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::SetDispSingleSample()
+{
+	if (!pDoc)
+		return;
+
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	pDoc->BtnStatus.Disp.Init();
+	pDoc->BtnStatus.Disp.SingleSample = TRUE;
+	SocketData.nMsgID = _SigInx::_DispSingleSample;
+	SocketData.nData1 = pDoc->BtnStatus.Disp.SingleSample > 0 ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::SetDispDualTest()
+{
+	if (!pDoc)
+		return;
+
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	pDoc->BtnStatus.Disp.Init();
+	pDoc->BtnStatus.Disp.DualTest = TRUE;
+	SocketData.nMsgID = _SigInx::_DispDualTest;
+	SocketData.nData1 = pDoc->BtnStatus.Disp.DualTest > 0 ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::SetDispSingleTest()
+{
+	if (!pDoc)
+		return;
+
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	pDoc->BtnStatus.Disp.Init();
+	pDoc->BtnStatus.Disp.SingleTest = TRUE;
+	SocketData.nMsgID = _SigInx::_DispSingleTest;
+	SocketData.nData1 = pDoc->BtnStatus.Disp.SingleTest > 0 ? 1 : 0;
+	SendCommand(SocketData);
+}
 
 // End Switch

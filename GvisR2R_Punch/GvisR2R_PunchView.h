@@ -102,7 +102,7 @@ namespace Mk2PtIdx
 	typedef enum Index {
 		Start = 2, ChkSn = 4, InitMk = 10, Move0Cam1 = 12, Move0Cam0 = 14, Align1_0 = 17, Align0_0 = 18,
 		Move1Cam1 = 21, Move1Cam0 = 23, Align1_1 = 26, Align0_1 = 27, MoveInitPt = 29, ChkElec = 32, DoMk = 35,
-		Verify = 37, DoneMk = 38, LotDiff = 50, Shift2Mk = 100
+		Verify = 37, DoneMk = 38, LotDiff = 50, Shift2Mk = 60
 	}; 
 }
 
@@ -305,6 +305,9 @@ class CGvisR2R_PunchView : public CFormView
 	void DoRcSens1();		// MpeIo[5]
 	void DoRcSens2();		// MpeIo[6]
 	void DoRcSens3();		// MpeIo[7]
+
+	void DoEngraveSens();	// MpeIo[28
+
 
 	BOOL SetCollision(double dCollisionMargin);
 	//BOOL ChkXmpCollision();
@@ -964,6 +967,10 @@ public:
 	void SetEngFd();
 	void MoveEng(double dOffset);
 	BOOL GetEngOffset(CfPoint &OfSt);
+
+	void SetMyMsgYes();
+	void SetMyMsgNo();
+
 
 // 재정의입니다.
 public:
