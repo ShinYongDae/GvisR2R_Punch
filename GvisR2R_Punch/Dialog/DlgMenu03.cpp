@@ -3494,10 +3494,10 @@ BOOL CDlgMenu03::DoReset()
 		}
 		pView->ClrDispMsg();
 
-		//if (pView->m_pEngrave)
-		//	pView->m_pEngrave->SwEngAutoInit(TRUE);
+		if (pView->m_pEngrave)
+			pView->m_pEngrave->SwEngAutoInit(TRUE);
 		
-		if(IDNO == pView->MsgBox(_T("초기화 하시겠습니까?"), 0, MB_YESNO))
+		if(IDNO == pView->MsgBox(_T("초기화를 하시겠습니까?"), 0, MB_YESNO))
 			bInit = FALSE;
 		else
 		{
