@@ -75,6 +75,7 @@ public:
 
 	// GetSysSignal
 	void GetSysSignal(SOCKET_DATA SockData);
+	void GetSignalDisp(SOCKET_DATA SockData);
 	void GetSignalMain(SOCKET_DATA SockData);
 	void GetSignalTorqueMotor(SOCKET_DATA SockData);
 	void GetSignalInductionMotor(SOCKET_DATA SockData);
@@ -312,14 +313,21 @@ public:
 
 	// Start Switch
 
-	void SetDispReady();
-	void SetDispRun();
-	void SetDispStop();
-	void SetDispDualSample();
-	void SetDispSingleSample();
-	void SetDispDualTest();
-	void SetDispSingleTest();
-
+	// Disp
+	void SetDispReady(BOOL bOn = TRUE);
+	void SetDispRun(BOOL bOn = TRUE);
+	void SetDispStop(BOOL bOn = TRUE);
+	void SetDispDualSample(BOOL bOn = TRUE);
+	void SetDispSingleSample(BOOL bOn = TRUE);
+	void SetDispDualTest(BOOL bOn = TRUE);
+	void SetDispSingleTest(BOOL bOn = TRUE);
+	void IsSetDispReady(BOOL bOn = TRUE);
+	void IsSetDispRun(BOOL bOn = TRUE);
+	void IsSetDispStop(BOOL bOn = TRUE);
+	void IsSetDispDualSample(BOOL bOn = TRUE);
+	void IsSetDispSingleSample(BOOL bOn = TRUE);
+	void IsSetDispDualTest(BOOL bOn = TRUE);
+	void IsSetDispSingleTest(BOOL bOn = TRUE);
 
 	// Main
 	void SwReady(BOOL bOn);

@@ -432,6 +432,7 @@ void CEngrave::GetSysSignal(SOCKET_DATA SockData)
 	GetInfo(SockData);
 	GetEngInfo(SockData);
 
+	GetSignalDisp(SockData);
 	GetSignalMain(SockData);
 	GetSignalTorqueMotor(SockData);
 	GetSignalInductionMotor(SockData);
@@ -447,6 +448,71 @@ void CEngrave::GetSysSignal(SOCKET_DATA SockData)
 	GetSignalEngraveAutoSequence(SockData);
 	GetSignalMyMsg(SockData);
 }
+
+void CEngrave::GetSignalDisp(SOCKET_DATA SockData)
+{
+	int nCmdCode = SockData.nCmdCode;
+	int nMsgId = SockData.nMsgID;
+	CString sVal;
+
+	if (nCmdCode == _SetSig)
+	{
+		switch (nMsgId)
+		{
+		case _SigInx::_DispReady:
+			pDoc->BtnStatus.Disp.Init();
+			pDoc->BtnStatus.Disp.Ready = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_DispRun:
+			pDoc->BtnStatus.Disp.Init();
+			pDoc->BtnStatus.Disp.Run = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_DispStop:
+			pDoc->BtnStatus.Disp.Init();
+			pDoc->BtnStatus.Disp.Stop = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_DispDualSample:
+			pDoc->BtnStatus.Disp.Init();
+			pDoc->BtnStatus.Disp.DualSample = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_DispSingleSample:
+			pDoc->BtnStatus.Disp.Init();
+			pDoc->BtnStatus.Disp.SingleSample = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_DispDualTest:
+			pDoc->BtnStatus.Disp.Init();
+			pDoc->BtnStatus.Disp.DualTest = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_DispSingleTest:
+			pDoc->BtnStatus.Disp.Init();
+			pDoc->BtnStatus.Disp.SingleTest = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		// Is
+		case _SigInx::_IsDispReady:
+			pDoc->BtnStatus.Disp.IsReady = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsDispRun:
+			pDoc->BtnStatus.Disp.IsRun = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsDispStop:
+			pDoc->BtnStatus.Disp.IsStop = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsDispDualSample:
+			pDoc->BtnStatus.Disp.IsDualSample = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsDispSingleSample:
+			pDoc->BtnStatus.Disp.IsSingleSample = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsDispDualTest:
+			pDoc->BtnStatus.Disp.IsDualTest = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsDispSingleTest:
+			pDoc->BtnStatus.Disp.IsSingleTest = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		}
+	}
+}
+
 
 void CEngrave::GetSignalMain(SOCKET_DATA SockData)
 {
@@ -1289,11 +1355,13 @@ void CEngrave::GetSignalEngraveAutoSequence(SOCKET_DATA SockData)
 			if(pView && pView->m_pMpe)
 				pView->m_pMpe->Write(_T("MB440173"), SockData.nData1);// 2D(GUI) 각인 동작Running신호(PC On->PC Off)
 #endif
+			break;
 		case _SigInx::_EngAutoSeqMkDone:
 			pDoc->BtnStatus.EngAuto.MkDone = (SockData.nData1 > 0) ? TRUE : FALSE;
 #ifdef USE_MPE	
 			if (pView && pView->m_pMpe)
-				pView->m_pMpe->Write(_T("MB440174"), SockData.nData1);// 각인부 작업완료.(PC가 On, PLC가 확인 후 Off)
+				pView->m_pMpe->Write(_T("MB440174"), 1);// 각인부 작업완료.(PC가 On, PLC가 확인 후 Off)
+				//pView->m_pMpe->Write(_T("MB440174"), SockData.nData1);// 각인부 작업완료.(PC가 On, PLC가 확인 후 Off)
 #endif
 			break;
 		case _SigInx::_EngAutoSeq2dReadSt:
@@ -1314,7 +1382,8 @@ void CEngrave::GetSignalEngraveAutoSequence(SOCKET_DATA SockData)
 			pDoc->BtnStatus.EngAuto.Read2dDone = (SockData.nData1 > 0) ? TRUE : FALSE;
 #ifdef USE_MPE	
 			if (pView && pView->m_pMpe)
-				pView->m_pMpe->Write(_T("MB440179"), SockData.nData1);// 각인부 2D 리더 작업완료 신호.(PC가 On, PLC가 확인 후 Off)
+				pView->m_pMpe->Write(_T("MB440179"), 1);// 각인부 2D 리더 작업완료 신호.(PC가 On, PLC가 확인 후 Off)
+				//pView->m_pMpe->Write(_T("MB440179"), SockData.nData1);// 각인부 2D 리더 작업완료 신호.(PC가 On, PLC가 확인 후 Off)
 #endif
 			break;
 			// Is
@@ -8113,7 +8182,8 @@ void CEngrave::IsSetMyMsgNo()
 	SendCommand(SocketData);
 }
 
-void CEngrave::SetDispReady()
+// Disp
+void CEngrave::SetDispReady(BOOL bOn)
 {
 	if (!pDoc)
 		return;
@@ -8128,7 +8198,17 @@ void CEngrave::SetDispReady()
 	SendCommand(SocketData);
 }
 
-void CEngrave::SetDispRun()
+void CEngrave::IsSetDispReady(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsDispReady;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::SetDispRun(BOOL bOn)
 {
 	if (!pDoc)
 		return;
@@ -8143,7 +8223,17 @@ void CEngrave::SetDispRun()
 	SendCommand(SocketData);
 }
 
-void CEngrave::SetDispStop()
+void CEngrave::IsSetDispRun(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsDispRun;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::SetDispStop(BOOL bOn)
 {
 	if (!pDoc)
 		return;
@@ -8158,7 +8248,17 @@ void CEngrave::SetDispStop()
 	SendCommand(SocketData);
 }
 
-void CEngrave::SetDispDualSample()
+void CEngrave::IsSetDispStop(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsDispStop;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::SetDispDualSample(BOOL bOn)
 {
 	if (!pDoc)
 		return;
@@ -8173,7 +8273,17 @@ void CEngrave::SetDispDualSample()
 	SendCommand(SocketData);
 }
 
-void CEngrave::SetDispSingleSample()
+void CEngrave::IsSetDispDualSample(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsDispDualSample;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::SetDispSingleSample(BOOL bOn)
 {
 	if (!pDoc)
 		return;
@@ -8188,7 +8298,17 @@ void CEngrave::SetDispSingleSample()
 	SendCommand(SocketData);
 }
 
-void CEngrave::SetDispDualTest()
+void CEngrave::IsSetDispSingleSample(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsDispSingleSample;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::SetDispDualTest(BOOL bOn)
 {
 	if (!pDoc)
 		return;
@@ -8203,7 +8323,17 @@ void CEngrave::SetDispDualTest()
 	SendCommand(SocketData);
 }
 
-void CEngrave::SetDispSingleTest()
+void CEngrave::IsSetDispDualTest(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsDispDualTest;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::SetDispSingleTest(BOOL bOn)
 {
 	if (!pDoc)
 		return;
@@ -8217,5 +8347,80 @@ void CEngrave::SetDispSingleTest()
 	SocketData.nData1 = pDoc->BtnStatus.Disp.SingleTest > 0 ? 1 : 0;
 	SendCommand(SocketData);
 }
+
+void CEngrave::IsSetDispSingleTest(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsDispSingleTest;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+
+//// Disp
+//void CEngrave::SetDispReady(BOOL bOn)
+//{
+//	SOCKET_DATA SocketData;
+//	SocketData.nCmdCode = _SetSig;
+//
+//	pDoc->BtnStatus.Disp.Ready = bOn;
+//	SocketData.nMsgID = _SigInx::_DispReady;
+//	SocketData.nData1 = bOn ? 1 : 0;
+//	SendCommand(SocketData);
+//}
+//
+//void CEngrave::IsSetDispReady(BOOL bOn)
+//{
+//	SOCKET_DATA SocketData;
+//	SocketData.nCmdCode = _SetSig;
+//
+//	SocketData.nMsgID = _SigInx::_IsDispReady;
+//	SocketData.nData1 = bOn ? 1 : 0;
+//	SendCommand(SocketData);
+//}
+//
+//void CEngrave::SetDispRun(BOOL bOn)
+//{
+//	SOCKET_DATA SocketData;
+//	SocketData.nCmdCode = _SetSig;
+//
+//	pDoc->BtnStatus.Disp.Run = bOn;
+//	SocketData.nMsgID = _SigInx::_DispRun;
+//	SocketData.nData1 = bOn ? 1 : 0;
+//	SendCommand(SocketData);
+//}
+//
+//void CEngrave::IsSetDispRun(BOOL bOn)
+//{
+//	SOCKET_DATA SocketData;
+//	SocketData.nCmdCode = _SetSig;
+//
+//	SocketData.nMsgID = _SigInx::_IsDispRun;
+//	SocketData.nData1 = bOn ? 1 : 0;
+//	SendCommand(SocketData);
+//}
+//
+//void CEngrave::SetDispStop(BOOL bOn)
+//{
+//	SOCKET_DATA SocketData;
+//	SocketData.nCmdCode = _SetSig;
+//
+//	pDoc->BtnStatus.Disp.Stop = bOn;
+//	SocketData.nMsgID = _SigInx::_DispStop;
+//	SocketData.nData1 = bOn ? 1 : 0;
+//	SendCommand(SocketData);
+//}
+//
+//void CEngrave::IsSetDispStop(BOOL bOn)
+//{
+//	SOCKET_DATA SocketData;
+//	SocketData.nCmdCode = _SetSig;
+//
+//	SocketData.nMsgID = _SigInx::_IsDispStop;
+//	SocketData.nData1 = bOn ? 1 : 0;
+//	SendCommand(SocketData);
+//}
 
 // End Switch

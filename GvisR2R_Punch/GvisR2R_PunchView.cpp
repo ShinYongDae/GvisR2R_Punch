@@ -10112,6 +10112,11 @@ void CGvisR2R_PunchView::InitAuto(BOOL bInit)
 	}
 	pView->m_nDebugStep = 30; pView->DispThreadTick();
 
+	m_bEngFdWrite = FALSE;
+	m_bEngFdWriteF = FALSE;
+	m_bEngTest = FALSE;
+	m_bEngTestF = FALSE;
+
 }
 
 void CGvisR2R_PunchView::SetListBuf()	// pDoc->m_ListBuf에 버퍼 폴더의 시리얼번호를 가지고 재갱신함.
@@ -21318,10 +21323,26 @@ void CGvisR2R_PunchView::MonDispMain()
 		if (m_sDispMain != _T("운전중"))
 		{
 			DispMain(_T("운전중"), RGB_GREEN);
-			if (m_pEngrave)
+			if (m_pEngrave && m_pEngrave->IsConnected())
 			{
-				m_pEngrave->SetDispRun();
 				m_pEngrave->SwRun(TRUE);
+				Sleep(100);
+
+				pDoc->BtnStatus.Disp.IsRun = FALSE;
+				m_pEngrave->SetDispRun();
+				Sleep(100);
+			}
+		}
+		else
+		{
+			if (m_pEngrave && m_pEngrave->IsConnected())
+			{
+				m_pEngrave->IsSetDispRun();
+				if (!pDoc->BtnStatus.Disp.IsRun)
+				{
+					m_pEngrave->SetDispRun();
+					Sleep(100);
+				}
 			}
 		}
 	}
@@ -21334,10 +21355,26 @@ void CGvisR2R_PunchView::MonDispMain()
 			if (m_sDispMain != _T("운전준비"))
 			{
 				DispMain(_T("운전준비"), RGB_GREEN);
-				if (m_pEngrave)
+				if (m_pEngrave && m_pEngrave->IsConnected())
 				{
-					m_pEngrave->SetDispReady();
 					m_pEngrave->SwReady(TRUE);
+					Sleep(100);
+
+					pDoc->BtnStatus.Disp.IsReady = FALSE;
+					m_pEngrave->SetDispReady();
+					Sleep(100);
+				}
+			}
+			else
+			{
+				if (m_pEngrave && m_pEngrave->IsConnected())
+				{
+					m_pEngrave->IsSetDispReady();
+					if (!pDoc->BtnStatus.Disp.IsReady)
+					{
+						m_pEngrave->SetDispReady();
+						Sleep(100);
+					}
 				}
 			}
 		}
@@ -21356,16 +21393,29 @@ void CGvisR2R_PunchView::MonDispMain()
 						if (m_sDispMain != _T("양면샘플"))
 						{
 							DispMain(_T("양면샘플"), RGB_GREEN);
-							if (m_pEngrave)
+							if (m_pEngrave && m_pEngrave->IsConnected())
 							{
-								m_pEngrave->SetDispDualSample();
 								m_pEngrave->SetSampleTest();
+								Sleep(100);
 								m_pEngrave->SetDualTest();
+								Sleep(100);
+
+								pDoc->BtnStatus.Disp.IsDualSample = FALSE;
+								m_pEngrave->SetDispDualSample();
+								Sleep(100);
 							}
 						}
 						else
 						{
-							;
+							if (m_pEngrave && m_pEngrave->IsConnected())
+							{
+								m_pEngrave->IsSetDispDualSample();
+								if (!pDoc->BtnStatus.Disp.IsDualSample)
+								{
+									m_pEngrave->SetDispDualSample();
+									Sleep(100);
+								}
+							}
 						}
 					}
 					else
@@ -21373,16 +21423,29 @@ void CGvisR2R_PunchView::MonDispMain()
 						if (m_sDispMain != _T("단면샘플"))
 						{
 							DispMain(_T("단면샘플"), RGB_GREEN);
-							if (m_pEngrave)
+							if (m_pEngrave && m_pEngrave->IsConnected())
 							{
-								m_pEngrave->SetDispSingleSample();
 								m_pEngrave->SetSampleTest();
+								Sleep(100);
 								m_pEngrave->SetDualTest();
+								Sleep(100);
+
+								pDoc->BtnStatus.Disp.IsSingleSample = FALSE;
+								m_pEngrave->SetDispSingleSample();
+								Sleep(100);
 							}
 						}
 						else
 						{
-							;
+							if (m_pEngrave && m_pEngrave->IsConnected())
+							{
+								m_pEngrave->IsSetDispSingleSample();
+								if (!pDoc->BtnStatus.Disp.IsSingleSample)
+								{
+									m_pEngrave->SetDispSingleSample();
+									Sleep(100);
+								}
+							}
 						}
 					}
 				}
@@ -21391,16 +21454,29 @@ void CGvisR2R_PunchView::MonDispMain()
 					if (m_sDispMain != _T("양면검사"))
 					{
 						DispMain(_T("양면검사"), RGB_GREEN);
-						if (m_pEngrave)
+						if (m_pEngrave && m_pEngrave->IsConnected())
 						{
-							m_pEngrave->SetDispDualTest();
 							m_pEngrave->SetSampleTest();
+							Sleep(100);
 							m_pEngrave->SetDualTest();
+							Sleep(100);
+
+							pDoc->BtnStatus.Disp.IsDualTest = FALSE;
+							m_pEngrave->SetDispDualTest();
+							Sleep(100);
 						}
 					}
 					else
 					{
-						;
+						if (m_pEngrave && m_pEngrave->IsConnected())
+						{
+							m_pEngrave->IsSetDispDualTest();
+							if (!pDoc->BtnStatus.Disp.IsDualTest)
+							{
+								m_pEngrave->SetDispDualTest();
+								Sleep(100);
+							}
+						}
 					}
 				}
 				else
@@ -21408,16 +21484,29 @@ void CGvisR2R_PunchView::MonDispMain()
 					if (m_sDispMain != _T("단면검사"))
 					{
 						DispMain(_T("단면검사"), RGB_GREEN);
-						if (m_pEngrave)
+						if (m_pEngrave && m_pEngrave->IsConnected())
 						{
-							m_pEngrave->SetDispSingleTest();
 							m_pEngrave->SetSampleTest();
+							Sleep(100);
 							m_pEngrave->SetDualTest();
+							Sleep(100);
+
+							pDoc->BtnStatus.Disp.IsSingleTest = FALSE;
+							m_pEngrave->SetDispSingleTest();
+							Sleep(100);
 						}
 					}
 					else
 					{
-						;
+						if (m_pEngrave && m_pEngrave->IsConnected())
+						{
+							m_pEngrave->IsSetDispSingleTest();
+							if (!pDoc->BtnStatus.Disp.IsSingleTest)
+							{
+								m_pEngrave->SetDispSingleTest();
+								Sleep(100);
+							}
+						}
 					}
 					//if(m_sDispMain != _T("초기운전")
 					//DispMain(_T("초기운전", RGB_GREEN);
@@ -21446,10 +21535,26 @@ void CGvisR2R_PunchView::MonDispMain()
 			{
 				pView->DispStsBar(_T("정지-44"), 0);
 				DispMain(_T("정 지"), RGB_RED);
-				if (m_pEngrave)
+				if (m_pEngrave && m_pEngrave->IsConnected())
 				{
-					m_pEngrave->SetDispStop();
 					m_pEngrave->SwStop(TRUE);
+					Sleep(100);
+
+					pDoc->BtnStatus.Disp.IsStop = FALSE;
+					m_pEngrave->SetDispStop();
+					Sleep(100);
+				}
+			}
+			else
+			{
+				if (m_pEngrave && m_pEngrave->IsConnected())
+				{
+					m_pEngrave->IsSetDispStop();
+					if (!pDoc->BtnStatus.Disp.IsStop)
+					{
+						m_pEngrave->SetDispStop();
+						Sleep(100);
+					}
 				}
 			}
 		}
@@ -22804,7 +22909,7 @@ LRESULT CGvisR2R_PunchView::wmClientReceived(WPARAM wParam, LPARAM lParam)
 	case _GetData:
 		break;
 	case _SetSig:
-		if (m_pEngrave)
+		if (m_pEngrave && m_pEngrave->IsConnected())
 			m_pEngrave->GetSysSignal(rSockData);
 
 		if (m_pEngrave->m_bGetOpInfo)
@@ -22820,7 +22925,7 @@ LRESULT CGvisR2R_PunchView::wmClientReceived(WPARAM wParam, LPARAM lParam)
 			m_pDlgMenu03->UpdateSignal();
 		break;
 	case _SetData:
-		if (m_pEngrave)
+		if (m_pEngrave && m_pEngrave->IsConnected())
 			m_pEngrave->GetSysData(rSockData);
 
 		if (m_pEngrave->m_bGetOpInfo)
@@ -23251,19 +23356,23 @@ void CGvisR2R_PunchView::DoAtuoGetEngStSignal()
 			pDoc->BtnStatus.EngAuto.MkStF = TRUE;
 			m_bEngStSw = FALSE;
 
-			if (m_pEngrave)
+			if (m_pEngrave && m_pEngrave->IsConnected())
 			{ 
 				pDoc->BtnStatus.EngAuto.IsMkSt = FALSE;
 				m_pEngrave->SwEngAutoMkSt(TRUE);
+				Sleep(100);
 			}
 		}
 		else if ((pDoc->m_pMpeSignal[0] & (0x01 << 3) || m_bEngStSw) && pDoc->BtnStatus.EngAuto.MkStF)
 		{
-			if (m_pEngrave)
+			if (m_pEngrave && m_pEngrave->IsConnected())
 			{
 				m_pEngrave->IsSwEngAutoMkSt(TRUE);
 				if (!pDoc->BtnStatus.EngAuto.IsMkSt)
+				{
 					m_pEngrave->SwEngAutoMkSt(TRUE);
+					Sleep(100);
+				}
 			}
 		}
 	}
@@ -23333,19 +23442,23 @@ void CGvisR2R_PunchView::DoAtuoGet2dReadStSignal()
 			pDoc->BtnStatus.EngAuto.Read2dStF = TRUE;
 			m_bEng2dStSw = FALSE;
 
-			if (m_pEngrave)
+			if (m_pEngrave && m_pEngrave->IsConnected())
 			{
 				pDoc->BtnStatus.EngAuto.IsRead2dSt = FALSE;
 				m_pEngrave->SwEngAuto2dReadSt(TRUE);
+				Sleep(100);
 			}
 		}
 		else if ((pDoc->m_pMpeSignal[0] & (0x01 << 5) || m_bEng2dStSw) && pDoc->BtnStatus.EngAuto.Read2dStF)
 		{
-			if (m_pEngrave)
+			if (m_pEngrave && m_pEngrave->IsConnected())
 			{
 				m_pEngrave->IsSwEngAuto2dReadSt(TRUE);
 				if (!pDoc->BtnStatus.EngAuto.IsRead2dSt)
+				{
 					m_pEngrave->SwEngAuto2dReadSt(TRUE);
+					Sleep(100);
+				}
 			}
 		}		
 	}
@@ -23372,14 +23485,14 @@ void CGvisR2R_PunchView::DoAutoSetFdOffsetEngrave()
 		m_bEngTestF = FALSE;
 		m_bEngTest = FALSE;
 		m_bEngFdWriteF = FALSE;
-		pView->m_pMpe->Write(_T("MB440115"), 0);					// 각인부 Feeding Offset Write 완료(PC가 확인하고 Reset시킴.)
+		pView->m_pMpe->Write(_T("MB44011A"), 0);					// 각인부 Feeding Offset Write 완료(PC가 확인하고 Reset시킴.)
 	}
 
-	if (pDoc->m_pMpeSignal[1] & (0x01 << 5) && !m_bEngFdWrite)		// 각인부 Feeding Offset Write 완료(PC가 확인하고 Reset시킴.)
+	if (pDoc->m_pMpeSignal[1] & (0x01 << 10) && !m_bEngFdWrite)		// 각인부 Feeding Offset Write 완료(PC가 확인하고 Reset시킴.)
 	{
 		m_bEngFdWrite = TRUE;
 	}
-	else if (!(pDoc->m_pMpeSignal[1] & (0x01 << 5)) && m_bEngFdWrite)
+	else if (!(pDoc->m_pMpeSignal[1] & (0x01 << 10)) && m_bEngFdWrite)
 	{
 		m_bEngFdWrite = FALSE;
 	}
@@ -23401,7 +23514,8 @@ void CGvisR2R_PunchView::DoAutoSetFdOffsetEngrave()
 		}
 
 		pView->m_pMpe->Write(_T("ML45078"), (long)(dAveX*1000.0));	// 각인부 Feeding 롤러 Offset(*1000, +:더 보냄, -덜 보냄, PC가 쓰고 PLC에서 지움)
-		pView->m_pMpe->Write(_T("MB440115"), 0);					// 각인부 Feeding Offset Write 완료(PC가 확인하고 Reset시킴.)
+		pView->m_pMpe->Write(_T("MB44011A"), 0);					// 각인부 Feeding Offset Write 완료(PC가 확인하고 Reset시킴.)
+		Sleep(100);
 	}
 	else if (!m_bEngFdWrite && m_bEngFdWriteF)
 	{
