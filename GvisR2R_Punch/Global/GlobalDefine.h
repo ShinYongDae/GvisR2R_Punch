@@ -625,7 +625,7 @@ struct stSystem
 	CString sPathVrsShareDn, sPathVrsBufDn;
 	CString sPathVsShareDn;
 
-	CString sPathEng, sPathEngCurrInfo, sPathEngOffset;
+	CString sPathEng, sPathEngCurrInfo, sPathEngOffset, sPathMkCurrInfo;
 
 
 	CString sPathOldFile;
@@ -658,7 +658,7 @@ struct stSystem
 		sPathVrsShareDn = _T(""); sPathVrsBufDn = _T("");
 		sPathVsShareDn = _T("");
 
-		sPathEng = _T(""); sPathEngCurrInfo = _T(""); sPathEngOffset = _T("");
+		sPathEng = _T(""); sPathEngCurrInfo = _T(""); sPathEngOffset = _T(""); sPathMkCurrInfo = _T("");
 
 		sPathOldFile = _T("");
 		bSaveLog = FALSE;

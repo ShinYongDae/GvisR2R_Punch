@@ -3495,7 +3495,11 @@ BOOL CDlgMenu03::DoReset()
 		pView->ClrDispMsg();
 
 		if (pView->m_pEngrave)
+		{
+			pDoc->BtnStatus.EngAuto.Init = TRUE;
+			pDoc->BtnStatus.EngAuto.IsInit = FALSE;
 			pView->m_pEngrave->SwEngAutoInit(TRUE);
+		}
 		
 		if(IDNO == pView->MsgBox(_T("초기화를 하시겠습니까?"), 0, MB_YESNO))
 			bInit = FALSE;

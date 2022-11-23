@@ -383,6 +383,9 @@ public:
 
 	void SetEngOrderNum(CString sOrderNum);
 
+	void SetCurrentInfoSignal(int nIdxSig, BOOL bOn);
+	BOOL GetCurrentInfoSignal(int nIdxSig);
+
 // 재정의입니다.
 public:
 	virtual BOOL OnNewDocument();

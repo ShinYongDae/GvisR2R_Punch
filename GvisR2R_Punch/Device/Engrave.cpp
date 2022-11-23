@@ -1344,47 +1344,47 @@ void CEngrave::GetSignalEngraveAutoSequence(SOCKET_DATA SockData)
 			break;
 		case _SigInx::_EngAutoSeqMkSt:
 			pDoc->BtnStatus.EngAuto.MkSt = (SockData.nData1 > 0) ? TRUE : FALSE;
-#ifdef USE_MPE	
-			if (pView && pView->m_pMpe)
-				pView->m_pMpe->Write(_T("MB440103"), SockData.nData1);// 2D(GUI) 각인 동작 Start신호(PLC On->PC Off)
-#endif
+//#ifdef USE_MPE	
+//			if (pView && pView->m_pMpe)
+//				pView->m_pMpe->Write(_T("MB440103"), SockData.nData1);// 2D(GUI) 각인 동작 Start신호(PLC On->PC Off)
+//#endif
 			break;
 		case _SigInx::_EngAutoSeqOnMkIng:
 			pDoc->BtnStatus.EngAuto.OnMking = (SockData.nData1 > 0) ? TRUE : FALSE;
-#ifdef USE_MPE	
-			if(pView && pView->m_pMpe)
-				pView->m_pMpe->Write(_T("MB440173"), SockData.nData1);// 2D(GUI) 각인 동작Running신호(PC On->PC Off)
-#endif
+//#ifdef USE_MPE	
+//			if(pView && pView->m_pMpe)
+//				pView->m_pMpe->Write(_T("MB440173"), SockData.nData1);// 2D(GUI) 각인 동작Running신호(PC On->PC Off)
+//#endif
 			break;
 		case _SigInx::_EngAutoSeqMkDone:
 			pDoc->BtnStatus.EngAuto.MkDone = (SockData.nData1 > 0) ? TRUE : FALSE;
-#ifdef USE_MPE	
-			if (pView && pView->m_pMpe)
-				pView->m_pMpe->Write(_T("MB440174"), 1);// 각인부 작업완료.(PC가 On, PLC가 확인 후 Off)
-				//pView->m_pMpe->Write(_T("MB440174"), SockData.nData1);// 각인부 작업완료.(PC가 On, PLC가 확인 후 Off)
-#endif
+//#ifdef USE_MPE	
+//			if (pView && pView->m_pMpe)
+//				pView->m_pMpe->Write(_T("MB440174"), 1);// 각인부 작업완료.(PC가 On, PLC가 확인 후 Off)
+//				//pView->m_pMpe->Write(_T("MB440174"), SockData.nData1);// 각인부 작업완료.(PC가 On, PLC가 확인 후 Off)
+//#endif
 			break;
 		case _SigInx::_EngAutoSeq2dReadSt:
 			pDoc->BtnStatus.EngAuto.Read2dSt = (SockData.nData1 > 0) ? TRUE : FALSE;
-#ifdef USE_MPE	
-			if (pView && pView->m_pMpe)
-				pView->m_pMpe->Write(_T("MB440105"), SockData.nData1);// 각인부 2D 리더 시작신호(PLC On->PC Off)
-#endif
+//#ifdef USE_MPE	
+//			if (pView && pView->m_pMpe)
+//				pView->m_pMpe->Write(_T("MB440105"), SockData.nData1);// 각인부 2D 리더 시작신호(PLC On->PC Off)
+//#endif
 			break;
 		case _SigInx::_EngAutoSeqOnReading2d:
 			pDoc->BtnStatus.EngAuto.OnRead2d = (SockData.nData1 > 0) ? TRUE : FALSE;
-#ifdef USE_MPE	
-			if (pView && pView->m_pMpe)
-				pView->m_pMpe->Write(_T("MB440178"), SockData.nData1);// 각인부 2D 리더 작업중 신호(PC On->PC Off)
-#endif
+//#ifdef USE_MPE	
+//			if (pView && pView->m_pMpe)
+//				pView->m_pMpe->Write(_T("MB440178"), SockData.nData1);// 각인부 2D 리더 작업중 신호(PC On->PC Off)
+//#endif
 			break;
 		case _SigInx::_EngAutoSeq2dReadDone:
 			pDoc->BtnStatus.EngAuto.Read2dDone = (SockData.nData1 > 0) ? TRUE : FALSE;
-#ifdef USE_MPE	
-			if (pView && pView->m_pMpe)
-				pView->m_pMpe->Write(_T("MB440179"), 1);// 각인부 2D 리더 작업완료 신호.(PC가 On, PLC가 확인 후 Off)
-				//pView->m_pMpe->Write(_T("MB440179"), SockData.nData1);// 각인부 2D 리더 작업완료 신호.(PC가 On, PLC가 확인 후 Off)
-#endif
+//#ifdef USE_MPE	
+//			if (pView && pView->m_pMpe)
+//				pView->m_pMpe->Write(_T("MB440179"), 1);// 각인부 2D 리더 작업완료 신호.(PC가 On, PLC가 확인 후 Off)
+//				//pView->m_pMpe->Write(_T("MB440179"), SockData.nData1);// 각인부 2D 리더 작업완료 신호.(PC가 On, PLC가 확인 후 Off)
+//#endif
 			break;
 			// Is
 		case _SigInx::_IsEngAutoInit:
@@ -7944,7 +7944,7 @@ void CEngrave::SwEngAutoInit(BOOL bOn) // 각인부 초기화(Reset)
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
-	pDoc->BtnStatus.EngAuto.Init = bOn;
+	//pDoc->BtnStatus.EngAuto.Init = bOn;
 	SocketData.nMsgID = _SigInx::_EngAutoInit;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
@@ -7955,7 +7955,7 @@ void CEngrave::IsSwEngAutoInit(BOOL bOn) // 각인부 초기화(Reset)
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
-	pDoc->BtnStatus.EngAuto.Init = bOn;
+	//pDoc->BtnStatus.EngAuto.Init = bOn;
 	SocketData.nMsgID = _SigInx::_IsEngAutoInit;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
@@ -7966,7 +7966,7 @@ void CEngrave::SwEngAutoMkSt(BOOL bOn) // 각인부 마킹시작 ON (PC가 ON, OFF)
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
-	pDoc->BtnStatus.EngAuto.MkSt = bOn;
+	//pDoc->BtnStatus.EngAuto.MkSt = bOn;
 	SocketData.nMsgID = _SigInx::_EngAutoSeqMkSt;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
@@ -7988,7 +7988,7 @@ void CEngrave::SwEngAutoOnMking(BOOL bOn) // 각인부 마킹중 ON (PC가 ON, OFF)
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
-	pDoc->BtnStatus.EngAuto.OnMking = bOn;
+	//pDoc->BtnStatus.EngAuto.OnMking = bOn;
 	SocketData.nMsgID = _SigInx::_EngAutoSeqOnMkIng;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
@@ -7999,7 +7999,7 @@ void CEngrave::IsSwEngAutoOnMking(BOOL bOn) // 각인부 마킹중 ON (PC가 ON, OFF)
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
-	pDoc->BtnStatus.EngAuto.OnMking = bOn;
+	//pDoc->BtnStatus.EngAuto.OnMking = bOn;
 	SocketData.nMsgID = _SigInx::_IsEngAutoSeqOnMkIng;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
@@ -8010,7 +8010,7 @@ void CEngrave::SwEngAutoMkDone(BOOL bOn) // 각인부 마킹완료 ON (PC가 ON, OFF)
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
-	pDoc->BtnStatus.EngAuto.MkDone = bOn;
+	//pDoc->BtnStatus.EngAuto.MkDone = bOn;
 	SocketData.nMsgID = _SigInx::_EngAutoSeqMkDone;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
@@ -8021,7 +8021,7 @@ void CEngrave::IsSwEngAutoMkDone(BOOL bOn) // 각인부 마킹완료 ON (PC가 ON, OFF)
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
-	pDoc->BtnStatus.EngAuto.MkDone = bOn;
+	//pDoc->BtnStatus.EngAuto.MkDone = bOn;
 	SocketData.nMsgID = _SigInx::_IsEngAutoSeqMkDone;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
@@ -8032,7 +8032,7 @@ void CEngrave::SwEngAuto2dReadSt(BOOL bOn) // 각인부 2D Read 시작 ON (PC가 ON, O
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
-	pDoc->BtnStatus.EngAuto.Read2dSt = bOn;
+	//pDoc->BtnStatus.EngAuto.Read2dSt = bOn;
 	SocketData.nMsgID = _SigInx::_EngAutoSeq2dReadSt;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
@@ -8054,7 +8054,7 @@ void CEngrave::SwEngAutoOnReading2d(BOOL bOn) // 각인부 Read중 ON (PC가 ON, OFF)
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
-	pDoc->BtnStatus.EngAuto.OnRead2d = bOn;
+	//pDoc->BtnStatus.EngAuto.OnRead2d = bOn;
 	SocketData.nMsgID = _SigInx::_EngAutoSeqOnReading2d;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
@@ -8065,7 +8065,7 @@ void CEngrave::IsSwEngAutoOnReading2d(BOOL bOn) // 각인부 Read중 ON (PC가 ON, OF
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
-	pDoc->BtnStatus.EngAuto.OnRead2d = bOn;
+	//pDoc->BtnStatus.EngAuto.OnRead2d = bOn;
 	SocketData.nMsgID = _SigInx::_IsEngAutoSeqOnReading2d;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
@@ -8076,7 +8076,7 @@ void CEngrave::SwEngAuto2dReadDone(BOOL bOn) // 각인부 2D Read 완료 ON (PC가 ON,
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
-	pDoc->BtnStatus.EngAuto.Read2dDone = bOn;
+	//pDoc->BtnStatus.EngAuto.Read2dDone = bOn;
 	SocketData.nMsgID = _SigInx::_EngAutoSeq2dReadDone;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);
@@ -8087,7 +8087,7 @@ void CEngrave::IsSwEngAuto2dReadDone(BOOL bOn) // 각인부 2D Read 완료 ON (PC가 O
 	SOCKET_DATA SocketData;
 	SocketData.nCmdCode = _SetSig;
 
-	pDoc->BtnStatus.EngAuto.Read2dDone = bOn;
+	//pDoc->BtnStatus.EngAuto.Read2dDone = bOn;
 	SocketData.nMsgID = _SigInx::_IsEngAutoSeq2dReadDone;
 	SocketData.nData1 = bOn ? 1 : 0;
 	SendCommand(SocketData);

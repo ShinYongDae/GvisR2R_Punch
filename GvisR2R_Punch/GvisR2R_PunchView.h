@@ -77,7 +77,7 @@
 #define TIM_CHK_TEMP_STOP		20
 #define TIM_SAFTY_STOP			21
 
-#define MAX_THREAD				5
+#define MAX_THREAD				6
 
 namespace Read2dIdx
 {
@@ -277,6 +277,7 @@ class CGvisR2R_PunchView : public CFormView
 	void DoSens();
 	void DoAuto();
 	void DoAutoMarking();
+	void DoAutoMarkingEngrave();
 	void DoAutoChkShareFolder(); // 20170727-잔량처리 시 계속적으로 반복해서 이함수가 호출됨으로 좌우 마킹 인덱스 동일 현상 발생.(case AT_LP + 8:)	
 	void DoAutoDispMsg();
 	void DoAutoChkCycleStop();
@@ -579,6 +580,7 @@ public:
 	static UINT ThreadProc2(LPVOID lpContext); // Safety check thread procedure
 	static UINT ThreadProc3(LPVOID lpContext); // Safety check thread procedure
 	static UINT ThreadProc4(LPVOID lpContext); // Safety check thread procedure
+	static UINT ThreadProc5(LPVOID lpContext); // Safety check thread procedure
 
 											   // Auto Sequence
 	BOOL IsReady();
@@ -971,6 +973,8 @@ public:
 	void SetMyMsgYes();
 	void SetMyMsgNo();
 
+	BOOL GetCurrentInfoSignal();
+	void InitAutoEngSignal();
 
 // 재정의입니다.
 public:

@@ -597,7 +597,10 @@ BOOL CVision::StopLive(int nIdx)
 	if (nIdx > 1)
 		return FALSE;
 	if (m_pIRayple)
+	{
 		m_pIRayple->Connect(FALSE);
+		Sleep(100);
+	}
 #endif
 
 #ifdef USE_CREVIS

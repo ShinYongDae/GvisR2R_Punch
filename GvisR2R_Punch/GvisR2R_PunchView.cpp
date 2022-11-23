@@ -172,6 +172,8 @@ CGvisR2R_PunchView::CGvisR2R_PunchView()
 	m_dwThreadTick[3] = 0;
 	m_bThread[4] = FALSE;
 	m_dwThreadTick[4] = 0;
+	m_bThread[5] = FALSE;
+	m_dwThreadTick[5] = 0;
 
 	m_bTIM_MPE_IO = FALSE;
 
@@ -893,6 +895,10 @@ void CGvisR2R_PunchView::OnTimer(UINT_PTR nIDEvent)
 			// DoShift2Mk
 			if (!m_bThread[4])
 				m_Thread[4].Start(GetSafeHwnd(), this, ThreadProc4);
+
+			// Engrave Auto Sequence - Response Check
+			if (!m_bThread[5])
+				m_Thread[5].Start(GetSafeHwnd(), this, ThreadProc5);
 
 			MoveInitPos1();
 			Sleep(30);
@@ -2126,6 +2132,15 @@ void CGvisR2R_PunchView::ThreadKill()
 			Sleep(20);
 		}
 	}
+	if (m_bThread[5])
+	{
+		m_Thread[5].Stop();
+		Sleep(20);
+		while (m_bThread[5])
+		{
+			Sleep(20);
+		}
+	}
 }
 
 UINT CGvisR2R_PunchView::ThreadProc0(LPVOID lpContext)
@@ -2263,13 +2278,6 @@ UINT CGvisR2R_PunchView::ThreadProc2(LPVOID lpContext)
 			}
 			else
 				Sleep(30);
-
-			//{
-			//	if (pThread->m_bTHREAD_UPDATAE_YIELD)
-			//	{
-			//		pThread->DispDefImg();
-			//	}
-			//}
 			
 
 			bLock = FALSE;
@@ -2353,6 +2361,98 @@ UINT CGvisR2R_PunchView::ThreadProc4(LPVOID lpContext)
 	return 0;
 }
 
+
+UINT CGvisR2R_PunchView::ThreadProc5(LPVOID lpContext)
+{
+	// Turn the passed in 'this' pointer back into a CProgressMgr instance
+	CGvisR2R_PunchView* pThread = reinterpret_cast<CGvisR2R_PunchView*>(lpContext);
+
+	BOOL bLock = FALSE;
+	DWORD dwTick = GetTickCount();
+	DWORD dwShutdownEventCheckPeriod = 0; // thread shutdown event check period
+
+	pThread->m_bThread[5] = TRUE;
+	while (WAIT_OBJECT_0 != WaitForSingleObject(pThread->m_Thread[5].GetShutdownEvent(), dwShutdownEventCheckPeriod))
+	{
+		pThread->m_dwThreadTick[5] = GetTickCount() - dwTick;
+		dwTick = GetTickCount();
+
+		if (!bLock)
+		{
+			bLock = TRUE;
+			pThread->GetCurrentInfoSignal();
+			/*
+			//if (pThread->m_pEngrave)
+			//{
+			//	if (pDoc->BtnStatus.EngAuto.IsMkSt)
+			//	{
+			//		pDoc->BtnStatus.EngAuto.IsMkSt = FALSE;
+			//		pThread->m_pEngrave->IsSwEngAutoMkSt(pDoc->BtnStatus.EngAuto.MkSt);
+			//	}
+
+			//	if (pDoc->BtnStatus.EngAuto.IsRead2dSt)
+			//	{
+			//		pDoc->BtnStatus.EngAuto.IsRead2dSt = FALSE;
+			//		pThread->m_pEngrave->IsSwEngAuto2dReadSt(pDoc->BtnStatus.EngAuto.Read2dSt);
+			//	}
+
+			//	if (pDoc->BtnStatus.Disp.IsReady)
+			//	{
+			//		pDoc->BtnStatus.Disp.IsReady = FALSE;
+			//		pThread->m_pEngrave->IsSetDispReady(pDoc->BtnStatus.Disp.Ready);
+			//	}
+
+			//	if (pDoc->BtnStatus.Disp.IsRun)
+			//	{
+			//		pDoc->BtnStatus.Disp.IsRun = FALSE;
+			//		pThread->m_pEngrave->IsSetDispRun(pDoc->BtnStatus.Disp.Run);
+			//	}
+
+			//	if (pDoc->BtnStatus.Disp.IsStop)
+			//	{
+			//		pDoc->BtnStatus.Disp.IsStop = FALSE;
+			//		pThread->m_pEngrave->IsSetDispStop(pDoc->BtnStatus.Disp.Stop);
+			//	}
+
+			//	if (pDoc->BtnStatus.Disp.IsDualSample)
+			//	{
+			//		pDoc->BtnStatus.Disp.IsDualSample = FALSE;
+			//		pThread->m_pEngrave->IsSetDispDualSample(pDoc->BtnStatus.Disp.Stop);
+			//	}
+
+			//	if (pDoc->BtnStatus.Disp.IsSingleSample)
+			//	{
+			//		pDoc->BtnStatus.Disp.IsSingleSample = FALSE;
+			//		pThread->m_pEngrave->IsSetDispSingleSample(pDoc->BtnStatus.Disp.SingleSample);
+			//	}
+
+			//	if (pDoc->BtnStatus.Disp.IsDualTest)
+			//	{
+			//		pDoc->BtnStatus.Disp.IsDualTest = FALSE;
+			//		pThread->m_pEngrave->IsSetDispDualTest(pDoc->BtnStatus.Disp.DualTest);
+			//	}
+
+			//	if (pDoc->BtnStatus.Disp.IsSingleTest)
+			//	{
+			//		pDoc->BtnStatus.Disp.IsSingleTest = FALSE;
+			//		pThread->m_pEngrave->IsSetDispDualTest(pDoc->BtnStatus.Disp.SingleTest);
+			//	}
+
+			//	if (pDoc->BtnStatus.Disp.IsSingleTest)
+			//	{
+			//		pDoc->BtnStatus.Disp.IsSingleTest = FALSE;
+			//		pThread->m_pEngrave->IsSetDispDualTest(pDoc->BtnStatus.Disp.SingleTest);
+			//	}
+			//}
+			*/
+			bLock = FALSE;
+		}
+		Sleep(100);
+	}
+	pThread->m_bThread[5] = FALSE;
+
+	return 0;
+}
 
 void CGvisR2R_PunchView::DispStsMainMsg(int nIdx)
 {
@@ -9930,8 +10030,6 @@ void CGvisR2R_PunchView::InitAuto(BOOL bInit)
 	m_bEng2dStSw = FALSE;
 	m_nEng2dStAuto = 0;
 
-	pDoc->BtnStatus.EngAuto._Init();
-
 	m_bLotEnd = FALSE;
 	m_nLotEndAuto = 0;
 
@@ -9970,6 +10068,8 @@ void CGvisR2R_PunchView::InitAuto(BOOL bInit)
 	m_pMpe->Write(_T("MB440110"), 0); // 마킹시작(PC가 확인하고 Reset시킴.)-20141029
 	m_pMpe->Write(_T("MB440150"), 0); // 마킹부 마킹중 ON (PC가 ON, OFF)
 	m_pMpe->Write(_T("MB440170"), 0); // 마킹완료(PLC가 확인하고 Reset시킴.)-20141029
+
+	InitAutoEngSignal();
 
 	pView->m_nDebugStep = 13; pView->DispThreadTick();
 	MoveInitPos1();
@@ -10111,11 +10211,6 @@ void CGvisR2R_PunchView::InitAuto(BOOL bInit)
 		RestoreReelmap();
 	}
 	pView->m_nDebugStep = 30; pView->DispThreadTick();
-
-	m_bEngFdWrite = FALSE;
-	m_bEngFdWriteF = FALSE;
-	m_bEngTest = FALSE;
-	m_bEngTestF = FALSE;
 
 }
 
@@ -15693,6 +15788,8 @@ void CGvisR2R_PunchView::DoAuto()
 	// Marking Start
 	DoAutoMarking();
 
+	// Engrave Marking Start
+	DoAutoMarkingEngrave();
 }
 
 BOOL CGvisR2R_PunchView::DoAutoGetLotEndSignal()
@@ -23333,52 +23430,53 @@ void CGvisR2R_PunchView::DoAutoEng()
 }
 
 
-void CGvisR2R_PunchView::DoAtuoGetEngStSignal()
-{
-#ifdef USE_MPE
-	if (m_pMpe)
-	{
-		if (!pDoc->BtnStatus.EngAuto.MkSt && pDoc->BtnStatus.EngAuto.MkStF)
-		{
-			pDoc->BtnStatus.EngAuto.MkStF = FALSE;
 
-			m_pMpe->Write(_T("MB440103"), 0);			// 2D(GUI) 각인 동작 Start신호(PLC On->PC Off)
-
-			if (pDoc->m_pMpeSignal[0] & (0x01 << 2))	// 각인부 Feeding완료(PLC가 On시키고 PC가 확인하고 Reset시킴.)
-				m_pMpe->Write(_T("MB440102"), 0);		// 각인부 Feeding완료
-
-			//m_bEngSt = TRUE;
-			//m_nEngStAuto = ENG_ST;
-		}
-
-		if ((pDoc->m_pMpeSignal[0] & (0x01 << 3) || m_bEngStSw) && !pDoc->BtnStatus.EngAuto.MkStF)// 2D(GUI) 각인 동작 Start신호(PLC On->PC Off)
-		{
-			pDoc->BtnStatus.EngAuto.MkStF = TRUE;
-			m_bEngStSw = FALSE;
-
-			if (m_pEngrave && m_pEngrave->IsConnected())
-			{ 
-				pDoc->BtnStatus.EngAuto.IsMkSt = FALSE;
-				m_pEngrave->SwEngAutoMkSt(TRUE);
-				Sleep(100);
-			}
-		}
-		else if ((pDoc->m_pMpeSignal[0] & (0x01 << 3) || m_bEngStSw) && pDoc->BtnStatus.EngAuto.MkStF)
-		{
-			if (m_pEngrave && m_pEngrave->IsConnected())
-			{
-				m_pEngrave->IsSwEngAutoMkSt(TRUE);
-				if (!pDoc->BtnStatus.EngAuto.IsMkSt)
-				{
-					m_pEngrave->SwEngAutoMkSt(TRUE);
-					Sleep(100);
-				}
-			}
-		}
-	}
-
-#endif
-}
+//void CGvisR2R_PunchView::DoAtuoGetEngStSignal()
+//{
+//#ifdef USE_MPE
+//	if (m_pMpe)
+//	{
+//		if (!pDoc->BtnStatus.EngAuto.MkSt && pDoc->BtnStatus.EngAuto.MkStF)
+//		{
+//			pDoc->BtnStatus.EngAuto.MkStF = FALSE;
+//
+//			m_pMpe->Write(_T("MB440103"), 0);			// 2D(GUI) 각인 동작 Start신호(PLC On->PC Off)
+//
+//			if (pDoc->m_pMpeSignal[0] & (0x01 << 2))	// 각인부 Feeding완료(PLC가 On시키고 PC가 확인하고 Reset시킴.)
+//				m_pMpe->Write(_T("MB440102"), 0);		// 각인부 Feeding완료
+//
+//			//m_bEngSt = TRUE;
+//			//m_nEngStAuto = ENG_ST;
+//		}
+//
+//		if ((pDoc->m_pMpeSignal[0] & (0x01 << 3) || m_bEngStSw) && !pDoc->BtnStatus.EngAuto.MkStF)// 2D(GUI) 각인 동작 Start신호(PLC On->PC Off)
+//		{
+//			pDoc->BtnStatus.EngAuto.MkStF = TRUE;
+//			m_bEngStSw = FALSE;
+//
+//			if (m_pEngrave && m_pEngrave->IsConnected())
+//			{ 
+//				pDoc->BtnStatus.EngAuto.IsMkSt = FALSE;
+//				m_pEngrave->SwEngAutoMkSt(TRUE);
+//				Sleep(100);
+//			}
+//		}
+//		else if ((pDoc->m_pMpeSignal[0] & (0x01 << 3) || m_bEngStSw) && pDoc->BtnStatus.EngAuto.MkStF)
+//		{
+//			if (m_pEngrave && m_pEngrave->IsConnected())
+//			{
+//				m_pEngrave->IsSwEngAutoMkSt(TRUE);
+//				if (!pDoc->BtnStatus.EngAuto.IsMkSt)
+//				{
+//					m_pEngrave->SwEngAutoMkSt(TRUE);
+//					Sleep(100);
+//				}
+//			}
+//		}
+//	}
+//
+//#endif
+//}
 
 //void CGvisR2R_PunchView::DoAtuoGet2dReadStSignal()
 //{
@@ -23419,73 +23517,185 @@ void CGvisR2R_PunchView::DoAtuoGetEngStSignal()
 //#endif
 //}
 
-void CGvisR2R_PunchView::DoAtuoGet2dReadStSignal()
+
+//void CGvisR2R_PunchView::DoAtuoGet2dReadStSignal()
+//{
+//#ifdef USE_MPE
+//	if (m_pMpe)
+//	{
+//		if (!pDoc->BtnStatus.EngAuto.Read2dSt && pDoc->BtnStatus.EngAuto.Read2dStF)
+//		{
+//			pDoc->BtnStatus.EngAuto.Read2dStF = FALSE;
+//
+//			m_pMpe->Write(_T("MB440105"), 0);			// 각인부 2D 리더 시작신호(PLC On->PC Off)
+//
+//			if (pDoc->m_pMpeSignal[0] & (0x01 << 2))	// 각인부 Feeding완료(PLC가 On시키고 PC가 확인하고 Reset시킴.)
+//				m_pMpe->Write(_T("MB440102"), 0);		// 각인부 Feeding완료
+//
+//			//m_bEng2dSt = TRUE;
+//			//m_nEng2dStAuto = ENG_2D_ST;
+//		}
+//
+//		if ((pDoc->m_pMpeSignal[0] & (0x01 << 5) || m_bEng2dStSw) && !pDoc->BtnStatus.EngAuto.Read2dStF)// 각인부 2D 리더 시작신호(PLC On->PC Off)
+//		{
+//			pDoc->BtnStatus.EngAuto.Read2dStF = TRUE;
+//			m_bEng2dStSw = FALSE;
+//
+//			if (m_pEngrave && m_pEngrave->IsConnected())
+//			{
+//				pDoc->BtnStatus.EngAuto.IsRead2dSt = FALSE;
+//				m_pEngrave->SwEngAuto2dReadSt(TRUE);
+//				Sleep(100);
+//			}
+//		}
+//		else if ((pDoc->m_pMpeSignal[0] & (0x01 << 5) || m_bEng2dStSw) && pDoc->BtnStatus.EngAuto.Read2dStF)
+//		{
+//			if (m_pEngrave && m_pEngrave->IsConnected())
+//			{
+//				m_pEngrave->IsSwEngAuto2dReadSt(TRUE);
+//				if (!pDoc->BtnStatus.EngAuto.IsRead2dSt)
+//				{
+//					m_pEngrave->SwEngAuto2dReadSt(TRUE);
+//					Sleep(100);
+//				}
+//			}
+//		}		
+//	}
+//#endif
+//}
+
+//void CGvisR2R_PunchView::DoAutoSetFdOffsetEngrave()
+//{
+//#ifdef USE_MPE
+//	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
+//	double dAveX, dAveY;
+//	CfPoint OfSt;
+//	
+//	//if (pDoc->m_pMpeSignal[1] & (0x01 << 6) && !m_bEngTestF)
+//	//else if (!(pDoc->m_pMpeSignal[1] & (0x01 << 6)) && m_bEngTestF)
+//	if ((pDoc->BtnStatus.EngAuto.OnMking && !m_bEngTestF) || (pDoc->BtnStatus.EngAuto.OnRead2d && !m_bEngTestF)) // 각인부 검사중
+//	{
+//		m_bEngTestF = TRUE;
+//		m_bEngTest = TRUE;
+//	}
+//	else if((!pDoc->BtnStatus.EngAuto.OnMking && m_bEngTestF) || (!pDoc->BtnStatus.EngAuto.OnRead2d && m_bEngTestF))
+//	{
+//		m_bEngTestF = FALSE;
+//		m_bEngTest = FALSE;
+//		m_bEngFdWriteF = FALSE;
+//		pView->m_pMpe->Write(_T("MB44011A"), 0);					// 각인부 Feeding Offset Write 완료(PC가 확인하고 Reset시킴.)
+//	}
+//
+//	if (pDoc->m_pMpeSignal[1] & (0x01 << 10) && !m_bEngFdWrite)		// 각인부 Feeding Offset Write 완료(PC가 확인하고 Reset시킴.)
+//	{
+//		m_bEngFdWrite = TRUE;
+//	}
+//	else if (!(pDoc->m_pMpeSignal[1] & (0x01 << 10)) && m_bEngFdWrite)
+//	{
+//		m_bEngFdWrite = FALSE;
+//	}
+//
+//
+//	if (m_bEngFdWrite&& !m_bEngFdWriteF)
+//	{
+//		m_bEngFdWriteF = TRUE;
+//
+//		GetEngOffset(OfSt);
+//
+//		dAveX = OfSt.x;
+//		dAveY = OfSt.y;
+//
+//		if (m_pDlgMenu02)
+//		{
+//			m_pDlgMenu02->m_dEngFdOffsetX = OfSt.x;
+//			m_pDlgMenu02->m_dEngFdOffsetY = OfSt.y;
+//		}
+//
+//		pView->m_pMpe->Write(_T("ML45078"), (long)(dAveX*1000.0));	// 각인부 Feeding 롤러 Offset(*1000, +:더 보냄, -덜 보냄, PC가 쓰고 PLC에서 지움)
+//		pView->m_pMpe->Write(_T("MB44011A"), 0);					// 각인부 Feeding Offset Write 완료(PC가 확인하고 Reset시킴.)
+//		Sleep(100);
+//	}
+//	else if (!m_bEngFdWrite && m_bEngFdWriteF)
+//	{
+//		m_bEngFdWriteF = FALSE;
+//		m_bEngTest = FALSE;
+//	}
+//#endif
+//}
+
+void CGvisR2R_PunchView::DoAtuoGetEngStSignal()
 {
 #ifdef USE_MPE
-	if (m_pMpe)
+	if ((pDoc->m_pMpeSignal[0] & (0x01 << 3) || m_bEngStSw) && !pDoc->BtnStatus.EngAuto.MkStF)// 2D(GUI) 각인 동작 Start신호(PLC On->PC Off)
 	{
-		if (!pDoc->BtnStatus.EngAuto.Read2dSt && pDoc->BtnStatus.EngAuto.Read2dStF)
-		{
-			pDoc->BtnStatus.EngAuto.Read2dStF = FALSE;
+		pDoc->BtnStatus.EngAuto.MkStF = TRUE;
+		m_bEngStSw = FALSE;
 
-			m_pMpe->Write(_T("MB440105"), 0);			// 각인부 2D 리더 시작신호(PLC On->PC Off)
+		pDoc->BtnStatus.EngAuto.IsMkSt = FALSE;
+		pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeqMkSt, TRUE);
+	}
+	else if (pDoc->BtnStatus.EngAuto.IsMkSt && pDoc->BtnStatus.EngAuto.MkStF)
+	{
+		pDoc->BtnStatus.EngAuto.MkStF = FALSE;
+		pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeqMkSt, FALSE);
+		if (m_pMpe)
+		{
+			m_pMpe->Write(_T("MB440103"), 0);			// 2D(GUI) 각인 동작 Start신호(PLC On->PC Off)
 
 			if (pDoc->m_pMpeSignal[0] & (0x01 << 2))	// 각인부 Feeding완료(PLC가 On시키고 PC가 확인하고 Reset시킴.)
 				m_pMpe->Write(_T("MB440102"), 0);		// 각인부 Feeding완료
-
-			//m_bEng2dSt = TRUE;
-			//m_nEng2dStAuto = ENG_2D_ST;
 		}
-
-		if ((pDoc->m_pMpeSignal[0] & (0x01 << 5) || m_bEng2dStSw) && !pDoc->BtnStatus.EngAuto.Read2dStF)// 각인부 2D 리더 시작신호(PLC On->PC Off)
-		{
-			pDoc->BtnStatus.EngAuto.Read2dStF = TRUE;
-			m_bEng2dStSw = FALSE;
-
-			if (m_pEngrave && m_pEngrave->IsConnected())
-			{
-				pDoc->BtnStatus.EngAuto.IsRead2dSt = FALSE;
-				m_pEngrave->SwEngAuto2dReadSt(TRUE);
-				Sleep(100);
-			}
-		}
-		else if ((pDoc->m_pMpeSignal[0] & (0x01 << 5) || m_bEng2dStSw) && pDoc->BtnStatus.EngAuto.Read2dStF)
-		{
-			if (m_pEngrave && m_pEngrave->IsConnected())
-			{
-				m_pEngrave->IsSwEngAuto2dReadSt(TRUE);
-				if (!pDoc->BtnStatus.EngAuto.IsRead2dSt)
-				{
-					m_pEngrave->SwEngAuto2dReadSt(TRUE);
-					Sleep(100);
-				}
-			}
-		}		
 	}
+
 #endif
+}
+
+void CGvisR2R_PunchView::DoAtuoGet2dReadStSignal()
+{
+	if ((pDoc->m_pMpeSignal[0] & (0x01 << 5) || m_bEng2dStSw) && !pDoc->BtnStatus.EngAuto.Read2dStF)// 각인부 2D 리더 시작신호(PLC On->PC Off)
+	{
+		pDoc->BtnStatus.EngAuto.Read2dStF = TRUE;
+		m_bEng2dStSw = FALSE;
+
+		pDoc->BtnStatus.EngAuto.IsRead2dSt = FALSE;
+		pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeq2dReadSt, TRUE);
+	}
+	else if (pDoc->BtnStatus.EngAuto.IsRead2dSt && pDoc->BtnStatus.EngAuto.Read2dStF)
+	{
+		pDoc->BtnStatus.EngAuto.Read2dStF = FALSE;
+		pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeq2dReadSt, FALSE);
+#ifdef USE_MPE
+		if (m_pMpe)
+		{
+			m_pMpe->Write(_T("MB440105"), 0);			// 각인부 2D 리더 시작신호(PLC On->PC Off)
+			if (pDoc->m_pMpeSignal[0] & (0x01 << 2))	// 각인부 Feeding완료(PLC가 On시키고 PC가 확인하고 Reset시킴.)
+				m_pMpe->Write(_T("MB440102"), 0);		// 각인부 Feeding완료
+		}
+#endif
+	}
 }
 
 
 void CGvisR2R_PunchView::DoAutoSetFdOffsetEngrave()
 {
-#ifdef USE_MPE
 	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
 	double dAveX, dAveY;
 	CfPoint OfSt;
-	
-	//if (pDoc->m_pMpeSignal[1] & (0x01 << 6) && !m_bEngTestF)
-	//else if (!(pDoc->m_pMpeSignal[1] & (0x01 << 6)) && m_bEngTestF)
-	if ((pDoc->BtnStatus.EngAuto.OnMking && !m_bEngTestF) || (pDoc->BtnStatus.EngAuto.OnRead2d && !m_bEngTestF)) // 각인부 검사중
+
+	if ((pDoc->BtnStatus.EngAuto.IsOnMking && !m_bEngTestF) || (pDoc->BtnStatus.EngAuto.IsOnRead2d && !m_bEngTestF)) // 각인부 검사중
 	{
 		m_bEngTestF = TRUE;
 		m_bEngTest = TRUE;
 	}
-	else if((!pDoc->BtnStatus.EngAuto.OnMking && m_bEngTestF) || (!pDoc->BtnStatus.EngAuto.OnRead2d && m_bEngTestF))
+	else if ((!pDoc->BtnStatus.EngAuto.IsOnMking && m_bEngTestF) || (!pDoc->BtnStatus.EngAuto.IsOnRead2d && m_bEngTestF))
 	{
 		m_bEngTestF = FALSE;
 		m_bEngTest = FALSE;
 		m_bEngFdWriteF = FALSE;
-		pView->m_pMpe->Write(_T("MB44011A"), 0);					// 각인부 Feeding Offset Write 완료(PC가 확인하고 Reset시킴.)
+#ifdef USE_MPE
+		if(m_pMpe)
+			m_pMpe->Write(_T("MB44011A"), 0);					// 각인부 Feeding Offset Write 완료(PC가 확인하고 Reset시킴.)
+#endif
 	}
 
 	if (pDoc->m_pMpeSignal[1] & (0x01 << 10) && !m_bEngFdWrite)		// 각인부 Feeding Offset Write 완료(PC가 확인하고 Reset시킴.)
@@ -23498,7 +23708,7 @@ void CGvisR2R_PunchView::DoAutoSetFdOffsetEngrave()
 	}
 
 
-	if (m_bEngFdWrite&& !m_bEngFdWriteF)
+	if (m_bEngFdWrite && !m_bEngFdWriteF)
 	{
 		m_bEngFdWriteF = TRUE;
 
@@ -23513,19 +23723,98 @@ void CGvisR2R_PunchView::DoAutoSetFdOffsetEngrave()
 			m_pDlgMenu02->m_dEngFdOffsetY = OfSt.y;
 		}
 
-		pView->m_pMpe->Write(_T("ML45078"), (long)(dAveX*1000.0));	// 각인부 Feeding 롤러 Offset(*1000, +:더 보냄, -덜 보냄, PC가 쓰고 PLC에서 지움)
-		pView->m_pMpe->Write(_T("MB44011A"), 0);					// 각인부 Feeding Offset Write 완료(PC가 확인하고 Reset시킴.)
-		Sleep(100);
+#ifdef USE_MPE
+		if (m_pMpe)
+		{
+			m_pMpe->Write(_T("ML45078"), (long)(dAveX*1000.0));	// 각인부 Feeding 롤러 Offset(*1000, +:더 보냄, -덜 보냄, PC가 쓰고 PLC에서 지움)
+			m_pMpe->Write(_T("MB44011A"), 0);					// 각인부 Feeding Offset Write 완료(PC가 확인하고 Reset시킴.)
+		}
+		Sleep(10);
+#endif
 	}
 	else if (!m_bEngFdWrite && m_bEngFdWriteF)
 	{
 		m_bEngFdWriteF = FALSE;
 		m_bEngTest = FALSE;
 	}
-#endif
+
 }
 
+void CGvisR2R_PunchView::DoAutoMarkingEngrave()
+{	
+	// 각인부 마킹중 ON (PC가 ON, OFF)
+	if ( pDoc->BtnStatus.EngAuto.IsOnMking && !(pDoc->m_pMpeSignal[6] & (0x01 << 3)) ) // 각인부 마킹중 ON (PC가 ON, OFF)
+	{
+		pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeqOnMkIng, TRUE);
+#ifdef USE_MPE
+		if (m_pMpe)
+			m_pMpe->Write(_T("MB440173"), 1); // 2D(GUI) 각인 동작Running신호(PC On->PC Off)
+#endif
+	}
+	else if ( !pDoc->BtnStatus.EngAuto.IsOnMking && (pDoc->m_pMpeSignal[6] & (0x01 << 3)) )
+	{
+		pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeqOnMkIng, FALSE);
+#ifdef USE_MPE
+		if (m_pMpe)
+			m_pMpe->Write(_T("MB440173"), 0); // 2D(GUI) 각인 동작Running신호(PC On->PC Off)
+#endif
+	}
 
+	// 각인부 마킹완료 ON (PC가 ON, OFF)
+	if (pDoc->BtnStatus.EngAuto.IsMkDone && !(pDoc->m_pMpeSignal[6] & (0x01 << 4))) // 각인부 작업완료.(PC가 On, PLC가 확인 후 Off)
+	{
+		pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeqMkDone, TRUE);
+#ifdef USE_MPE
+		if (m_pMpe)
+			m_pMpe->Write(_T("MB440174"), 1); // 각인부 작업완료.(PC가 On, PLC가 확인 후 Off)
+#endif
+	}
+	else if (!pDoc->BtnStatus.EngAuto.IsMkDone && (pDoc->m_pMpeSignal[6] & (0x01 << 4))) // 각인부 작업완료.(PC가 On, PLC가 확인 후 Off)
+	{
+		pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeqMkDone, FALSE);
+//#ifdef USE_MPE
+//		if (m_pMpe)
+//			m_pMpe->Write(_T("MB440174"), 0); // 각인부 작업완료.(PC가 On, PLC가 확인 후 Off)
+//#endif
+	}
+
+	// 각인부 2D 리더 작업중 신호
+	if (pDoc->BtnStatus.EngAuto.IsOnRead2d && !(pDoc->m_pMpeSignal[6] & (0x01 << 8))) // 각인부 2D 리더 작업중 신호(PC On->PC Off)
+	{
+		pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeqOnReading2d, TRUE);
+#ifdef USE_MPE
+		if (m_pMpe)
+			m_pMpe->Write(_T("MB440178"), 1); // 각인부 2D 리더 작업중 신호(PC On->PC Off)
+#endif
+	}
+	else if (!pDoc->BtnStatus.EngAuto.IsOnRead2d && (pDoc->m_pMpeSignal[6] & (0x01 << 8)))
+	{
+		pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeqOnReading2d, FALSE);
+#ifdef USE_MPE
+		if (m_pMpe)
+			m_pMpe->Write(_T("MB440178"), 0); // 각인부 2D 리더 작업중 신호(PC On->PC Off)
+#endif
+	}
+
+	// 각인부 2D 리더 작업완료 신호
+	if (pDoc->BtnStatus.EngAuto.IsRead2dDone && !(pDoc->m_pMpeSignal[6] & (0x01 << 9))) // 각인부 2D 리더 작업완료 신호.(PC가 On, PLC가 확인 후 Off)
+	{
+		pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeq2dReadDone, TRUE);
+#ifdef USE_MPE
+		if (m_pMpe)
+			m_pMpe->Write(_T("MB440179"), 1); // 각인부 2D 리더 작업완료 신호.(PC가 On, PLC가 확인 후 Off)
+#endif
+	}
+	else if (!pDoc->BtnStatus.EngAuto.IsRead2dDone && (pDoc->m_pMpeSignal[6] & (0x01 << 9)))
+	{
+		pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeq2dReadDone, FALSE);
+//#ifdef USE_MPE
+//		if (m_pMpe)
+//			m_pMpe->Write(_T("MB440179"), 0); // 각인부 2D 리더 작업완료 신호.(PC가 On, PLC가 확인 후 Off)
+//#endif
+	}
+
+}
 
 void CGvisR2R_PunchView::SetEngFd()
 {
@@ -23592,3 +23881,41 @@ void CGvisR2R_PunchView::SetMyMsgNo()
 	}
 }
 
+void CGvisR2R_PunchView::InitAutoEngSignal()
+{
+	pDoc->BtnStatus.EngAuto._Init();
+
+	m_bEngFdWrite = FALSE;
+	m_bEngFdWriteF = FALSE;
+	m_bEngTest = FALSE;
+	m_bEngTestF = FALSE;
+
+	m_pMpe->Write(_T("MB440103"), 0); // 2D(GUI) 각인 동작 Start신호(PLC On->PC Off)
+	m_pMpe->Write(_T("MB440173"), 0); // 2D(GUI) 각인 동작Running신호(PC On->PC Off)
+	m_pMpe->Write(_T("MB440174"), 0); // 각인부 작업완료.(PC가 On, PLC가 확인 후 Off)
+
+	m_pMpe->Write(_T("MB440105"), 0); // 각인부 2D 리더 시작신호(PLC On->PC Off)
+	m_pMpe->Write(_T("MB440178"), 0); // 각인부 2D 리더 작업중 신호(PC On->PC Off)
+	m_pMpe->Write(_T("MB440179"), 0); // 각인부 2D 리더 작업완료 신호.(PC가 On, PLC가 확인 후 Off)
+
+
+	pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeqMkSt, FALSE);
+	pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeq2dReadSt, FALSE);
+	pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeqOnMkIng, FALSE);
+	pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeqMkDone, FALSE);
+	pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeqOnReading2d, FALSE);
+	pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeq2dReadDone, FALSE);
+}
+
+BOOL CGvisR2R_PunchView::GetCurrentInfoSignal()
+{
+	pDoc->BtnStatus.EngAuto.IsInit = pDoc->GetCurrentInfoSignal(_SigInx::_EngAutoInit);
+	pDoc->BtnStatus.EngAuto.IsMkSt = pDoc->GetCurrentInfoSignal(_SigInx::_EngAutoSeqMkSt);
+	pDoc->BtnStatus.EngAuto.IsOnMking = pDoc->GetCurrentInfoSignal(_SigInx::_EngAutoSeqOnMkIng);
+	pDoc->BtnStatus.EngAuto.IsMkDone = pDoc->GetCurrentInfoSignal(_SigInx::_EngAutoSeqMkDone);
+	pDoc->BtnStatus.EngAuto.IsRead2dSt = pDoc->GetCurrentInfoSignal(_SigInx::_EngAutoSeq2dReadSt);
+	pDoc->BtnStatus.EngAuto.IsOnRead2d = pDoc->GetCurrentInfoSignal(_SigInx::_EngAutoSeqOnReading2d);
+	pDoc->BtnStatus.EngAuto.IsRead2dDone = pDoc->GetCurrentInfoSignal(_SigInx::_EngAutoSeq2dReadDone);
+	
+	return TRUE;
+}
