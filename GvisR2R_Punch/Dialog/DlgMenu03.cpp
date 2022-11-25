@@ -3690,6 +3690,7 @@ void CDlgMenu03::SwRun()
 		SetEngraveOnePnl(TRUE);
 
 		pDoc->m_sAlmMsg = _T("");
+		pDoc->m_sIsAlmMsg = _T("");
 		pDoc->m_sPrevAlmMsg = _T("");
 	}
 

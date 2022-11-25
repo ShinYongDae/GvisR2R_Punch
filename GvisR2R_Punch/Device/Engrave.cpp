@@ -1429,12 +1429,18 @@ void CEngrave::GetSignalMyMsg(SOCKET_DATA SockData)
 		case _SigInx::_MyMsgNo:
 			pView->SetMyMsgNo();
 			break;
+		case _SigInx::_MyMsgOk:
+			pView->SetMyMsgOk();
+			break;
 			// Is
 		case _SigInx::_IsMyMsgYes:
 			pDoc->BtnStatus.Msg.IsYes = (SockData.nData1 > 0) ? TRUE : FALSE;
 			break;
 		case _SigInx::_IsMyMsgNo:
 			pDoc->BtnStatus.Msg.IsNo = (SockData.nData1 > 0) ? TRUE : FALSE;
+			break;
+		case _SigInx::_IsMyMsgOk:
+			pDoc->BtnStatus.Msg.IsOk = (SockData.nData1 > 0) ? TRUE : FALSE;
 			break;
 		}
 	}
@@ -1459,6 +1465,7 @@ void CEngrave::GetSysData(SOCKET_DATA SockData)
 	GetMkInfo(SockData);
 	GetMkInfoLf(SockData);
 	GetMkInfoRt(SockData);
+	GetAlarmMsg(SockData);
 }
 
 void CEngrave::GetOpInfo(SOCKET_DATA SockData)
@@ -2716,6 +2723,26 @@ void CEngrave::GetMkInfoRt(SOCKET_DATA SockData)
 			::WritePrivateProfileString(_T("Marking1"), _T("MARKING_AVER_DIST"), pDoc->WorkingInfo.Marking[1].sAverDist, PATH_WORKING_INFO);
 			break;
 		default:
+			break;
+		}
+	}
+}
+
+void CEngrave::GetAlarmMsg(SOCKET_DATA SockData)
+{
+	int nCmdCode = SockData.nCmdCode;
+	int nMsgId = SockData.nMsgID;
+	CString sVal;
+
+	if (nCmdCode == _SetData)
+	{
+		switch (nMsgId)
+		{
+		case _stAlarmInx::_Alarm:
+			//pDoc->m_sAlmMsg = CharToString(SockData.strData);
+			break;
+		case _stAlarmInx::_IsAlarm:
+			pDoc->m_sIsAlmMsg = CharToString(SockData.strData);
 			break;
 		}
 	}
@@ -8182,6 +8209,34 @@ void CEngrave::IsSetMyMsgNo()
 	SendCommand(SocketData);
 }
 
+void CEngrave::SetMyMsgOk()
+{
+	if (!pDoc)
+		return;
+
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	pDoc->BtnStatus.Msg.No = TRUE;
+	SocketData.nMsgID = _SigInx::_MyMsgOk;
+	SocketData.nData1 = 1;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSetMyMsgOk()
+{
+	if (!pDoc)
+		return;
+
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	//pDoc->BtnStatus.Msg.IsNo = TRUE;
+	SocketData.nMsgID = _SigInx::_IsMyMsgOk;
+	SocketData.nData1 = 1;
+	SendCommand(SocketData);
+}
+
 // Disp
 void CEngrave::SetDispReady(BOOL bOn)
 {
@@ -8424,3 +8479,35 @@ void CEngrave::IsSetDispSingleTest(BOOL bOn)
 //}
 
 // End Switch
+
+// Alarm
+
+void CEngrave::SetAlarm(CString sMsg)
+{
+	if (!pDoc)
+		return;
+
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetData;
+	char cData[BUFFER_DATA_SIZE];
+
+	SocketData.nMsgID = _stAlarmInx::_Alarm;
+	StringToChar(sMsg, cData);
+	sprintf(SocketData.strData, "%s", cData);
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSetAlarm(CString sMsg)
+{
+	if (!pDoc)
+		return;
+
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetData;
+	char cData[BUFFER_DATA_SIZE];
+
+	SocketData.nMsgID = _stAlarmInx::_IsAlarm;
+	StringToChar(sMsg, cData);
+	sprintf(SocketData.strData, "%s", cData);
+	SendCommand(SocketData);
+}

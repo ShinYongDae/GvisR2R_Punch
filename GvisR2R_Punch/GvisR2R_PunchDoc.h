@@ -73,6 +73,7 @@ public:
 	CYield m_Yield[3]; // [0]:AOI-Up , [1]:AOI-Dn , [2]:AOI-All
 
 	CString m_sAlmMsg, m_sPrevAlmMsg;
+	CString m_sIsAlmMsg;
 
 	stListBuf m_ListBuf[2]; // [0]:AOI-Up , [1]:AOI-Dn
 

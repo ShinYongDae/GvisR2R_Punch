@@ -4335,6 +4335,7 @@ void CGvisR2R_PunchView::DoIO()
 		//MyMsgBox(pDoc->m_sAlmMsg);
 		MsgBox(pDoc->m_sAlmMsg);
 		pDoc->m_sAlmMsg = _T("");
+		pDoc->m_sIsAlmMsg = _T("");
 		pDoc->m_sPrevAlmMsg = _T("");
 	}
 
@@ -10052,6 +10053,7 @@ void CGvisR2R_PunchView::InitAuto(BOOL bInit)
 	m_nLastProcAuto = 0;
 
 	pDoc->m_sAlmMsg = _T("");
+	pDoc->m_sIsAlmMsg = _T("");
 	pDoc->m_sPrevAlmMsg = _T("");
 
 	m_dwCycSt = 0;
@@ -16131,6 +16133,7 @@ void CGvisR2R_PunchView::DoAutoChkCycleStop()
 		//MyMsgBox(pDoc->m_sAlmMsg);
 		MsgBox(pDoc->m_sAlmMsg);
 		pDoc->m_sAlmMsg = _T("");
+		pDoc->m_sIsAlmMsg = _T("");
 		pDoc->m_sPrevAlmMsg = _T("");
 	}
 }
@@ -21706,6 +21709,12 @@ void CGvisR2R_PunchView::PlcAlm(BOOL bMon, BOOL bClr)
 		m_nMonAlmF = 1;
 		//ResetMonAlm();
 		FindAlarm();
+		if (pView->m_pEngrave)
+		{
+			pDoc->m_sIsAlmMsg = _T("");
+			pView->m_pEngrave->SetAlarm(pDoc->m_sAlmMsg);
+		}
+
 		Sleep(300);
 		m_pMpe->Write(_T("MB600008"), 1);
 	}
@@ -21714,15 +21723,33 @@ void CGvisR2R_PunchView::PlcAlm(BOOL bMon, BOOL bClr)
 		m_nMonAlmF = 0;
 		ResetMonAlm();
 	}
+	else
+	{
+		if (pView->m_pEngrave)
+		{
+			if (pDoc->m_sIsAlmMsg != pDoc->m_sAlmMsg)
+			{
+				if(pView->m_pEngrave)
+					pView->m_pEngrave->SetAlarm(pDoc->m_sAlmMsg);
+			}
+		}
+	}
 
 
 	if (bClr && !m_nClrAlmF)
 	{
 		m_nClrAlmF = 1;
 		ClrAlarm();
+		if (pView->m_pEngrave)
+		{
+			pView->m_pEngrave->SetAlarm(_T(""));
+			Sleep(100);
+			pView->m_pEngrave->IsSetAlarm(_T(""));
+		}
 		Sleep(300);
 		m_pMpe->Write(_T("MB600009"), 1);
 		//		ResetClear();
+
 	}
 	else if (!bClr && m_nClrAlmF)
 	{
@@ -21786,6 +21813,7 @@ void CGvisR2R_PunchView::ClrAlarm()
 	if (!pDoc->m_sAlmMsg.IsEmpty())
 	{
 		pDoc->m_sAlmMsg = _T("");
+		pDoc->m_sIsAlmMsg = _T("");
 		pDoc->m_sPrevAlmMsg = _T("");
 	}
 }
@@ -23913,6 +23941,17 @@ void CGvisR2R_PunchView::SetMyMsgNo()
 		if (m_pDlgMyMsg->m_pDlgMyMsgSub01)
 		{
 			((CDlgMyMsgSub01*)(m_pDlgMyMsg->m_pDlgMyMsgSub01))->ClickNo();
+		}
+	}
+}
+
+void CGvisR2R_PunchView::SetMyMsgOk()
+{
+	if (m_pDlgMyMsg)
+	{
+		if (m_pDlgMyMsg->m_pDlgMyMsgSub02)
+		{
+			((CDlgMyMsgSub02*)(m_pDlgMyMsg->m_pDlgMyMsgSub02))->ClickOk();
 		}
 	}
 }

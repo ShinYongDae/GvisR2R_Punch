@@ -973,6 +973,7 @@ public:
 
 	void SetMyMsgYes();
 	void SetMyMsgNo();
+	void SetMyMsgOk();
 
 	BOOL GetCurrentInfoSignal();
 	void InitAutoEngSignal();

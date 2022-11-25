@@ -121,6 +121,7 @@ CGvisR2R_PunchDoc::CGvisR2R_PunchDoc()
 
 	m_sPassword = _T("");
 	m_sAlmMsg = _T("");
+	m_sIsAlmMsg = _T("");
 	m_sPrevAlmMsg = _T("");
 
 	m_nPrevSerial = 0;
