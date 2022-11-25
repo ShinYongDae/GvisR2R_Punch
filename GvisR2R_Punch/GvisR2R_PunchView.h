@@ -495,6 +495,7 @@ public:
 
 // 작업입니다.
 public:
+	void SetLastSerialEng(int nSerial);
 	int MsgBox(CString sMsg, int nThreadIdx = 0, int nType = MB_OK, int nTimOut = DEFAULT_TIME_OUT);		// SyncMsgBox
 	int AsyncMsgBox(CString sMsg, int nThreadIdx = 1, int nType = MB_OK, int nTimOut = DEFAULT_TIME_OUT); // AsyncMsgBox
 	int WaitRtnVal(int nThreadIdx = 1);
@@ -975,6 +976,7 @@ public:
 
 	BOOL GetCurrentInfoSignal();
 	void InitAutoEngSignal();
+	void GetCurrentInfoEng();
 
 // 재정의입니다.
 public:

@@ -4235,6 +4235,8 @@ void CGvisR2R_PunchView::ChkBuf()
 {
 	ChkBufUp();
 	ChkBufDn();
+
+
 }
 
 void CGvisR2R_PunchView::ChkBufUp()
@@ -4264,6 +4266,10 @@ void CGvisR2R_PunchView::ChkBufUp()
 		{
 			m_sBuf[0] = str;
 			pFrm->DispStatusBar(str, 3);
+
+			pDoc->SetCurrentInfoBufUpTot(m_nBufTot[0]);
+			for (int k = 0; k<m_nBufTot[0]; k++)
+				pDoc->SetCurrentInfoBufUp(k, m_pBufSerial[0][k]);
 		}
 	}
 }
@@ -4295,6 +4301,10 @@ void CGvisR2R_PunchView::ChkBufDn()
 		{
 			m_sBuf[1] = str;
 			pFrm->DispStatusBar(str, 1);
+
+			pDoc->SetCurrentInfoBufDnTot(m_nBufTot[1]);
+			for (int k = 0; k < m_nBufTot[1]; k++)
+				pDoc->SetCurrentInfoBufDn(k, m_pBufSerial[1][k]);
 		}
 	}
 }
@@ -9778,7 +9788,7 @@ BOOL CGvisR2R_PunchView::ChkLastProcFromEng()
 {
 	BOOL bRtn = TRUE;
 	if (m_pDlgMenu01)
-		bRtn = (m_pDlgMenu01->m_bLastProcFromUp);
+		bRtn = (m_pDlgMenu01->m_bLastProcFromEng);
 	return bRtn;
 }
 
@@ -16405,7 +16415,9 @@ void CGvisR2R_PunchView::DoAutoChkShareFolder()	// 20170727-잔량처리 시 계속적으
 					{
 						if (bDualTest)
 						{
-							if (ChkLastProcFromUp() || ChkLastProcFromEng())
+							if (ChkLastProcFromEng())
+								nSerial = pDoc->GetCurrentInfoEngShotNum();
+							else if (ChkLastProcFromUp())
 								nSerial = pDoc->m_ListBuf[0].GetLast();
 							else
 								nSerial = pDoc->m_ListBuf[1].GetLast();
@@ -16620,7 +16632,9 @@ void CGvisR2R_PunchView::DoAutoChkShareFolder()	// 20170727-잔량처리 시 계속적으
 					{
 						if (bDualTest)
 						{
-							if (ChkLastProcFromUp() || ChkLastProcFromEng())
+							if (ChkLastProcFromEng())
+								nSerial = pDoc->GetCurrentInfoEngShotNum();
+							else if (ChkLastProcFromUp())
 								nSerial = pDoc->m_ListBuf[0].GetLast();
 							else
 								nSerial = pDoc->m_ListBuf[1].GetLast();
@@ -16742,7 +16756,9 @@ void CGvisR2R_PunchView::DoAutoChkShareFolder()	// 20170727-잔량처리 시 계속적으
 					}
 					else
 					{
-						if (ChkLastProcFromUp() || ChkLastProcFromEng())
+						if (ChkLastProcFromEng())
+							nSerial = pDoc->GetCurrentInfoEngShotNum();
+						else if (ChkLastProcFromUp())
 							nSerial = pDoc->m_ListBuf[0].GetLast();
 						else
 							nSerial = pDoc->m_ListBuf[1].GetLast();
@@ -23642,8 +23658,25 @@ void CGvisR2R_PunchView::DoAtuoGetEngStSignal()
 		{
 			m_pMpe->Write(_T("MB440103"), 0);			// 2D(GUI) 각인 동작 Start신호(PLC On->PC Off)
 
-			if (pDoc->m_pMpeSignal[0] & (0x01 << 2))	// 각인부 Feeding완료(PLC가 On시키고 PC가 확인하고 Reset시킴.)
-				m_pMpe->Write(_T("MB440102"), 0);		// 각인부 Feeding완료
+			//if (pDoc->m_pMpeSignal[0] & (0x01 << 2))	// 각인부 Feeding완료(PLC가 On시키고 PC가 확인하고 Reset시킴.)
+			//	m_pMpe->Write(_T("MB440102"), 0);		// 각인부 Feeding완료
+		}
+	}
+
+	if (pDoc->m_pMpeSignal[0] & (0x01 << 2) && !pDoc->BtnStatus.EngAuto.FdDoneF)	// 각인부 Feeding완료(PLC가 On시키고 PC가 확인하고 Reset시킴.)
+	{
+		pDoc->BtnStatus.EngAuto.FdDoneF = TRUE;
+
+		pDoc->BtnStatus.EngAuto.IsFdDone = FALSE;
+		pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeqFdDone, TRUE);
+	}
+	else if (pDoc->BtnStatus.EngAuto.IsFdDone && pDoc->BtnStatus.EngAuto.FdDoneF)
+	{
+		pDoc->BtnStatus.EngAuto.FdDoneF = FALSE;
+		pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeqFdDone, FALSE);
+		if (m_pMpe)
+		{
+			m_pMpe->Write(_T("MB440102"), 0);		// 각인부 Feeding완료(PLC가 On시키고 PC가 확인하고 Reset시킴.)
 		}
 	}
 
@@ -23668,8 +23701,8 @@ void CGvisR2R_PunchView::DoAtuoGet2dReadStSignal()
 		if (m_pMpe)
 		{
 			m_pMpe->Write(_T("MB440105"), 0);			// 각인부 2D 리더 시작신호(PLC On->PC Off)
-			if (pDoc->m_pMpeSignal[0] & (0x01 << 2))	// 각인부 Feeding완료(PLC가 On시키고 PC가 확인하고 Reset시킴.)
-				m_pMpe->Write(_T("MB440102"), 0);		// 각인부 Feeding완료
+			//if (pDoc->m_pMpeSignal[0] & (0x01 << 2))	// 각인부 Feeding완료(PLC가 On시키고 PC가 확인하고 Reset시킴.)
+			//	m_pMpe->Write(_T("MB440102"), 0);		// 각인부 Feeding완료
 		}
 #endif
 	}
@@ -23711,6 +23744,9 @@ void CGvisR2R_PunchView::DoAutoSetFdOffsetEngrave()
 	if (m_bEngFdWrite && !m_bEngFdWriteF)
 	{
 		m_bEngFdWriteF = TRUE;
+
+		if (MODE_INNER == pDoc->GetTestMode())
+			GetCurrentInfoEng();
 
 		GetEngOffset(OfSt);
 
@@ -23898,6 +23934,7 @@ void CGvisR2R_PunchView::InitAutoEngSignal()
 	m_pMpe->Write(_T("MB440178"), 0); // 각인부 2D 리더 작업중 신호(PC On->PC Off)
 	m_pMpe->Write(_T("MB440179"), 0); // 각인부 2D 리더 작업완료 신호.(PC가 On, PLC가 확인 후 Off)
 
+	m_pMpe->Write(_T("MB440102"), 0); // 각인부 Feeding완료(PLC가 On시키고 PC가 확인하고 Reset시킴.)
 
 	pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeqMkSt, FALSE);
 	pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeq2dReadSt, FALSE);
@@ -23905,6 +23942,7 @@ void CGvisR2R_PunchView::InitAutoEngSignal()
 	pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeqMkDone, FALSE);
 	pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeqOnReading2d, FALSE);
 	pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeq2dReadDone, FALSE);
+	pDoc->SetCurrentInfoSignal(_SigInx::_EngAutoSeqFdDone, FALSE);
 }
 
 BOOL CGvisR2R_PunchView::GetCurrentInfoSignal()
@@ -23916,6 +23954,20 @@ BOOL CGvisR2R_PunchView::GetCurrentInfoSignal()
 	pDoc->BtnStatus.EngAuto.IsRead2dSt = pDoc->GetCurrentInfoSignal(_SigInx::_EngAutoSeq2dReadSt);
 	pDoc->BtnStatus.EngAuto.IsOnRead2d = pDoc->GetCurrentInfoSignal(_SigInx::_EngAutoSeqOnReading2d);
 	pDoc->BtnStatus.EngAuto.IsRead2dDone = pDoc->GetCurrentInfoSignal(_SigInx::_EngAutoSeq2dReadDone);
+	pDoc->BtnStatus.EngAuto.IsFdDone = pDoc->GetCurrentInfoSignal(_SigInx::_EngAutoSeqFdDone);
 	
 	return TRUE;
+}
+
+void CGvisR2R_PunchView::SetLastSerialEng(int nSerial)
+{
+	if (m_pDlgFrameHigh)
+		m_pDlgFrameHigh->SetEngraveLastShot(nSerial);
+
+	pDoc->SetLastSerialEng(nSerial);
+}
+
+void CGvisR2R_PunchView::GetCurrentInfoEng()
+{
+	pDoc->GetCurrentInfoEng();
 }

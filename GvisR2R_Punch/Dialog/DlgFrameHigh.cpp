@@ -112,6 +112,8 @@ void CDlgFrameHigh::OnShowWindow(BOOL bShow, UINT nStatus)
 void CDlgFrameHigh::AtDlgShow()
 {
 	LoadImg();
+
+	//myStc[6].SetText(pDoc->WorkingInfo.LastJob.sEngraveLastShot);
 }
 
 void CDlgFrameHigh::AtDlgHide()
@@ -683,9 +685,10 @@ void CDlgFrameHigh::SetEngraveLastShot(int nSerial)
 
 	CString str;
 	str.Format(_T("%d"), nSerial);
-	myStc[10].SetText(str);			// myStc[10].SubclassDlgItem(IDC_STC_0_10, this);	// LS-Value
+	myStc[6].SetText(str);
 
 	CString sPath = PATH_WORKING_INFO;
 	pDoc->WorkingInfo.LastJob.sEngraveLastShot = str;
 	::WritePrivateProfileString(_T("Last Job"), _T("Engrave Last Shot"), str, sPath);
 }
+

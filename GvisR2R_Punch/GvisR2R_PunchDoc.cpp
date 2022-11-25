@@ -955,6 +955,14 @@ BOOL CGvisR2R_PunchDoc::LoadWorkingInfo()
 		WorkingInfo.System.sPathMkCurrInfo = CString(_T("C:\\PunchWork\\CurrentInfo.ini"));
 	}
 
+	if (0 < ::GetPrivateProfileString(_T("System"), _T("PunchingCurrentInfoBufPath"), NULL, szData, sizeof(szData), sPath))
+		WorkingInfo.System.sPathMkCurrInfoBuf = CString(szData);
+	else
+	{
+		AfxMessageBox(_T("PunchingCurrentInfoPath가 설정되어 있지 않습니다."), MB_ICONWARNING | MB_OK);
+		WorkingInfo.System.sPathMkCurrInfoBuf = CString(_T(""));
+	}
+
 	if (0 < ::GetPrivateProfileString(_T("System"), _T("EngraveCurrentOffsetInfoPath"), NULL, szData, sizeof(szData), sPath))
 		WorkingInfo.System.sPathEngOffset = CString(szData);
 	else
@@ -1267,6 +1275,22 @@ BOOL CGvisR2R_PunchDoc::LoadWorkingInfo()
 	{
 		AfxMessageBox(_T("SerialDn이 설정되어 있지 않습니다."), MB_ICONWARNING | MB_OK);
 		WorkingInfo.LastJob.sSerialDn = CString(_T(""));
+	}
+
+	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Last Serial Eng"), NULL, szData, sizeof(szData), sPath))
+		WorkingInfo.LastJob.sSerialEng = CString(szData);
+	else
+	{
+		//AfxMessageBox(_T("Engrave Serial이 설정되어 있지 않습니다."), MB_ICONWARNING | MB_OK);
+		WorkingInfo.LastJob.sSerialEng = CString(_T(""));
+	}
+
+	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Engrave Last Shot"), NULL, szData, sizeof(szData), sPath))
+		WorkingInfo.LastJob.sEngraveLastShot = CString(szData);
+	else
+	{
+		AfxMessageBox(_T("Engrave Last Shot이 설정되어 있지 않습니다."), MB_ICONWARNING | MB_OK);
+		WorkingInfo.LastJob.sEngraveLastShot = CString(_T(""));
 	}
 
 	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Completed SerialUp"), NULL, szData, sizeof(szData), sPath))
@@ -3154,6 +3178,9 @@ void CGvisR2R_PunchDoc::SaveWorkingInfo()
 
 	sData = WorkingInfo.LastJob.sSerialUp;
 	::WritePrivateProfileString(_T("Last Job"), _T("Last SerialUp"), sData, sPath);
+
+	sData = WorkingInfo.LastJob.sSerialEng;
+	::WritePrivateProfileString(_T("Last Job"), _T("Last Serial Eng"), sData, sPath);
 
 	sData = WorkingInfo.LastJob.sCompletedSerialUp;
 	::WritePrivateProfileString(_T("Last Job"), _T("Completed SerialUp"), sData, sPath);
@@ -8567,6 +8594,9 @@ BOOL CGvisR2R_PunchDoc::GetEngOffset(CfPoint &OfSt)
 	TCHAR szData[200];
 	BOOL bRtn = TRUE;
 
+	if (sPath.IsEmpty())
+		return FALSE;
+
 	if (0 < ::GetPrivateProfileString(_T("OFFSET"), _T("ALIGN X"), NULL, szData, sizeof(szData), sPath))
 		OfSt.x = _tstof(szData);
 	else
@@ -8601,6 +8631,9 @@ void CGvisR2R_PunchDoc::SetCurrentInfoSignal(int nIdxSig, BOOL bOn)
 {
 	CString sData, sIdx, sPath = WorkingInfo.System.sPathMkCurrInfo;
 
+	if (sPath.IsEmpty())
+		return;
+
 	sIdx.Format(_T("%d"), nIdxSig);
 	sData.Format(_T("%d"), bOn ? 1 : 0);
 	::WritePrivateProfileString(_T("Signal"), sIdx, sData, sPath);
@@ -8612,9 +8645,136 @@ BOOL CGvisR2R_PunchDoc::GetCurrentInfoSignal(int nIdxSig)
 	TCHAR szData[200];
 	CString sData, sIdx, sPath = WorkingInfo.System.sPathEngCurrInfo;
 
+	if (sPath.IsEmpty())
+		return FALSE;
+
 	sIdx.Format(_T("%d"), nIdxSig);
 	if (0 < ::GetPrivateProfileString(_T("Signal"), sIdx, NULL, szData, sizeof(szData), sPath))
 		return (_ttoi(szData) > 0 ? TRUE : FALSE);
 
 	return FALSE;
 }
+
+void CGvisR2R_PunchDoc::SetLastSerialEng(int nSerial)
+{
+	if (nSerial <= 0)
+	{
+		pView->ClrDispMsg();
+		AfxMessageBox(_T("Serial Error.24-1"));
+		return;
+	}
+
+	if (nSerial > 0)
+	{
+		CString str, sPath = PATH_WORKING_INFO;
+		str.Format(_T("%d"), nSerial);
+		WorkingInfo.LastJob.sSerialEng = str;
+		::WritePrivateProfileString(_T("Last Job"), _T("Last Serial Eng"), str, sPath);
+	}
+}
+
+
+void CGvisR2R_PunchDoc::GetCurrentInfoEng()
+{
+	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
+	CString sPath = WorkingInfo.System.sPathEngCurrInfo;
+	TCHAR szData[512];
+
+	if (sPath.IsEmpty())
+		return;
+
+	if (0 < ::GetPrivateProfileString(_T("Infomation"), _T("Current Lot"), NULL, szData, sizeof(szData), sPath))
+	WorkingInfo.LastJob.sLotUp = CString(szData);
+
+	if (0 < ::GetPrivateProfileString(_T("Infomation"), _T("Process Unit Code"), NULL, szData, sizeof(szData), sPath))
+	WorkingInfo.LastJob.sProcessNum = CString(szData);
+
+	if (0 < ::GetPrivateProfileString(_T("Infomation"), _T("Current Model Up"), NULL, szData, sizeof(szData), sPath))
+	WorkingInfo.LastJob.sModelUp = CString(szData);
+
+	if (0 < ::GetPrivateProfileString(_T("Infomation"), _T("Current Layer Up"), NULL, szData, sizeof(szData), sPath))
+	WorkingInfo.LastJob.sLayerUp = CString(szData);
+
+	if (bDualTest)
+	{
+		WorkingInfo.LastJob.sLotDn = WorkingInfo.LastJob.sLotUp;
+
+		if (0 < ::GetPrivateProfileString(_T("Infomation"), _T("Current Model Dn"), NULL, szData, sizeof(szData), sPath))
+		WorkingInfo.LastJob.sModelDn = CString(szData);
+
+		if (0 < ::GetPrivateProfileString(_T("Infomation"), _T("Current Layer Dn"), NULL, szData, sizeof(szData), sPath))
+		WorkingInfo.LastJob.sLayerDn = CString(szData);
+	}
+}
+
+int CGvisR2R_PunchDoc::GetCurrentInfoEngShotNum()
+{
+	CString sPath = WorkingInfo.System.sPathEngCurrInfo;
+	TCHAR szData[512];
+
+	if (sPath.IsEmpty())
+		return 0;
+
+	if (0 < ::GetPrivateProfileString(_T("Work"), _T("Shot Num"), NULL, szData, sizeof(szData), sPath))
+		return(_ttoi(szData));
+
+	return 0;
+}
+
+
+void CGvisR2R_PunchDoc::SetCurrentInfoBufUpTot(int nTotal)
+{
+	CString sPath = WorkingInfo.System.sPathMkCurrInfoBuf;
+	TCHAR szData[512];
+	CString sData = _T("");
+
+	if (sPath.IsEmpty())
+		return;
+
+	sData.Format(_T("%d"), nTotal);
+	::WritePrivateProfileString(_T("Up"), _T("Total"), sData, sPath);
+}
+
+void CGvisR2R_PunchDoc::SetCurrentInfoBufUp(int nIdx, int nData)
+{
+	CString sPath = WorkingInfo.System.sPathMkCurrInfoBuf;
+	TCHAR szData[512];
+	CString sIdx, sData;
+
+	if (sPath.IsEmpty())
+		return;
+
+	sIdx.Format(_T("%d"), nIdx);
+	sData.Format(_T("%d"), nData);
+
+	::WritePrivateProfileString(_T("Up"), sIdx, sData, sPath);
+}
+
+void CGvisR2R_PunchDoc::SetCurrentInfoBufDnTot(int nTotal)
+{
+	CString sPath = WorkingInfo.System.sPathMkCurrInfoBuf;
+	TCHAR szData[512];
+	CString sData = _T("");
+
+	if (sPath.IsEmpty())
+		return;
+
+	sData.Format(_T("%d"), nTotal);
+	::WritePrivateProfileString(_T("Dn"), _T("Total"), sData, sPath);
+}
+
+void CGvisR2R_PunchDoc::SetCurrentInfoBufDn(int nIdx, int nData)
+{
+	CString sPath = WorkingInfo.System.sPathMkCurrInfoBuf;
+	TCHAR szData[512];
+	CString sIdx, sData;
+
+	if (sPath.IsEmpty())
+		return;
+
+	sIdx.Format(_T("%d"), nIdx);
+	sData.Format(_T("%d"), nData);
+
+	::WritePrivateProfileString(_T("Dn"), sIdx, sData, sPath);
+}
+

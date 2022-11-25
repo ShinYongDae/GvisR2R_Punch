@@ -385,6 +385,13 @@ public:
 
 	void SetCurrentInfoSignal(int nIdxSig, BOOL bOn);
 	BOOL GetCurrentInfoSignal(int nIdxSig);
+	void SetLastSerialEng(int nSerial);
+	void GetCurrentInfoEng();
+	int GetCurrentInfoEngShotNum();
+	void SetCurrentInfoBufUpTot(int nTotal);
+	void SetCurrentInfoBufUp(int nIdx, int nData);
+	void SetCurrentInfoBufDnTot(int nTotal);
+	void SetCurrentInfoBufDn(int nIdx, int nData);
 
 // 재정의입니다.
 public:
