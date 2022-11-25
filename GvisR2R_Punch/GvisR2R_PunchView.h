@@ -77,7 +77,7 @@
 #define TIM_CHK_TEMP_STOP		20
 #define TIM_SAFTY_STOP			21
 
-#define MAX_THREAD				6
+#define MAX_THREAD				10
 
 namespace Read2dIdx
 {
@@ -399,6 +399,8 @@ public:
 	BOOL m_bTHREAD_UPDATAE_YIELD[2];		// [0] : Cam0, [1] : Cam1
 	int	m_nSerialTHREAD_UPDATAE_YIELD[2];	// [0] : Cam0, [1] : Cam1
 	BOOL m_bTHREAD_SHIFT2MK;// [2];		// [0] : Cam0, [1] : Cam1
+	BOOL m_bTHREAD_UPDATE_REELMAP_UP, m_bTHREAD_UPDATE_REELMAP_ALLUP;
+	BOOL m_bTHREAD_UPDATE_REELMAP_DN, m_bTHREAD_UPDATE_REELMAP_ALLDN;
 	// 	BOOL m_bTIM_MK_START;
 
 	BOOL m_bSwRun, m_bSwRunF;
@@ -493,6 +495,9 @@ public:
 	int m_nNewLot;
 	int m_nSaveMk0Img, m_nSaveMk1Img;
 
+	CString m_sPathRmapUpdate[4];
+	int m_nSerialRmapUpdate;
+
 // 작업입니다.
 public:
 	void SetLastSerialEng(int nSerial);
@@ -583,7 +588,18 @@ public:
 	static UINT ThreadProc4(LPVOID lpContext); // Safety check thread procedure
 	static UINT ThreadProc5(LPVOID lpContext); // Safety check thread procedure
 
-											   // Auto Sequence
+	static UINT ThreadProc6(LPVOID lpContext); // Safety check thread procedure
+	static UINT ThreadProc7(LPVOID lpContext); // Safety check thread procedure
+	static UINT ThreadProc8(LPVOID lpContext); // Safety check thread procedure
+	static UINT ThreadProc9(LPVOID lpContext); // Safety check thread procedure
+
+	void UpdateRMapUp();
+	void UpdateRMapAllUp();
+	void UpdateRMapDn();
+	void UpdateRMapAllDn();
+
+
+	// Auto Sequence
 	BOOL IsReady();
 	void DoShift2Mk();
 	void RunShift2Mk();

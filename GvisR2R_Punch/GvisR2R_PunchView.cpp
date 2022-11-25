@@ -174,6 +174,14 @@ CGvisR2R_PunchView::CGvisR2R_PunchView()
 	m_dwThreadTick[4] = 0;
 	m_bThread[5] = FALSE;
 	m_dwThreadTick[5] = 0;
+	m_bThread[6] = FALSE;
+	m_dwThreadTick[6] = 0;
+	m_bThread[7] = FALSE;
+	m_dwThreadTick[7] = 0;
+	m_bThread[8] = FALSE;
+	m_dwThreadTick[8] = 0;
+	m_bThread[9] = FALSE;
+	m_dwThreadTick[9] = 0;
 
 	m_bTIM_MPE_IO = FALSE;
 
@@ -211,6 +219,10 @@ CGvisR2R_PunchView::CGvisR2R_PunchView()
 	//m_bTHREAD_SHIFT2MK[0] = FALSE;
 	//m_bTHREAD_SHIFT2MK[1] = FALSE;
 	m_bTHREAD_SHIFT2MK = FALSE;
+	m_bTHREAD_UPDATE_REELMAP_UP = FALSE;
+	m_bTHREAD_UPDATE_REELMAP_ALLUP = FALSE;
+	m_bTHREAD_UPDATE_REELMAP_DN = FALSE;
+	m_bTHREAD_UPDATE_REELMAP_ALLDN = FALSE;
 
 	m_bTHREAD_MK[0] = FALSE;
 	m_bTHREAD_MK[1] = FALSE;
@@ -899,6 +911,22 @@ void CGvisR2R_PunchView::OnTimer(UINT_PTR nIDEvent)
 			// Engrave Auto Sequence - Response Check
 			if (!m_bThread[5])
 				m_Thread[5].Start(GetSafeHwnd(), this, ThreadProc5);
+
+			// UpdataeReelmapUp
+			if (!m_bThread[6])
+				m_Thread[6].Start(GetSafeHwnd(), this, ThreadProc6);
+
+			// UpdataeReelmapAllUp
+			if (!m_bThread[7])
+				m_Thread[7].Start(GetSafeHwnd(), this, ThreadProc7);
+
+			// UpdataeReelmapDn
+			if (!m_bThread[8])
+				m_Thread[8].Start(GetSafeHwnd(), this, ThreadProc8);
+
+			// UpdataeReelmapAllDn
+			if (!m_bThread[9])
+				m_Thread[9].Start(GetSafeHwnd(), this, ThreadProc9);
 
 			MoveInitPos1();
 			Sleep(30);
@@ -2137,6 +2165,42 @@ void CGvisR2R_PunchView::ThreadKill()
 		m_Thread[5].Stop();
 		Sleep(20);
 		while (m_bThread[5])
+		{
+			Sleep(20);
+		}
+	}
+	if (m_bThread[6])
+	{
+		m_Thread[6].Stop();
+		Sleep(20);
+		while (m_bThread[6])
+		{
+			Sleep(20);
+		}
+	}
+	if (m_bThread[7])
+	{
+		m_Thread[7].Stop();
+		Sleep(20);
+		while (m_bThread[7])
+		{
+			Sleep(20);
+		}
+	}
+	if (m_bThread[8])
+	{
+		m_Thread[8].Stop();
+		Sleep(20);
+		while (m_bThread[8])
+		{
+			Sleep(20);
+		}
+	}
+	if (m_bThread[9])
+	{
+		m_Thread[9].Stop();
+		Sleep(20);
+		while (m_bThread[9])
 		{
 			Sleep(20);
 		}
@@ -10116,6 +10180,11 @@ void CGvisR2R_PunchView::InitAuto(BOOL bInit)
 	m_nSerialTHREAD_UPDATAE_YIELD[0] = 0;
 	m_nSerialTHREAD_UPDATAE_YIELD[1] = 0;
 
+	m_bTHREAD_UPDATE_REELMAP_UP = FALSE;
+	m_bTHREAD_UPDATE_REELMAP_ALLUP = FALSE;
+	m_bTHREAD_UPDATE_REELMAP_DN = FALSE;
+	m_bTHREAD_UPDATE_REELMAP_ALLDN = FALSE;
+
 	// 	if(pDoc->m_pReelMap)
 	// 		pDoc->m_pReelMap->ClrFixPcs();
 	// 	else
@@ -11911,12 +11980,22 @@ BOOL CGvisR2R_PunchView::UpdateReelmap(int nSerial)
 				str);
 		}
 
-		pDoc->m_pReelMapUp->Write(nSerial, 0, sPathRmap[0]); // [0]:AOI-Up , [1]:AOI-Dn , [2]:AOI-AllUp , [3]:AOI-AllDn
+		m_nSerialRmapUpdate = nSerial;
+		m_sPathRmapUpdate[0] = sPathRmap[0];
+		m_sPathRmapUpdate[1] = sPathRmap[1];
+		m_sPathRmapUpdate[2] = sPathRmap[2];
+		m_sPathRmapUpdate[3] = sPathRmap[3];
+
+		//pDoc->m_pReelMapUp->Write(nSerial, 0, sPathRmap[0]); // [0]:AOI-Up , [1]:AOI-Dn , [2]:AOI-AllUp , [3]:AOI-AllDn
+		m_bTHREAD_UPDATE_REELMAP_UP = TRUE;
 		if (bDualTest)
 		{
-			pDoc->m_pReelMapDn->Write(nSerial, 1, sPathRmap[1]); // [0]:AOI-Up , [1]:AOI-Dn , [2]:AOI-AllUp , [3]:AOI-AllDn
-			pDoc->m_pReelMapAllUp->Write(nSerial, 2, sPathRmap[2]); // [0]:AOI-Up , [1]:AOI-Dn , [2]:AOI-AllUp , [3]:AOI-AllDn
-			pDoc->m_pReelMapAllDn->Write(nSerial, 3, sPathRmap[3]); // [0]:AOI-Up , [1]:AOI-Dn , [2]:AOI-AllUp , [3]:AOI-AllDn
+			m_bTHREAD_UPDATE_REELMAP_DN = TRUE;
+			m_bTHREAD_UPDATE_REELMAP_ALLUP = TRUE;
+			m_bTHREAD_UPDATE_REELMAP_ALLDN = TRUE;
+			//pDoc->m_pReelMapDn->Write(nSerial, 1, sPathRmap[1]); // [0]:AOI-Up , [1]:AOI-Dn , [2]:AOI-AllUp , [3]:AOI-AllDn
+			//pDoc->m_pReelMapAllUp->Write(nSerial, 2, sPathRmap[2]); // [0]:AOI-Up , [1]:AOI-Dn , [2]:AOI-AllUp , [3]:AOI-AllDn
+			//pDoc->m_pReelMapAllDn->Write(nSerial, 3, sPathRmap[3]); // [0]:AOI-Up , [1]:AOI-Dn , [2]:AOI-AllUp , [3]:AOI-AllDn
 		}
 		//pDoc->m_pReelMap->Write(nSerial, pView->m_nSelRmap, sPathRmap[pView->m_nSelRmap]); // [0]:AOI-Up , [1]:AOI-Dn , [2]:AOI-AllUp , [3]:AOI-AllDn
 
@@ -11925,15 +12004,147 @@ BOOL CGvisR2R_PunchView::UpdateReelmap(int nSerial)
 	else
 		MsgBox(_T("Error-ReelMapWrite()"));
 
-
-
-
-
-	// 	}
-	// 	else
-	// 		MsgBox(_T("Error-LoadPCR()");
-	// 
 	return FALSE;
+}
+
+void CGvisR2R_PunchView::UpdateRMapUp()
+{
+	pDoc->m_pReelMapUp->Write(m_nSerialRmapUpdate, 0, m_sPathRmapUpdate[0]); // [0]:AOI-Up , [1]:AOI-Dn , [2]:AOI-AllUp , [3]:AOI-AllDn
+}
+
+void CGvisR2R_PunchView::UpdateRMapDn()
+{
+	pDoc->m_pReelMapDn->Write(m_nSerialRmapUpdate, 1, m_sPathRmapUpdate[1]); // [0]:AOI-Up , [1]:AOI-Dn , [2]:AOI-AllUp , [3]:AOI-AllDn
+}
+
+void CGvisR2R_PunchView::UpdateRMapAllUp()
+{
+	pDoc->m_pReelMapAllUp->Write(m_nSerialRmapUpdate, 2, m_sPathRmapUpdate[2]); // [0]:AOI-Up , [1]:AOI-Dn , [2]:AOI-AllUp , [3]:AOI-AllDn
+}
+
+void CGvisR2R_PunchView::UpdateRMapAllDn()
+{
+	pDoc->m_pReelMapAllDn->Write(m_nSerialRmapUpdate, 3, m_sPathRmapUpdate[3]); // [0]:AOI-Up , [1]:AOI-Dn , [2]:AOI-AllUp , [3]:AOI-AllDn
+}
+
+UINT CGvisR2R_PunchView::ThreadProc6(LPVOID lpContext)
+{
+	// Turn the passed in 'this' pointer back into a CProgressMgr instance
+	CGvisR2R_PunchView* pThread = reinterpret_cast<CGvisR2R_PunchView*>(lpContext);
+
+	BOOL bLock = FALSE;
+	DWORD dwTick = GetTickCount();
+	DWORD dwShutdownEventCheckPeriod = 0; // thread shutdown event check period
+
+	pThread->m_bThread[6] = TRUE;
+	while (WAIT_OBJECT_0 != WaitForSingleObject(pThread->m_Thread[6].GetShutdownEvent(), dwShutdownEventCheckPeriod))
+	{
+		pThread->m_dwThreadTick[6] = GetTickCount() - dwTick;
+		dwTick = GetTickCount();
+
+		if (pThread->m_bTHREAD_UPDATE_REELMAP_UP)
+		{
+			pThread->m_bTHREAD_UPDATE_REELMAP_UP = FALSE;
+			pThread->UpdateRMapUp();
+			Sleep(0);
+		}
+		else
+			Sleep(30);
+	}
+
+	pThread->m_bThread[6] = FALSE;
+
+	return 0;
+}
+
+UINT CGvisR2R_PunchView::ThreadProc7(LPVOID lpContext)
+{
+	// Turn the passed in 'this' pointer back into a CProgressMgr instance
+	CGvisR2R_PunchView* pThread = reinterpret_cast<CGvisR2R_PunchView*>(lpContext);
+
+	BOOL bLock = FALSE;
+	DWORD dwTick = GetTickCount();
+	DWORD dwShutdownEventCheckPeriod = 0; // thread shutdown event check period
+
+	pThread->m_bThread[7] = TRUE;
+	while (WAIT_OBJECT_0 != WaitForSingleObject(pThread->m_Thread[7].GetShutdownEvent(), dwShutdownEventCheckPeriod))
+	{
+		pThread->m_dwThreadTick[7] = GetTickCount() - dwTick;
+		dwTick = GetTickCount();
+
+		if (pThread->m_bTHREAD_UPDATE_REELMAP_DN)
+		{
+			pThread->m_bTHREAD_UPDATE_REELMAP_DN = FALSE;
+			pThread->UpdateRMapDn();
+			Sleep(0);
+		}
+		else
+			Sleep(30);
+	}
+
+	pThread->m_bThread[7] = FALSE;
+
+	return 0;
+}
+
+UINT CGvisR2R_PunchView::ThreadProc8(LPVOID lpContext)
+{
+	// Turn the passed in 'this' pointer back into a CProgressMgr instance
+	CGvisR2R_PunchView* pThread = reinterpret_cast<CGvisR2R_PunchView*>(lpContext);
+
+	BOOL bLock = FALSE;
+	DWORD dwTick = GetTickCount();
+	DWORD dwShutdownEventCheckPeriod = 0; // thread shutdown event check period
+
+	pThread->m_bThread[8] = TRUE;
+	while (WAIT_OBJECT_0 != WaitForSingleObject(pThread->m_Thread[8].GetShutdownEvent(), dwShutdownEventCheckPeriod))
+	{
+		pThread->m_dwThreadTick[8] = GetTickCount() - dwTick;
+		dwTick = GetTickCount();
+
+		if (pThread->m_bTHREAD_UPDATE_REELMAP_ALLUP)
+		{
+			pThread->m_bTHREAD_UPDATE_REELMAP_ALLUP = FALSE;
+			pThread->UpdateRMapAllUp();
+			Sleep(0);
+		}
+		else
+			Sleep(30);
+	}
+
+	pThread->m_bThread[8] = FALSE;
+
+	return 0;
+}
+
+UINT CGvisR2R_PunchView::ThreadProc9(LPVOID lpContext)
+{
+	// Turn the passed in 'this' pointer back into a CProgressMgr instance
+	CGvisR2R_PunchView* pThread = reinterpret_cast<CGvisR2R_PunchView*>(lpContext);
+
+	BOOL bLock = FALSE;
+	DWORD dwTick = GetTickCount();
+	DWORD dwShutdownEventCheckPeriod = 0; // thread shutdown event check period
+
+	pThread->m_bThread[9] = TRUE;
+	while (WAIT_OBJECT_0 != WaitForSingleObject(pThread->m_Thread[9].GetShutdownEvent(), dwShutdownEventCheckPeriod))
+	{
+		pThread->m_dwThreadTick[9] = GetTickCount() - dwTick;
+		dwTick = GetTickCount();
+
+		if (pThread->m_bTHREAD_UPDATE_REELMAP_ALLDN)
+		{
+			pThread->m_bTHREAD_UPDATE_REELMAP_ALLDN = FALSE;
+			pThread->UpdateRMapAllDn();
+			Sleep(0);
+		}
+		else
+			Sleep(30);
+	}
+
+	pThread->m_bThread[9] = FALSE;
+
+	return 0;
 }
 
 
