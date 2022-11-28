@@ -46,6 +46,7 @@ public:
 	void Close();
 
 	int OnClientReceived(WPARAM wParam, LPARAM lParam);
+	BOOL IsConnected();
 
 protected:
 	afx_msg LRESULT wmClientReceived(WPARAM wParam, LPARAM lParam);

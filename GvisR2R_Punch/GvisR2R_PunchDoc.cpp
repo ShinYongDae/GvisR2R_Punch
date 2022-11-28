@@ -7348,9 +7348,10 @@ void CGvisR2R_PunchDoc::UpdateRstOnRmap()
 	if (bDualTest)
 	{
 		pView->m_bTHREAD_UPDATE_RST_DN = TRUE;
-		pView->m_bTHREAD_UPDATE_RST_ALLUP = TRUE;
-		pView->m_bTHREAD_UPDATE_RST_ALLDN = TRUE;
+		//pView->m_bTHREAD_UPDATE_RST_ALLUP = TRUE;
+		//pView->m_bTHREAD_UPDATE_RST_ALLDN = TRUE;
 	}
+	Sleep(100);
 
 	//if (m_pReelMapUp)
 	//	m_pReelMapUp->UpdateRst();					// 릴맵 텍스트 파일의 수율정보를 업데이트함.

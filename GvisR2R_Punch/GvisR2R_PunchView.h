@@ -77,7 +77,7 @@
 #define TIM_CHK_TEMP_STOP		20
 #define TIM_SAFTY_STOP			21
 
-#define MAX_THREAD				14
+#define MAX_THREAD				18
 
 namespace Read2dIdx
 {
@@ -403,6 +403,8 @@ public:
 	BOOL m_bTHREAD_UPDATE_REELMAP_DN, m_bTHREAD_UPDATE_REELMAP_ALLDN;
 	BOOL m_bTHREAD_UPDATE_RST_UP, m_bTHREAD_UPDATE_RST_ALLUP;
 	BOOL m_bTHREAD_UPDATE_RST_DN, m_bTHREAD_UPDATE_RST_ALLDN;
+	BOOL m_bTHREAD_RELOAD_RST_UP, m_bTHREAD_RELOAD_RST_ALLUP;
+	BOOL m_bTHREAD_RELOAD_RST_DN, m_bTHREAD_RELOAD_RST_ALLDN;
 	// 	BOOL m_bTIM_MK_START;
 
 	void UpdateRstUp();
@@ -438,9 +440,9 @@ public:
 	unsigned long m_AoiLdRun;
 	BOOL m_bDoneDispMkInfo[2][2]; // [nCam][Up/Dn]
 
-	int m_nShareUpS;
+	int m_nShareUpS, m_nShareUpSprev;
 	int m_nShareUpSerial[2]; // [nCam]
-	int m_nShareDnS;
+	int m_nShareDnS, m_nShareDnSprev;
 	int m_nShareDnSerial[2]; // [nCam]
 	int m_nShareUpCnt;
 	int m_nShareDnCnt;
@@ -604,6 +606,11 @@ public:
 	static UINT ThreadProc11(LPVOID lpContext); // Safety check thread procedure
 	static UINT ThreadProc12(LPVOID lpContext); // Safety check thread procedure
 	static UINT ThreadProc13(LPVOID lpContext); // Safety check thread procedure
+
+	static UINT ThreadProc14(LPVOID lpContext); // Safety check thread procedure
+	static UINT ThreadProc15(LPVOID lpContext); // Safety check thread procedure
+	static UINT ThreadProc16(LPVOID lpContext); // Safety check thread procedure
+	static UINT ThreadProc17(LPVOID lpContext); // Safety check thread procedure
 
 	void UpdateRMapUp();
 	void UpdateRMapAllUp();
@@ -986,7 +993,6 @@ public:
 	double GetAoiInitDist();
 	double GetAoiRemain();
 	void SetEngraveFdPitch(double dPitch);
-	BOOL IsConnected();
 	void DestroyView();
 
 	BOOL IsPinPos0();
@@ -1006,6 +1012,20 @@ public:
 	BOOL GetCurrentInfoSignal();
 	void InitAutoEngSignal();
 	void GetCurrentInfoEng();
+	BOOL IsConnectedSr();
+	BOOL IsConnectedEng();
+
+	CString m_sGet2dCodeLot;
+	int m_nGet2dCodeSerial;
+	BOOL Get2dCode(CString &sLot, int &nSerial);
+	BOOL Set2dRead(BOOL bRun = TRUE);
+	BOOL Is2dReadDone();
+
+	int m_nReloadRstSerial;
+	void ReloadRstUp();
+	void ReloadRstAllUp();
+	void ReloadRstDn();
+	void ReloadRstAllDn();
 
 // 재정의입니다.
 public:

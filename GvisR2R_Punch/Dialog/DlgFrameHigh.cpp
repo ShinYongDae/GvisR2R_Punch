@@ -574,17 +574,26 @@ void CDlgFrameHigh::DispSigAoi()
 		myLabel[2].SetImageBk(LBL_IMG_UP);
 
 // 	bOn	= pView->m_pDlgMenu03->IsAoiTestDone();				// In - 검사부 검사 완료
-	bOn	= pView->IsTestDone();								// In - 검사부 검사 완료
+	//bOn	= pView->IsTestDone();								// In - 검사부 검사 완료
+	//if(bOn && myLabel[3].GetImageBk() != LBL_IMG_DN)
+	//	myLabel[3].SetImageBk(LBL_IMG_DN);
+	//else if(!bOn && myLabel[3].GetImageBk() != LBL_IMG_UP)			
+	//	myLabel[3].SetImageBk(LBL_IMG_UP);
+
+	bOn	= pView->IsConnectedSr();								// In - SR-1000W TCP/IP 연결
 	if(bOn && myLabel[3].GetImageBk() != LBL_IMG_DN)
 		myLabel[3].SetImageBk(LBL_IMG_DN);
 	else if(!bOn && myLabel[3].GetImageBk() != LBL_IMG_UP)			
 		myLabel[3].SetImageBk(LBL_IMG_UP);
 
-	bOn = pView->IsConnected();								// In - 각인부 TCP/IP 연결
+	bOn = pView->IsConnectedEng();								// In - 각인부 TCP/IP 연결
 	if (bOn && myLabel[4].GetImageBk() != LBL_IMG_DN)
 		myLabel[4].SetImageBk(LBL_IMG_DN);
 	else if (!bOn && myLabel[4].GetImageBk() != LBL_IMG_UP)
 		myLabel[4].SetImageBk(LBL_IMG_UP);
+
+	//pView->m_nDebugStep = pView->m_nMkStAuto;
+	pView->DispThreadTick();
 }
 
 BOOL CDlgFrameHigh::PreTranslateMessage(MSG* pMsg) 

@@ -68,7 +68,7 @@
 //	#define USE_CREVIS
 
 	#define	USE_TCPIP
-// 	#define	USE_SR1000W
+ 	#define	USE_SR1000W
 	#define USE_ENGRAVE
 //	#define USE_DTS
 

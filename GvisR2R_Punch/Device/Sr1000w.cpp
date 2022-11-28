@@ -321,3 +321,11 @@ void CSr1000w::Close()
 	StopThread();
 	Sleep(10);
 }
+
+BOOL CSr1000w::IsConnected()
+{
+	if (!m_pClient)
+		return FALSE;
+
+	return m_pClient->IsConnected();
+}

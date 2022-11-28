@@ -468,10 +468,10 @@ void CDlgMenu01::OpenReelmap(int nSelRmap)
 	}
 }
 
-void CDlgMenu01::DispReelmap(int nSerial, BOOL bDumy)
+BOOL CDlgMenu01::DispReelmap(int nSerial, BOOL bDumy)
 {
 	if(nSerial <= 0)
-		return;
+		return FALSE;
 
 	if (pDoc->WorkingInfo.System.bSaveLog)
 	{
@@ -480,12 +480,17 @@ void CDlgMenu01::DispReelmap(int nSerial, BOOL bDumy)
 		SaveLog(strData);
 	}
 
-	if(pDoc->m_pReelMap)
-		pDoc->m_pReelMap->Disp(nSerial, bDumy);
+	if (pDoc->m_pReelMap)
+	{
+		if (pDoc->m_pReelMap->Disp(nSerial, bDumy))
+			return FALSE;
+	}
  	SetPnlNum();
  	SetPnlDefNum();
 	myStcReelmap.Refresh();
 	this->MoveWindow(m_pRect, TRUE);
+
+	return TRUE;
 // 	if(nSerial == pView->m_nLotEndSerial)
 // 		int nBreak = 1;
 // 
