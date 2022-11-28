@@ -976,19 +976,19 @@ void CGvisR2R_PunchView::OnTimer(UINT_PTR nIDEvent)
 
 			// UpdataeRstUp
 			if (!m_bThread[14])
-				m_Thread[14].Start(GetSafeHwnd(), this, ThreadProc10);
+				m_Thread[14].Start(GetSafeHwnd(), this, ThreadProc14);
 
 			// UpdataeRstDn
 			if (!m_bThread[15])
-				m_Thread[15].Start(GetSafeHwnd(), this, ThreadProc11);
+				m_Thread[15].Start(GetSafeHwnd(), this, ThreadProc15);
 
 			// UpdataeRstAllUp
 			if (!m_bThread[16])
-				m_Thread[16].Start(GetSafeHwnd(), this, ThreadProc12);
+				m_Thread[16].Start(GetSafeHwnd(), this, ThreadProc16);
 
 			// UpdataeRstAllDn
 			if (!m_bThread[17])
-				m_Thread[17].Start(GetSafeHwnd(), this, ThreadProc13);
+				m_Thread[17].Start(GetSafeHwnd(), this, ThreadProc17);
 
 			MoveInitPos1();
 			Sleep(30);
