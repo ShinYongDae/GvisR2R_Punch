@@ -224,6 +224,11 @@ CGvisR2R_PunchView::CGvisR2R_PunchView()
 	m_bTHREAD_UPDATE_REELMAP_DN = FALSE;
 	m_bTHREAD_UPDATE_REELMAP_ALLDN = FALSE;
 
+	m_bTHREAD_UPDATE_RST_UP = FALSE;
+	m_bTHREAD_UPDATE_RST_ALLUP = FALSE;
+	m_bTHREAD_UPDATE_RST_DN = FALSE;
+	m_bTHREAD_UPDATE_RST_ALLDN = FALSE;
+
 	m_bTHREAD_MK[0] = FALSE;
 	m_bTHREAD_MK[1] = FALSE;
 	m_bTHREAD_MK[2] = FALSE;
@@ -927,6 +932,22 @@ void CGvisR2R_PunchView::OnTimer(UINT_PTR nIDEvent)
 			// UpdataeReelmapAllDn
 			if (!m_bThread[9])
 				m_Thread[9].Start(GetSafeHwnd(), this, ThreadProc9);
+
+			// UpdataeRstUp
+			if (!m_bThread[10])
+				m_Thread[10].Start(GetSafeHwnd(), this, ThreadProc10);
+
+			// UpdataeRstDn
+			if (!m_bThread[11])
+				m_Thread[11].Start(GetSafeHwnd(), this, ThreadProc11);
+
+			// UpdataeRstAllUp
+			if (!m_bThread[12])
+				m_Thread[12].Start(GetSafeHwnd(), this, ThreadProc12);
+
+			// UpdataeRstAllDn
+			if (!m_bThread[13])
+				m_Thread[13].Start(GetSafeHwnd(), this, ThreadProc13);
 
 			MoveInitPos1();
 			Sleep(30);
@@ -2201,6 +2222,42 @@ void CGvisR2R_PunchView::ThreadKill()
 		m_Thread[9].Stop();
 		Sleep(20);
 		while (m_bThread[9])
+		{
+			Sleep(20);
+		}
+	}
+	if (m_bThread[10])
+	{
+		m_Thread[10].Stop();
+		Sleep(20);
+		while (m_bThread[10])
+		{
+			Sleep(20);
+		}
+	}
+	if (m_bThread[11])
+	{
+		m_Thread[11].Stop();
+		Sleep(20);
+		while (m_bThread[11])
+		{
+			Sleep(20);
+		}
+	}
+	if (m_bThread[12])
+	{
+		m_Thread[12].Stop();
+		Sleep(20);
+		while (m_bThread[12])
+		{
+			Sleep(20);
+		}
+	}
+	if (m_bThread[13])
+	{
+		m_Thread[13].Stop();
+		Sleep(20);
+		while (m_bThread[13])
 		{
 			Sleep(20);
 		}
@@ -10184,6 +10241,11 @@ void CGvisR2R_PunchView::InitAuto(BOOL bInit)
 	m_bTHREAD_UPDATE_REELMAP_ALLUP = FALSE;
 	m_bTHREAD_UPDATE_REELMAP_DN = FALSE;
 	m_bTHREAD_UPDATE_REELMAP_ALLDN = FALSE;
+
+	m_bTHREAD_UPDATE_RST_UP = FALSE;
+	m_bTHREAD_UPDATE_RST_ALLUP = FALSE;
+	m_bTHREAD_UPDATE_RST_DN = FALSE;
+	m_bTHREAD_UPDATE_RST_ALLDN = FALSE;
 
 	// 	if(pDoc->m_pReelMap)
 	// 		pDoc->m_pReelMap->ClrFixPcs();
@@ -24220,4 +24282,148 @@ void CGvisR2R_PunchView::SetLastSerialEng(int nSerial)
 void CGvisR2R_PunchView::GetCurrentInfoEng()
 {
 	pDoc->GetCurrentInfoEng();
+}
+
+UINT CGvisR2R_PunchView::ThreadProc10(LPVOID lpContext)
+{
+	// Turn the passed in 'this' pointer back into a CProgressMgr instance
+	CGvisR2R_PunchView* pThread = reinterpret_cast<CGvisR2R_PunchView*>(lpContext);
+
+	BOOL bLock = FALSE;
+	DWORD dwTick = GetTickCount();
+	DWORD dwShutdownEventCheckPeriod = 0; // thread shutdown event check period
+
+	pThread->m_bThread[10] = TRUE;
+	while (WAIT_OBJECT_0 != WaitForSingleObject(pThread->m_Thread[10].GetShutdownEvent(), dwShutdownEventCheckPeriod))
+	{
+		pThread->m_dwThreadTick[10] = GetTickCount() - dwTick;
+		dwTick = GetTickCount();
+
+		if (pThread->m_bTHREAD_UPDATE_RST_UP)
+		{
+			pThread->m_bTHREAD_UPDATE_RST_UP = FALSE;
+			pThread->UpdateRstUp();
+			Sleep(0);
+		}
+		else
+			Sleep(30);
+	}
+
+	pThread->m_bThread[10] = FALSE;
+
+	return 0;
+}
+
+UINT CGvisR2R_PunchView::ThreadProc11(LPVOID lpContext)
+{
+	// Turn the passed in 'this' pointer back into a CProgressMgr instance
+	CGvisR2R_PunchView* pThread = reinterpret_cast<CGvisR2R_PunchView*>(lpContext);
+
+	BOOL bLock = FALSE;
+	DWORD dwTick = GetTickCount();
+	DWORD dwShutdownEventCheckPeriod = 0; // thread shutdown event check period
+
+	pThread->m_bThread[11] = TRUE;
+	while (WAIT_OBJECT_0 != WaitForSingleObject(pThread->m_Thread[11].GetShutdownEvent(), dwShutdownEventCheckPeriod))
+	{
+		pThread->m_dwThreadTick[11] = GetTickCount() - dwTick;
+		dwTick = GetTickCount();
+
+		if (pThread->m_bTHREAD_UPDATE_RST_DN)
+		{
+			pThread->m_bTHREAD_UPDATE_RST_DN = FALSE;
+			pThread->UpdateRstDn();
+			Sleep(0);
+		}
+		else
+			Sleep(30);
+	}
+
+	pThread->m_bThread[11] = FALSE;
+
+	return 0;
+}
+
+UINT CGvisR2R_PunchView::ThreadProc12(LPVOID lpContext)
+{
+	// Turn the passed in 'this' pointer back into a CProgressMgr instance
+	CGvisR2R_PunchView* pThread = reinterpret_cast<CGvisR2R_PunchView*>(lpContext);
+
+	BOOL bLock = FALSE;
+	DWORD dwTick = GetTickCount();
+	DWORD dwShutdownEventCheckPeriod = 0; // thread shutdown event check period
+
+	pThread->m_bThread[12] = TRUE;
+	while (WAIT_OBJECT_0 != WaitForSingleObject(pThread->m_Thread[12].GetShutdownEvent(), dwShutdownEventCheckPeriod))
+	{
+		pThread->m_dwThreadTick[12] = GetTickCount() - dwTick;
+		dwTick = GetTickCount();
+
+		if (pThread->m_bTHREAD_UPDATE_RST_ALLUP)
+		{
+			pThread->m_bTHREAD_UPDATE_RST_ALLUP = FALSE;
+			pThread->UpdateRstAllUp();
+			Sleep(0);
+		}
+		else
+			Sleep(30);
+	}
+
+	pThread->m_bThread[12] = FALSE;
+
+	return 0;
+}
+
+UINT CGvisR2R_PunchView::ThreadProc13(LPVOID lpContext)
+{
+	// Turn the passed in 'this' pointer back into a CProgressMgr instance
+	CGvisR2R_PunchView* pThread = reinterpret_cast<CGvisR2R_PunchView*>(lpContext);
+
+	BOOL bLock = FALSE;
+	DWORD dwTick = GetTickCount();
+	DWORD dwShutdownEventCheckPeriod = 0; // thread shutdown event check period
+
+	pThread->m_bThread[13] = TRUE;
+	while (WAIT_OBJECT_0 != WaitForSingleObject(pThread->m_Thread[13].GetShutdownEvent(), dwShutdownEventCheckPeriod))
+	{
+		pThread->m_dwThreadTick[13] = GetTickCount() - dwTick;
+		dwTick = GetTickCount();
+
+		if (pThread->m_bTHREAD_UPDATE_RST_ALLDN)
+		{
+			pThread->m_bTHREAD_UPDATE_RST_ALLDN = FALSE;
+			pThread->UpdateRstAllDn();
+			Sleep(0);
+		}
+		else
+			Sleep(30);
+	}
+
+	pThread->m_bThread[13] = FALSE;
+
+	return 0;
+}
+
+void CGvisR2R_PunchView::UpdateRstUp()
+{
+	if (pDoc->m_pReelMapUp)
+		pDoc->m_pReelMapUp->UpdateRst();					// 릴맵 텍스트 파일의 수율정보를 업데이트함.
+}
+
+void CGvisR2R_PunchView::UpdateRstAllUp()
+{
+	if (pDoc->m_pReelMapAllUp)
+		pDoc->m_pReelMapAllUp->UpdateRst();					// 릴맵 텍스트 파일의 수율정보를 업데이트함.
+}
+
+void CGvisR2R_PunchView::UpdateRstDn()
+{
+	if (pDoc->m_pReelMapDn)
+		pDoc->m_pReelMapDn->UpdateRst();					// 릴맵 텍스트 파일의 수율정보를 업데이트함.
+}
+
+void CGvisR2R_PunchView::UpdateRstAllDn()
+{
+	if (pDoc->m_pReelMapAllDn)
+		pDoc->m_pReelMapAllDn->UpdateRst();					// 릴맵 텍스트 파일의 수율정보를 업데이트함.
 }

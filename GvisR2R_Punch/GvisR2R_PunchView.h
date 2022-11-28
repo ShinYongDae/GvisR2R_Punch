@@ -77,7 +77,7 @@
 #define TIM_CHK_TEMP_STOP		20
 #define TIM_SAFTY_STOP			21
 
-#define MAX_THREAD				10
+#define MAX_THREAD				14
 
 namespace Read2dIdx
 {
@@ -401,7 +401,14 @@ public:
 	BOOL m_bTHREAD_SHIFT2MK;// [2];		// [0] : Cam0, [1] : Cam1
 	BOOL m_bTHREAD_UPDATE_REELMAP_UP, m_bTHREAD_UPDATE_REELMAP_ALLUP;
 	BOOL m_bTHREAD_UPDATE_REELMAP_DN, m_bTHREAD_UPDATE_REELMAP_ALLDN;
+	BOOL m_bTHREAD_UPDATE_RST_UP, m_bTHREAD_UPDATE_RST_ALLUP;
+	BOOL m_bTHREAD_UPDATE_RST_DN, m_bTHREAD_UPDATE_RST_ALLDN;
 	// 	BOOL m_bTIM_MK_START;
+
+	void UpdateRstUp();
+	void UpdateRstAllUp();
+	void UpdateRstDn();
+	void UpdateRstAllDn();
 
 	BOOL m_bSwRun, m_bSwRunF;
 	BOOL m_bSwStop, m_bSwStopF;
@@ -592,6 +599,11 @@ public:
 	static UINT ThreadProc7(LPVOID lpContext); // Safety check thread procedure
 	static UINT ThreadProc8(LPVOID lpContext); // Safety check thread procedure
 	static UINT ThreadProc9(LPVOID lpContext); // Safety check thread procedure
+
+	static UINT ThreadProc10(LPVOID lpContext); // Safety check thread procedure
+	static UINT ThreadProc11(LPVOID lpContext); // Safety check thread procedure
+	static UINT ThreadProc12(LPVOID lpContext); // Safety check thread procedure
+	static UINT ThreadProc13(LPVOID lpContext); // Safety check thread procedure
 
 	void UpdateRMapUp();
 	void UpdateRMapAllUp();
