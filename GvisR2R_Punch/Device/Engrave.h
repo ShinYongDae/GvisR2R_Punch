@@ -578,6 +578,14 @@ public:
 	void SetAlarm(CString sMsg);
 	void IsSetAlarm(CString sMsg);
 
+
+	// On Running Auto
+	BOOL UpdateWorking();
+	BOOL UpdateRst();
+	BOOL UpdateTotRatio();
+	BOOL UpdateStripRatio();
+	BOOL UpdateDef();
+
 protected:
 	afx_msg LRESULT wmClientReceived(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT wmClientClosed(WPARAM wParam, LPARAM lParam);

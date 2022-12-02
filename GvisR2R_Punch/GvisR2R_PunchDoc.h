@@ -394,6 +394,12 @@ public:
 	void SetCurrentInfoBufDnTot(int nTotal);
 	void SetCurrentInfoBufDn(int nIdx, int nData);
 
+	CString GetMonDispMain();
+	void SetMonDispMain(CString sDisp);
+	void GetMkMenu01();
+	void SetMkMenu01();
+
+
 // 재정의입니다.
 public:
 	virtual BOOL OnNewDocument();

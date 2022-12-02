@@ -419,6 +419,7 @@ CGvisR2R_PunchView::CGvisR2R_PunchView()
 	}
 
 	m_sDispMain = _T("");
+
 	m_bReMk = FALSE;
 
 	m_bWaitPcr[0] = FALSE;
@@ -455,6 +456,14 @@ CGvisR2R_PunchView::CGvisR2R_PunchView()
 	m_sGet2dCodeLot = _T("");
 	m_nGet2dCodeSerial = 0;
 	m_nReloadRstSerial = 0;
+
+	m_bSetSig = FALSE;
+	m_bSetSigF = FALSE;
+	m_bSetData = FALSE;
+	m_bSetDataF = FALSE;
+
+	m_bTIM_START_UPDATE = FALSE;
+
 }
 
 CGvisR2R_PunchView::~CGvisR2R_PunchView()
@@ -574,6 +583,7 @@ void CGvisR2R_PunchView::OnInitialUpdate()
 		SetTimer(TIM_INIT_VIEW, 300, NULL);
 	}
 
+	pDoc->SetMonDispMain(_T(""));
 }
 
 
@@ -895,6 +905,9 @@ void CGvisR2R_PunchView::OnTimer(UINT_PTR nIDEvent)
 			DtsInit();
 			m_bTIM_DISP_STATUS = TRUE;
 			SetTimer(TIM_DISP_STATUS, 100, NULL);
+
+			m_bTIM_START_UPDATE = TRUE;
+			SetTimer(TIM_START_UPDATE, 500, NULL);
 			break;
 		case 22:
 			m_nStepInitView++;
@@ -1027,8 +1040,8 @@ void CGvisR2R_PunchView::OnTimer(UINT_PTR nIDEvent)
 		DoIO();
 		ChkMyMsg();
 
-		if (m_pDlgMenu03)
-			m_pDlgMenu03->UpdateSignal();
+		//if (m_pDlgMenu03)
+		//	m_pDlgMenu03->UpdateSignal();
 
 		if (m_bTIM_MPE_IO)
 			SetTimer(TIM_MPE_IO, 100, NULL);
@@ -1127,6 +1140,83 @@ void CGvisR2R_PunchView::OnTimer(UINT_PTR nIDEvent)
 		KillTimer(TIM_SAFTY_STOP);
 		MsgBox(_T("일시정지 - 마킹부 안전센서가 감지되었습니다."));
 		m_bTIM_SAFTY_STOP = FALSE;
+	}
+
+	if (nIDEvent == TIM_START_UPDATE)
+	{
+		KillTimer(TIM_START_UPDATE);
+
+		//if (m_bLoadMstInfo && !m_bLoadMstInfoF)
+		//{
+		//	if (!pDoc->WorkingInfo.LastJob.sModelUp.IsEmpty() && !pDoc->WorkingInfo.LastJob.sLayerUp.IsEmpty())
+		//	{
+		//		m_bLoadMstInfoF = TRUE;
+		//		SetTimer(TIM_TCPIP_UPDATE, 500, NULL);
+		//	}
+		//	else
+		//		m_bLoadMstInfo = FALSE;
+		//}
+
+		if (m_bSetSig && !m_bSetSigF)
+		{
+			m_bSetSigF = TRUE;
+
+			if (m_pEngrave->m_bGetOpInfo || m_pEngrave->m_bGetInfo)
+			{
+				if (m_pDlgInfo)
+					m_pDlgInfo->UpdateData();
+
+				if (m_pDlgMenu01)
+					m_pDlgMenu01->UpdateData();
+
+				m_pEngrave->m_bGetOpInfo = FALSE;
+				m_pEngrave->m_bGetInfo = FALSE;
+			}
+
+			if (m_pDlgMenu03)
+				m_pDlgMenu03->UpdateSignal();
+
+			m_bSetSig = FALSE;
+		}
+		else if (!m_bSetSig && m_bSetSigF)
+		{
+			m_bSetSigF = FALSE;
+		}
+
+		if (m_bSetData && !m_bSetDataF)
+		{
+			m_bSetDataF = TRUE;
+
+			if (m_pEngrave->m_bGetOpInfo || m_pEngrave->m_bGetInfo)
+			{
+				if (m_pDlgInfo)
+					m_pDlgInfo->UpdateData();
+
+				if (m_pDlgMenu01)
+					m_pDlgMenu01->UpdateData();
+
+				m_pEngrave->m_bGetOpInfo = FALSE;
+				m_pEngrave->m_bGetInfo = FALSE;
+			}
+
+			if (m_pDlgMenu02)
+				m_pDlgMenu02->UpdateData();
+
+			if (m_pDlgMenu03)
+				m_pDlgMenu03->UpdateData();
+
+			if (m_pDlgMenu04)
+				m_pDlgMenu04->UpdateData();
+
+			m_bSetData = FALSE;
+		}
+		else if (!m_bSetData && m_bSetDataF)
+		{
+			m_bSetDataF = FALSE;
+		}
+
+		if (m_bTIM_START_UPDATE)
+			SetTimer(TIM_START_UPDATE, 100, NULL);
 	}
 
 
@@ -2678,7 +2768,7 @@ void CGvisR2R_PunchView::DispThreadTick()
 		pFrm->DispStatusBar(str, 6);
 #else
 		//str.Format(_T("%d"), m_nDebugStep);
-		str.Format(_T("%d,%d"), pView->m_nStepAuto, pView->m_nMkStAuto);
+		str.Format(_T("%d,%d,%d"), pView->m_nStepAuto, pView->m_nMkStAuto, pView->m_nLotEndAuto);
 		pFrm->DispStatusBar(str, 6);
 #endif
 	}
@@ -8073,13 +8163,7 @@ BOOL CGvisR2R_PunchView::WatiDispMain(int nDelay)
 
 void CGvisR2R_PunchView::DispMain(CString sMsg, COLORREF rgb)
 {
-	// 	m_cs.Lock();
-	// 	if(m_pDlgMenu01)
-	// 	{
-	// 		m_sDispMain = sMsg;
-	// 		m_pDlgMenu01->DispMain(sMsg, rgb);
-	// 	}
-	// 	m_cs.Unlock();
+	pDoc->SetMonDispMain(sMsg);
 
 	m_csDispMain.Lock();
 	m_bDispMain = FALSE;
@@ -10394,6 +10478,7 @@ void CGvisR2R_PunchView::InitAuto(BOOL bInit)
 			m_pDlgFrameHigh->SetMkLastShot(0);
 			m_pDlgFrameHigh->SetAoiLastShot(0, 0);
 			m_pDlgFrameHigh->SetAoiLastShot(1, 0);
+			m_pDlgFrameHigh->SetEngraveLastShot(0);
 		}
 		pView->m_nDebugStep = 25; pView->DispThreadTick();
 
@@ -16778,7 +16863,10 @@ void CGvisR2R_PunchView::DoAutoChkShareFolder()	// 20170727-잔량처리 시 계속적으
 						}
 						else
 						{
-							nSerial = pDoc->m_ListBuf[0].GetLast();
+							if (ChkLastProcFromEng())
+								nSerial = pDoc->GetCurrentInfoEngShotNum();
+							else
+								nSerial = pDoc->m_ListBuf[0].GetLast();
 						}
 
 						if (!IsSetLotEnd()) // 20160810
@@ -16809,10 +16897,36 @@ void CGvisR2R_PunchView::DoAutoChkShareFolder()	// 20170727-잔량처리 시 계속적으
 			}
 			else
 			{
+				if (ChkLastProcFromEng())
+				{
+					nSerial = pDoc->GetCurrentInfoEngShotNum();
+
+					if (m_nLotEndSerial != nSerial)
+						SetLotEnd(nSerial);
+					if (m_nAoiLastSerial[0] < 1)
+						m_nAoiLastSerial[0] = nSerial;
+				}
+
 				m_bWaitPcr[0] = FALSE;
 				m_bWaitPcr[1] = FALSE;
 				m_nStepAuto++;
 			}
+			
+			if (MODE_INNER == pDoc->GetTestMode())
+			{
+				nSerial = pDoc->GetCurrentInfoEngShotNum();
+				SetLastSerialEng(nSerial);
+
+				if (ChkLastProc())
+				{
+					if (ChkLastProcFromEng())
+					{
+						if (m_nLotEndSerial != nSerial)
+							SetLotEnd(nSerial);
+					}
+				}
+			}
+
 		}
 		break;
 
@@ -17006,28 +17120,30 @@ void CGvisR2R_PunchView::DoAutoChkShareFolder()	// 20170727-잔량처리 시 계속적으
 								nSerial = pDoc->m_ListBuf[1].GetLast();
 						}
 						else
-							nSerial = pDoc->m_ListBuf[0].GetLast();
+						{
+							if (ChkLastProcFromEng())
+								nSerial = pDoc->GetCurrentInfoEngShotNum();
+							else
+								nSerial = pDoc->m_ListBuf[0].GetLast();
+						}
 
 						if (!IsSetLotEnd()) // 20160810
 							SetLotEnd(nSerial);//+pDoc->AoiDummyShot[1]); // 3
 						if (m_nAoiLastSerial[0] < 1)
 							m_nAoiLastSerial[0] = nSerial;
-
- 						//if(IsVsUp()) // 20160810
- 						//{
- 						//	if(!IsSetLotEnd())
- 						//		SetLotEnd(nSerial+pDoc->AoiDummyShot[0]);//+pDoc->AoiDummyShot[1]); // 3
- 						//	if(m_nAoiLastSerial[0] < 1)
- 						//		m_nAoiLastSerial[0] = nSerial+pDoc->AoiDummyShot[0];
- 						//}
- 						//else
- 						//{
- 						//	if(!IsSetLotEnd())
- 						//		SetLotEnd(nSerial);//+pDoc->AoiDummyShot[1]); // 3
- 						//	if(m_nAoiLastSerial[0] < 1)
- 						//		m_nAoiLastSerial[0] = nSerial;
- 						//}
 					}
+				}
+			}
+			else
+			{
+				if (ChkLastProcFromEng())
+				{
+					nSerial = pDoc->GetCurrentInfoEngShotNum();
+
+					if (m_nLotEndSerial != nSerial)
+						SetLotEnd(nSerial);
+					if (m_nAoiLastSerial[0] < 1)
+						m_nAoiLastSerial[0] = nSerial;
 				}
 			}
 		}
@@ -17145,22 +17261,19 @@ void CGvisR2R_PunchView::DoAutoChkShareFolder()	// 20170727-잔량처리 시 계속적으
 							SetLotEnd(nSerial);//+pDoc->AoiDummyShot[1]); // 3
 						if (m_nAoiLastSerial[0] < 1)
 							m_nAoiLastSerial[0] = nSerial;
-
- 						//if(IsVsUp()) // 20160810
- 						//{
- 						//	if(!IsSetLotEnd())
- 						//		SetLotEnd(nSerial+pDoc->AoiDummyShot[0]);//+pDoc->AoiDummyShot[1]); // 3
- 						//	if(m_nAoiLastSerial[0] < 1)
- 						//		m_nAoiLastSerial[0] = nSerial+pDoc->AoiDummyShot[0];
- 						//}
- 						//else
- 						//{
- 						//	if(!IsSetLotEnd())
- 						//		SetLotEnd(nSerial);//+pDoc->AoiDummyShot[1]); // 3
- 						//	if(m_nAoiLastSerial[0] < 1)
- 						//		m_nAoiLastSerial[0] = nSerial;
- 						//}
 					}
+				}
+			}
+			else
+			{
+				if (ChkLastProcFromEng())
+				{
+					nSerial = pDoc->GetCurrentInfoEngShotNum();
+
+					if (m_nLotEndSerial != nSerial)
+						SetLotEnd(nSerial);
+					if (m_nAoiLastSerial[0] < 1)
+						m_nAoiLastSerial[0] = nSerial;
 				}
 			}
 		}
@@ -17206,6 +17319,16 @@ void CGvisR2R_PunchView::DoAutoChkShareFolder()	// 20170727-잔량처리 시 계속적으
 	case AT_LP + 8:
 		if (IsRun())
 		{
+			if (bDualTest)
+			{
+				if (m_bTHREAD_UPDATE_REELMAP_UP || m_bTHREAD_UPDATE_REELMAP_DN || m_bTHREAD_UPDATE_REELMAP_ALLUP || m_bTHREAD_UPDATE_REELMAP_ALLDN)
+					break;
+			}
+			else
+			{
+				if (m_bTHREAD_UPDATE_REELMAP_UP)
+					break;
+			}
 			//SetListBuf(); // 20170727-잔량처리 시 계속적으로 반복해서 이함수가 호출됨으로 좌우 마킹 인덱스 동일 현상 발생.(case AT_LP + 8:)
 			m_bLoadShare[0] = FALSE;
 			m_bLoadShare[1] = FALSE;
@@ -17288,7 +17411,7 @@ void CGvisR2R_PunchView::Mk2PtReady()
 					{
 						m_sGet2dCodeLot = _T("");
 						m_nGet2dCodeSerial = 0;
-						Set2dRead(TRUE);
+						//Set2dRead(TRUE);
 					}
 					else
 					{
@@ -17551,6 +17674,9 @@ void CGvisR2R_PunchView::Mk2PtChkSerial()
 							}
 						}
 					}
+					else
+						m_nMkStAuto = MK_ST + (Mk2PtIdx::InitMk);			// InitMk()
+
 				}
 				else
 				{
@@ -18230,7 +18356,7 @@ void CGvisR2R_PunchView::Mk2PtDoMarking()
 						else
 						{
 							m_bCam = FALSE;
-							m_nMkStAuto++;	// Mk 마킹 완료
+							m_nMkStAuto = MK_ST + (Mk2PtIdx::DoneMk);	// Mk 마킹 완료
 
 											//sMsg = _T("");
 											//DispStsBar(sMsg, 0);
@@ -18238,10 +18364,9 @@ void CGvisR2R_PunchView::Mk2PtDoMarking()
 					}
 					else
 					{
-						m_nMkStAuto++;	// Mk 마킹 완료
-
-										//sMsg = _T("");
-										//DispStsBar(sMsg, 0);
+						m_nMkStAuto = MK_ST + (Mk2PtIdx::DoneMk);	// Mk 마킹 완료
+						//sMsg = _T("");
+						//DispStsBar(sMsg, 0);
 					}
 				}
 			}
@@ -18347,7 +18472,7 @@ void CGvisR2R_PunchView::Mk2PtDoMarking()
 #endif
 			break;
 		case MK_ST + (Mk2PtIdx::DoneMk) + 4:
-			if (!m_bTHREAD_UPDATE_RST_UP && !m_bTHREAD_UPDATE_RST_DN && !m_bTHREAD_UPDATE_RST_ALLUP && !m_bTHREAD_UPDATE_RST_ALLDN)
+			if (!m_bTHREAD_SHIFT2MK && !m_bTHREAD_UPDATE_RST_UP && !m_bTHREAD_UPDATE_RST_DN && !m_bTHREAD_UPDATE_RST_ALLUP && !m_bTHREAD_UPDATE_RST_ALLDN)
 			{
 				m_nMkStAuto++;
 				UpdateRst();
@@ -18482,7 +18607,7 @@ void CGvisR2R_PunchView::Mk2PtShift2Mk() // MODE_INNER
 #endif
 			break;
 		case MK_ST + (Mk2PtIdx::Shift2Mk) + 3:
-			if (!m_bTHREAD_UPDATE_RST_UP && !m_bTHREAD_UPDATE_RST_DN && !m_bTHREAD_UPDATE_RST_ALLUP && !m_bTHREAD_UPDATE_RST_ALLDN)
+			if (!m_bTHREAD_SHIFT2MK && !m_bTHREAD_UPDATE_RST_UP && !m_bTHREAD_UPDATE_RST_DN && !m_bTHREAD_UPDATE_RST_ALLUP && !m_bTHREAD_UPDATE_RST_ALLDN)
 			{
 				m_nMkStAuto++;
 				UpdateRst();
@@ -21933,28 +22058,28 @@ void CGvisR2R_PunchView::MonDispMain()
 	{
 		if (m_sDispMain != _T("운전중"))
 		{
-			DispMain(_T("운전중"), RGB_GREEN);
-			if (m_pEngrave && m_pEngrave->IsConnected())
-			{
-				m_pEngrave->SwRun(TRUE);
-				Sleep(100);
+			DispMain(_T("운전중"), RGB_GREEN);			
+			//if (m_pEngrave && m_pEngrave->IsConnected())
+			//{
+			//	m_pEngrave->SwRun(TRUE);
+			//	Sleep(100);
 
-				pDoc->BtnStatus.Disp.IsRun = FALSE;
-				m_pEngrave->SetDispRun();
-				Sleep(100);
-			}
+			//	pDoc->BtnStatus.Disp.IsRun = FALSE;
+			//	m_pEngrave->SetDispRun();
+			//	Sleep(100);
+			//}
 		}
 		else
 		{
-			if (m_pEngrave && m_pEngrave->IsConnected())
-			{
-				m_pEngrave->IsSetDispRun();
-				if (!pDoc->BtnStatus.Disp.IsRun)
-				{
-					m_pEngrave->SetDispRun();
-					Sleep(100);
-				}
-			}
+			//if (m_pEngrave && m_pEngrave->IsConnected())
+			//{
+			//	m_pEngrave->IsSetDispRun();
+			//	if (!pDoc->BtnStatus.Disp.IsRun)
+			//	{
+			//		m_pEngrave->SetDispRun();
+			//		Sleep(100);
+			//	}
+			//}
 		}
 	}
 
@@ -21966,27 +22091,27 @@ void CGvisR2R_PunchView::MonDispMain()
 			if (m_sDispMain != _T("운전준비"))
 			{
 				DispMain(_T("운전준비"), RGB_GREEN);
-				if (m_pEngrave && m_pEngrave->IsConnected())
-				{
-					m_pEngrave->SwReady(TRUE);
-					Sleep(100);
+				//if (m_pEngrave && m_pEngrave->IsConnected())
+				//{
+				//	m_pEngrave->SwReady(TRUE);
+				//	Sleep(100);
 
-					pDoc->BtnStatus.Disp.IsReady = FALSE;
-					m_pEngrave->SetDispReady();
-					Sleep(100);
-				}
+				//	pDoc->BtnStatus.Disp.IsReady = FALSE;
+				//	m_pEngrave->SetDispReady();
+				//	Sleep(100);
+				//}
 			}
 			else
 			{
-				if (m_pEngrave && m_pEngrave->IsConnected())
-				{
-					m_pEngrave->IsSetDispReady();
-					if (!pDoc->BtnStatus.Disp.IsReady)
-					{
-						m_pEngrave->SetDispReady();
-						Sleep(100);
-					}
-				}
+				//if (m_pEngrave && m_pEngrave->IsConnected())
+				//{
+				//	m_pEngrave->IsSetDispReady();
+				//	if (!pDoc->BtnStatus.Disp.IsReady)
+				//	{
+				//		m_pEngrave->SetDispReady();
+				//		Sleep(100);
+				//	}
+				//}
 			}
 		}
 	}
@@ -22004,29 +22129,29 @@ void CGvisR2R_PunchView::MonDispMain()
 						if (m_sDispMain != _T("양면샘플"))
 						{
 							DispMain(_T("양면샘플"), RGB_GREEN);
-							if (m_pEngrave && m_pEngrave->IsConnected())
-							{
-								m_pEngrave->SetSampleTest();
-								Sleep(100);
-								m_pEngrave->SetDualTest();
-								Sleep(100);
+							//if (m_pEngrave && m_pEngrave->IsConnected())
+							//{
+							//	m_pEngrave->SetSampleTest();
+							//	Sleep(100);
+							//	m_pEngrave->SetDualTest();
+							//	Sleep(100);
 
-								pDoc->BtnStatus.Disp.IsDualSample = FALSE;
-								m_pEngrave->SetDispDualSample();
-								Sleep(100);
-							}
+							//	pDoc->BtnStatus.Disp.IsDualSample = FALSE;
+							//	m_pEngrave->SetDispDualSample();
+							//	Sleep(100);
+							//}
 						}
 						else
 						{
-							if (m_pEngrave && m_pEngrave->IsConnected())
-							{
-								m_pEngrave->IsSetDispDualSample();
-								if (!pDoc->BtnStatus.Disp.IsDualSample)
-								{
-									m_pEngrave->SetDispDualSample();
-									Sleep(100);
-								}
-							}
+							//if (m_pEngrave && m_pEngrave->IsConnected())
+							//{
+							//	m_pEngrave->IsSetDispDualSample();
+							//	if (!pDoc->BtnStatus.Disp.IsDualSample)
+							//	{
+							//		m_pEngrave->SetDispDualSample();
+							//		Sleep(100);
+							//	}
+							//}
 						}
 					}
 					else
@@ -22034,29 +22159,29 @@ void CGvisR2R_PunchView::MonDispMain()
 						if (m_sDispMain != _T("단면샘플"))
 						{
 							DispMain(_T("단면샘플"), RGB_GREEN);
-							if (m_pEngrave && m_pEngrave->IsConnected())
-							{
-								m_pEngrave->SetSampleTest();
-								Sleep(100);
-								m_pEngrave->SetDualTest();
-								Sleep(100);
+							//if (m_pEngrave && m_pEngrave->IsConnected())
+							//{
+							//	m_pEngrave->SetSampleTest();
+							//	Sleep(100);
+							//	m_pEngrave->SetDualTest();
+							//	Sleep(100);
 
-								pDoc->BtnStatus.Disp.IsSingleSample = FALSE;
-								m_pEngrave->SetDispSingleSample();
-								Sleep(100);
-							}
+							//	pDoc->BtnStatus.Disp.IsSingleSample = FALSE;
+							//	m_pEngrave->SetDispSingleSample();
+							//	Sleep(100);
+							//}
 						}
 						else
 						{
-							if (m_pEngrave && m_pEngrave->IsConnected())
-							{
-								m_pEngrave->IsSetDispSingleSample();
-								if (!pDoc->BtnStatus.Disp.IsSingleSample)
-								{
-									m_pEngrave->SetDispSingleSample();
-									Sleep(100);
-								}
-							}
+							//if (m_pEngrave && m_pEngrave->IsConnected())
+							//{
+							//	m_pEngrave->IsSetDispSingleSample();
+							//	if (!pDoc->BtnStatus.Disp.IsSingleSample)
+							//	{
+							//		m_pEngrave->SetDispSingleSample();
+							//		Sleep(100);
+							//	}
+							//}
 						}
 					}
 				}
@@ -22065,29 +22190,29 @@ void CGvisR2R_PunchView::MonDispMain()
 					if (m_sDispMain != _T("양면검사"))
 					{
 						DispMain(_T("양면검사"), RGB_GREEN);
-						if (m_pEngrave && m_pEngrave->IsConnected())
-						{
-							m_pEngrave->SetSampleTest();
-							Sleep(100);
-							m_pEngrave->SetDualTest();
-							Sleep(100);
+						//if (m_pEngrave && m_pEngrave->IsConnected())
+						//{
+						//	m_pEngrave->SetSampleTest();
+						//	Sleep(100);
+						//	m_pEngrave->SetDualTest();
+						//	Sleep(100);
 
-							pDoc->BtnStatus.Disp.IsDualTest = FALSE;
-							m_pEngrave->SetDispDualTest();
-							Sleep(100);
-						}
+						//	pDoc->BtnStatus.Disp.IsDualTest = FALSE;
+						//	m_pEngrave->SetDispDualTest();
+						//	Sleep(100);
+						//}
 					}
 					else
 					{
-						if (m_pEngrave && m_pEngrave->IsConnected())
-						{
-							m_pEngrave->IsSetDispDualTest();
-							if (!pDoc->BtnStatus.Disp.IsDualTest)
-							{
-								m_pEngrave->SetDispDualTest();
-								Sleep(100);
-							}
-						}
+						//if (m_pEngrave && m_pEngrave->IsConnected())
+						//{
+						//	m_pEngrave->IsSetDispDualTest();
+						//	if (!pDoc->BtnStatus.Disp.IsDualTest)
+						//	{
+						//		m_pEngrave->SetDispDualTest();
+						//		Sleep(100);
+						//	}
+						//}
 					}
 				}
 				else
@@ -22095,29 +22220,29 @@ void CGvisR2R_PunchView::MonDispMain()
 					if (m_sDispMain != _T("단면검사"))
 					{
 						DispMain(_T("단면검사"), RGB_GREEN);
-						if (m_pEngrave && m_pEngrave->IsConnected())
-						{
-							m_pEngrave->SetSampleTest();
-							Sleep(100);
-							m_pEngrave->SetDualTest();
-							Sleep(100);
+						//if (m_pEngrave && m_pEngrave->IsConnected())
+						//{
+						//	m_pEngrave->SetSampleTest();
+						//	Sleep(100);
+						//	m_pEngrave->SetDualTest();
+						//	Sleep(100);
 
-							pDoc->BtnStatus.Disp.IsSingleTest = FALSE;
-							m_pEngrave->SetDispSingleTest();
-							Sleep(100);
-						}
+						//	pDoc->BtnStatus.Disp.IsSingleTest = FALSE;
+						//	m_pEngrave->SetDispSingleTest();
+						//	Sleep(100);
+						//}
 					}
 					else
 					{
-						if (m_pEngrave && m_pEngrave->IsConnected())
-						{
-							m_pEngrave->IsSetDispSingleTest();
-							if (!pDoc->BtnStatus.Disp.IsSingleTest)
-							{
-								m_pEngrave->SetDispSingleTest();
-								Sleep(100);
-							}
-						}
+						//if (m_pEngrave && m_pEngrave->IsConnected())
+						//{
+						//	m_pEngrave->IsSetDispSingleTest();
+						//	if (!pDoc->BtnStatus.Disp.IsSingleTest)
+						//	{
+						//		m_pEngrave->SetDispSingleTest();
+						//		Sleep(100);
+						//	}
+						//}
 					}
 					//if(m_sDispMain != _T("초기운전")
 					//DispMain(_T("초기운전", RGB_GREEN);
@@ -22146,27 +22271,27 @@ void CGvisR2R_PunchView::MonDispMain()
 			{
 				pView->DispStsBar(_T("정지-44"), 0);
 				DispMain(_T("정 지"), RGB_RED);
-				if (m_pEngrave && m_pEngrave->IsConnected())
-				{
-					m_pEngrave->SwStop(TRUE);
-					Sleep(100);
+				//if (m_pEngrave && m_pEngrave->IsConnected())
+				//{
+				//	m_pEngrave->SwStop(TRUE);
+				//	Sleep(100);
 
-					pDoc->BtnStatus.Disp.IsStop = FALSE;
-					m_pEngrave->SetDispStop();
-					Sleep(100);
-				}
+				//	pDoc->BtnStatus.Disp.IsStop = FALSE;
+				//	m_pEngrave->SetDispStop();
+				//	Sleep(100);
+				//}
 			}
 			else
 			{
-				if (m_pEngrave && m_pEngrave->IsConnected())
-				{
-					m_pEngrave->IsSetDispStop();
-					if (!pDoc->BtnStatus.Disp.IsStop)
-					{
-						m_pEngrave->SetDispStop();
-						Sleep(100);
-					}
-				}
+				//if (m_pEngrave && m_pEngrave->IsConnected())
+				//{
+				//	m_pEngrave->IsSetDispStop();
+				//	if (!pDoc->BtnStatus.Disp.IsStop)
+				//	{
+				//		m_pEngrave->SetDispStop();
+				//		Sleep(100);
+				//	}
+				//}
 			}
 		}
 	}
@@ -23548,36 +23673,38 @@ LRESULT CGvisR2R_PunchView::wmClientReceived(WPARAM wParam, LPARAM lParam)
 		if (m_pEngrave && m_pEngrave->IsConnected())
 			m_pEngrave->GetSysSignal(rSockData);
 
-		if (m_pEngrave->m_bGetOpInfo)
-		{
-			if (m_pDlgInfo)
-				m_pDlgInfo->UpdateData();
+		pView->m_bSetSig = TRUE;
+		//if (m_pEngrave->m_bGetOpInfo)
+		//{
+		//	if (m_pDlgInfo)
+		//		m_pDlgInfo->UpdateData();
 
-			if (m_pDlgMenu01)
-				m_pDlgMenu01->UpdateData();
-		}
+		//	if (m_pDlgMenu01)
+		//		m_pDlgMenu01->UpdateData();
+		//}
 
-		if (m_pDlgMenu03)
-			m_pDlgMenu03->UpdateSignal();
+		//if (m_pDlgMenu03)
+		//	m_pDlgMenu03->UpdateSignal();
 		break;
 	case _SetData:
 		if (m_pEngrave && m_pEngrave->IsConnected())
 			m_pEngrave->GetSysData(rSockData);
 
-		if (m_pEngrave->m_bGetOpInfo)
-		{
-			if (m_pDlgMenu01)
-				m_pDlgMenu01->UpdateData();
-		}
+		pView->m_bSetData = TRUE;
+		//if (m_pEngrave->m_bGetOpInfo)
+		//{
+		//	if (m_pDlgMenu01)
+		//		m_pDlgMenu01->UpdateData();
+		//}
 
-		//if (m_pDlgMenu02)
-		//	m_pDlgMenu02->UpdateData();
+		////if (m_pDlgMenu02)
+		////	m_pDlgMenu02->UpdateData();
 
-		if (m_pDlgMenu03)
-			m_pDlgMenu03->UpdateData();
+		//if (m_pDlgMenu03)
+		//	m_pDlgMenu03->UpdateData();
 
-		if (m_pDlgMenu04)
-			m_pDlgMenu04->UpdateData();
+		//if (m_pDlgMenu04)
+		//	m_pDlgMenu04->UpdateData();
 		break;
 	default:
 		break;
@@ -23624,26 +23751,26 @@ BOOL CGvisR2R_PunchView::IsConnectedEng()
 				m_bContEngraveF = TRUE;
 				DWORD dwStartTick = GetTickCount();
 
-				while(!m_pEngrave->SetSysData())
-				{
-					Sleep(100);
-					if (GetTickCount() >= (dwStartTick + DELAY_RESPONSE))
-					{
-						pView->ClrDispMsg();
-						AfxMessageBox(_T(" WaitResponse() Time Out. \r\n m_pEngrave->IsConnected() !!!"));
-						break;
-					}
-				}
-				while (!m_pEngrave->SetSysSignal())
-				{
-					Sleep(100);
-					if (GetTickCount() >= (dwStartTick + DELAY_RESPONSE))
-					{
-						pView->ClrDispMsg();
-						AfxMessageBox(_T(" WaitResponse() Time Out. \r\n m_pEngrave->IsConnected() !!!"));
-						break;
-					}
-				}
+				//while(!m_pEngrave->SetSysData())
+				//{
+				//	Sleep(100);
+				//	if (GetTickCount() >= (dwStartTick + DELAY_RESPONSE))
+				//	{
+				//		pView->ClrDispMsg();
+				//		AfxMessageBox(_T(" WaitResponse() Time Out. \r\n m_pEngrave->IsConnected() !!!"));
+				//		break;
+				//	}
+				//}
+				//while (!m_pEngrave->SetSysSignal())
+				//{
+				//	Sleep(100);
+				//	if (GetTickCount() >= (dwStartTick + DELAY_RESPONSE))
+				//	{
+				//		pView->ClrDispMsg();
+				//		AfxMessageBox(_T(" WaitResponse() Time Out. \r\n m_pEngrave->IsConnected() !!!"));
+				//		break;
+				//	}
+				//}
 			}
 			return TRUE;
 		}

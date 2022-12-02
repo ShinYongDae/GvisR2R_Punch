@@ -1476,7 +1476,7 @@ void CEngrave::GetOpInfo(SOCKET_DATA SockData)
 	int nMsgId = SockData.nMsgID;
 
 	CString sVal;
-	m_bGetOpInfo = FALSE;
+	//m_bGetOpInfo = FALSE;
 	if (nCmdCode == _SetSig)
 	{
 		switch (nMsgId)
@@ -1830,7 +1830,7 @@ void CEngrave::GetInfo(SOCKET_DATA SockData)
 	int nCmdCode = SockData.nCmdCode;
 	int nMsgId = SockData.nMsgID;
 
-	m_bGetInfo = FALSE;
+	//m_bGetInfo = FALSE;
 	if (nCmdCode == _SetSig)
 	{
 		switch (nMsgId)
@@ -8510,4 +8510,72 @@ void CEngrave::IsSetAlarm(CString sMsg)
 	StringToChar(sMsg, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
+}
+// On Running Auto
+
+BOOL CEngrave::UpdateWorking()
+{
+	SetTotOpRto();		// 전체진행율
+						// 로트진행율
+	SetTotVel();		// 전체속도
+	SetPartVel();		// 구간속도
+	SetMkDoneLen();		// 마킹부 : Distance (FdDone) [M]
+	SetAoiDnDoneLen();	// 검사부(하) : Distance (FdDone) [M]
+	SetAoiUpDoneLen();	// 검사부(상) : Distance (FdDone) [M]
+						// 각인부 : Distance (FdDone) [M]
+
+	return TRUE;
+}
+
+BOOL CEngrave::UpdateRst()
+{
+	UpdateTotRatio();
+	UpdateStripRatio();
+
+	return TRUE;
+}
+
+BOOL CEngrave::UpdateTotRatio()
+{
+	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
+
+	// 상면
+	SetDefNumUp();			// IDC_STC_DEFECT_NUM
+	SetDefRtoUp();			// IDC_STC_DEFECT_RATIO
+	SetGoodNumUp();			// IDC_STC_GOOD_NUM
+	SetGoodRtoUp();			// IDC_STC_GOOD_RATIO
+	SetTestNumUp();			// IDC_STC_TOTAL_NUM
+
+	if (bDualTest)
+	{
+		// 하면
+		SetDefNumDn();		// IDC_STC_DEFECT_NUM_DN
+		SetDefRtoDn();		// IDC_STC_DEFECT_RATIO_DN
+		SetGoodNumDn();		// IDC_STC_GOOD_NUM_DN
+		SetGoodRtoDn();		// IDC_STC_GOOD_RATIO_DN
+		SetTestNumDn();		// IDC_STC_TOTAL_NUM_DN
+
+							// 전체
+		SetDefNumTot();		// IDC_STC_DEFECT_NUM_ALL
+		SetDefRtoTot();		// IDC_STC_DEFECT_RATIO_ALL
+		SetGoodNumTot();	// IDC_STC_GOOD_NUM_ALL
+		SetGoodRtoTot();	// IDC_STC_GOOD_RATIO_ALL
+		SetTestNumTot();	// IDC_STC_TOTAL_NUM_ALL
+	}
+
+	return TRUE;
+}
+
+BOOL CEngrave::UpdateStripRatio()
+{
+	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
+
+	return TRUE;
+}
+
+BOOL CEngrave::UpdateDef()
+{
+	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
+
+	return TRUE;
 }

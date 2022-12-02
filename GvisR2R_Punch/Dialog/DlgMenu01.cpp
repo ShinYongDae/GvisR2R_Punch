@@ -482,7 +482,7 @@ BOOL CDlgMenu01::DispReelmap(int nSerial, BOOL bDumy)
 
 	if (pDoc->m_pReelMap)
 	{
-		if (pDoc->m_pReelMap->Disp(nSerial, bDumy))
+		if (!pDoc->m_pReelMap->Disp(nSerial, bDumy))
 			return FALSE;
 	}
  	SetPnlNum();
@@ -1913,6 +1913,8 @@ void CDlgMenu01::InitStcData()
 	myStcData[81].SubclassDlgItem(IDC_STC_MK_CNT_L, this);
 	myStcData[82].SubclassDlgItem(IDC_STC_MK_CNT_R, this);
 
+	myStcData[83].SubclassDlgItem(IDC_STC_ENG, this);
+
 	for(int i=0; i<MAX_MENU01_STC_DATA; i++)
 	{
 		myStcData[i].SetFontName(_T("Arial"));
@@ -2899,6 +2901,9 @@ void CDlgMenu01::UpdateWorking()
 	sVal.Format(_T("%.2f"), pView->GetAoiUpFdLen() / 1000.0);	// [M]
 	myStcData[74].SetText(sVal);			// 검사부(상) : Distance (FdDone)
 
+	sVal.Format(_T("%.2f"), pView->GetEngraveFdLen() / 1000.0);	// [M]
+	myStcData[83].SetText(sVal);			// 각인부 : Distance (FdDone)
+
 #ifdef USE_MPE
 	if(pView->m_pMpe)
 	{
@@ -2909,6 +2914,17 @@ void CDlgMenu01::UpdateWorking()
 		pView->m_pMpe->Write(_T("ML45080"), (long)(pView->GetEngraveFdLen()));	// 각인부 진행량(mm단위로 피딩 후에 PC가 기록함)
 	}
 #endif
+
+//#ifdef USE_ENGRAVE
+//	if (pView)
+//	{
+//		if (pView->m_pEngrave)
+//		{
+//			pView->m_pEngrave->UpdateWorking();
+//		}
+//	}
+//#endif
+
 }
 
 void CDlgMenu01::UpdateTotVel(CString sVel)
@@ -2938,17 +2954,17 @@ void CDlgMenu01::UpdateRst()
 	DispStripRatio();
 	DispDef();
 
-#ifdef USE_ENGRAVE
-	if (pView)
-	{
-		if (pView->m_pEngrave)
-		{
-			pView->m_pEngrave->SetTotRatio();
-			pView->m_pEngrave->SetStripRatio();
-			pView->m_pEngrave->SetDef();
-		}
-	}
-#endif
+//#ifdef USE_ENGRAVE
+//	if (pView)
+//	{
+//		if (pView->m_pEngrave)
+//		{
+//			pView->m_pEngrave->SetTotRatio();
+//			pView->m_pEngrave->SetStripRatio();
+//			pView->m_pEngrave->SetDef();
+//		}
+//	}
+//#endif
 }
 
 void CDlgMenu01::DispTotRatio()
@@ -3216,6 +3232,7 @@ void CDlgMenu01::ClrInfo()
 	myStcData[12].SetText(_T(""));			// 마킹부 : Distance (FdDone)
 	myStcData[13].SetText(_T(""));			// 검사부 Dn: Distance (FdDone)
 	myStcData[74].SetText(_T(""));			// 검사부 Up: Distance (FdDone)
+	myStcData[83].SetText(_T(""));			// 각인부: Distance (FdDone)
 
 	// < 전체 수율 >
 	// 상면

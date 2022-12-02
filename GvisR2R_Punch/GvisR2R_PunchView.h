@@ -76,6 +76,7 @@
 #define TIM_SHOW_MENU02			19
 #define TIM_CHK_TEMP_STOP		20
 #define TIM_SAFTY_STOP			21
+#define TIM_START_UPDATE		100
 
 #define MAX_THREAD				18
 
@@ -1026,6 +1027,9 @@ public:
 	void ReloadRstAllUp();
 	void ReloadRstDn();
 	void ReloadRstAllDn();
+
+	BOOL m_bSetSig, m_bSetSigF, m_bSetData, m_bSetDataF;
+	BOOL m_bTIM_START_UPDATE;
 
 // 재정의입니다.
 public:

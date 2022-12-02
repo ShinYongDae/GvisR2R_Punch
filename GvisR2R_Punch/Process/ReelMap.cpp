@@ -1286,30 +1286,7 @@ BOOL CReelMap::Disp(int nMkPnl, BOOL bDumy)
 	CDataFile *pDataFile = new CDataFile;
 	CString sMsg;
 	int nRepeat = 0;
-/*
-	if(!pDataFile->Open(m_sPathBuf))
-	{
-		Sleep(3000);
-		if(!pDataFile->Open(m_sPathBuf))
-		{
-			Sleep(3000);
-			if(!pDataFile->Open(m_sPathBuf))
-			{
-				Sleep(3000);
-				if(!pDataFile->Open(m_sPathBuf))
-				{
-					sMsg.Format(_T("릴맵파일을 열지 못했습니다.\r\n%s\r\n릴맵파일을 다시 열기를 하시겠습니까?"),m_sPathBuf);
-			 		//sMsg.Format(_T("%s File not found."),m_sPathBuf);
-					//pView->MsgBox(sMsg);
-					if(IDNO == pView->MsgBox(sMsg, 0, MB_YESNO))
-					{
-						delete pDataFile;
-						return FALSE;
-					}
-				}
-			}
-		}
-	}*/
+
 	while(!pDataFile->Open(m_sPathBuf))
 	{
 		Sleep(500);
@@ -1321,13 +1298,14 @@ BOOL CReelMap::Disp(int nMkPnl, BOOL bDumy)
 				Sleep(500);
 				if (!pDataFile->Open(m_sPathBuf))
 				{
-					if (nRepeat > 10)
+					if (nRepeat > 20)
 					{
 						sMsg.Format(_T("릴맵파일을 읽지 못했습니다.\r\n%s\r\n릴맵파일을 다시 읽으시겠습니까?"), m_sPathBuf);
 						if (IDNO == pView->MsgBox(sMsg, 0, MB_YESNO))
 						{
-							delete pDataFile;
-							return FALSE;
+							;
+							//delete pDataFile;
+							//return FALSE;
 						}
 					}
 					else
@@ -3794,7 +3772,7 @@ BOOL CReelMap::ReloadRst(int nTo)
 		m_nPregressReloadRst++;
 
 		strMenu.Format(_T("%d"), i);
-		strData.Format(_T("%d)"), m_nDef[i]); // 불량이름별 불량수
+		strData.Format(_T("%d"), m_nDef[i]); // 불량이름별 불량수
 		::WritePrivateProfileString(_T("Info"), strMenu, strData, m_sPathBuf);
 	}
 

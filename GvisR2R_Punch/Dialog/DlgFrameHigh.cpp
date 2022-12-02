@@ -38,7 +38,7 @@ CDlgFrameHigh::CDlgFrameHigh(CWnd* pParent /*=NULL*/)
 	m_nMkLastShot = 0;
 	m_nAoiLastShot[0] = 0;
 	m_nAoiLastShot[1] = 0;
-	//m_nEngraveLastShot = 0;
+	m_nEngraveLastShot = 0;
 }
 
 CDlgFrameHigh::~CDlgFrameHigh()
@@ -690,7 +690,7 @@ void CDlgFrameHigh::SetEngraveLastShot(int nSerial)
 		return;
 	}
 
-	//m_nEngraveLastShot = nSerial;
+	m_nEngraveLastShot = nSerial;
 
 	CString str;
 	str.Format(_T("%d"), nSerial);

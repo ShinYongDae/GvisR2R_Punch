@@ -956,6 +956,22 @@ BOOL CGvisR2R_PunchDoc::LoadWorkingInfo()
 		WorkingInfo.System.sPathMkCurrInfo = CString(_T("C:\\PunchWork\\CurrentInfo.ini"));
 	}
 
+	if (0 < ::GetPrivateProfileString(_T("System"), _T("MonDispMainPath"), NULL, szData, sizeof(szData), sPath))
+		WorkingInfo.System.sPathMonDispMain = CString(szData);
+	else
+	{
+		AfxMessageBox(_T("PunchingCurrentInfoPath가 설정되어 있지 않습니다."), MB_ICONWARNING | MB_OK);
+		WorkingInfo.System.sPathMonDispMain = CString(_T("C:\\PunchWork\\MonDispMain.ini"));
+	}
+
+	if (0 < ::GetPrivateProfileString(_T("System"), _T("MkMenu01Path"), NULL, szData, sizeof(szData), sPath))
+		WorkingInfo.System.sPathMkMenu01 = CString(szData);
+	else
+	{
+		AfxMessageBox(_T("PunchingCurrentInfoPath가 설정되어 있지 않습니다."), MB_ICONWARNING | MB_OK);
+		WorkingInfo.System.sPathMkMenu01 = CString(_T("C:\\PunchWork\\MkMenu01.ini"));
+	}
+
 	if (0 < ::GetPrivateProfileString(_T("System"), _T("PunchingCurrentInfoBufPath"), NULL, szData, sizeof(szData), sPath))
 		WorkingInfo.System.sPathMkCurrInfoBuf = CString(szData);
 	else
@@ -8359,8 +8375,8 @@ int CGvisR2R_PunchDoc::GetStripRejectMkNum()
 int CGvisR2R_PunchDoc::GetLastShotEngrave()
 {
 	int nLastShot = 0;
-	//if (pView->m_pDlgFrameHigh)
-	//	nLastShot = pView->m_pDlgFrameHigh->m_nEngraveLastShot;
+	if (pView->m_pDlgFrameHigh)
+		nLastShot = pView->m_pDlgFrameHigh->m_nEngraveLastShot;
 
 	return (nLastShot);
 }
@@ -8788,3 +8804,33 @@ void CGvisR2R_PunchDoc::SetCurrentInfoBufDn(int nIdx, int nData)
 	::WritePrivateProfileString(_T("Dn"), sIdx, sData, sPath);
 }
 
+CString CGvisR2R_PunchDoc::GetMonDispMain()
+{
+	CString sPath = WorkingInfo.System.sPathMonDispMain;
+	TCHAR szData[512];
+
+	if (sPath.IsEmpty())
+		return _T("");
+
+	if (0 < ::GetPrivateProfileString(_T("Info"), _T("Disp"), NULL, szData, sizeof(szData), sPath))
+		return(CString(szData));
+
+	return _T("");
+}
+
+void CGvisR2R_PunchDoc::SetMonDispMain(CString sDisp)
+{
+	CString sPath = WorkingInfo.System.sPathMonDispMain;
+	if (sPath.IsEmpty())
+		return;
+
+	::WritePrivateProfileString(_T("Info"), _T("Disp"), sDisp, sPath);
+}
+
+void CGvisR2R_PunchDoc::GetMkMenu01()
+{
+}
+
+void CGvisR2R_PunchDoc::SetMkMenu01()
+{
+}

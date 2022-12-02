@@ -50,7 +50,7 @@ public:
 	CDlgFrameHigh(CWnd* pParent = NULL);   // standard constructor
 	~CDlgFrameHigh();
 
-	int m_nMkLastShot, m_nAoiLastShot[2]; // [Up/Dn]
+	int m_nMkLastShot, m_nAoiLastShot[2], m_nEngraveLastShot; // [Up/Dn]
 
 	BOOL Create();
 	void ChkMenu01();

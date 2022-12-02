@@ -630,6 +630,7 @@
 #define IDC_STC_ALIGN_STD_SCR2          1201
 #define IDC_CHK_8                       1201
 #define IDC_STC_26                      1201
+#define IDC_STC_ENG                     1201
 #define IDC_CHK_001                     1202
 #define IDC_GRP_LT12                    1202
 #define IDC_STC_10_                     1202
