@@ -526,25 +526,31 @@ void CEngrave::GetSignalMain(SOCKET_DATA SockData)
 		{
 		case _SigInx::_Ready:
 			pDoc->BtnStatus.Main.Ready = (SockData.nData1 > 0) ? TRUE : FALSE;
+			pView->m_pMpe->Write(_T("MB005503"), (long)SockData.nData1);
 			break;
 		case _SigInx::_Run:
 			pDoc->BtnStatus.Main.Run = (SockData.nData1 > 0) ? TRUE : FALSE;
 			pDoc->BtnStatus.Main.Stop = (SockData.nData1 > 0) ? FALSE : pDoc->BtnStatus.Main.Stop;
+			pView->m_pMpe->Write(_T("MB005501"), (long)SockData.nData1);
 			break;
 		case _SigInx::_Reset:
 			pDoc->BtnStatus.Main.Reset = (SockData.nData1 > 0) ? TRUE : FALSE;
+			pView->m_pMpe->Write(_T("MB005504"), (long)SockData.nData1);
 			break;
 		case _SigInx::_Stop:
 			pDoc->BtnStatus.Main.Stop = (SockData.nData1 > 0) ? TRUE : FALSE;
 			pDoc->BtnStatus.Main.Run = (SockData.nData1 > 0) ? FALSE : pDoc->BtnStatus.Main.Run;
+			pView->m_pMpe->Write(_T("MB005502"), (long)SockData.nData1);
 			break;
 		case _SigInx::_Auto:
 			pDoc->BtnStatus.Main.Auto = (SockData.nData1 > 0) ? TRUE : FALSE;
 			pDoc->BtnStatus.Main.Manual = (SockData.nData1 > 0) ? FALSE : pDoc->BtnStatus.Main.Manual;
+			pView->m_pMpe->Write(_T("MB005505"), (long)SockData.nData1);
 			break;
 		case _SigInx::_Manual:
 			pDoc->BtnStatus.Main.Manual = (SockData.nData1 > 0) ? TRUE : FALSE;
 			pDoc->BtnStatus.Main.Auto = (SockData.nData1 > 0) ? FALSE : pDoc->BtnStatus.Main.Auto;
+			pView->m_pMpe->Write(_T("MB005505"), (long)SockData.nData1);
 			break;
 			// Is
 		case _SigInx::_IsReady:
@@ -581,12 +587,15 @@ void CEngrave::GetSignalTorqueMotor(SOCKET_DATA SockData)
 		{
 		case _SigInx::_MkTq:
 			pDoc->BtnStatus.Tq.Mk = (SockData.nData1 > 0) ? TRUE : FALSE;
+			pView->m_pMpe->Write(_T("MB440155"), (long)SockData.nData1);
 			break;
 		case _SigInx::_AoiTq:
 			pDoc->BtnStatus.Tq.Aoi = (SockData.nData1 > 0) ? TRUE : FALSE;
+			pView->m_pMpe->Write(_T("MB440156"), (long)SockData.nData1);
 			break;
 		case _SigInx::_EngTq:
 			pDoc->BtnStatus.Tq.Eng = (SockData.nData1 > 0) ? TRUE : FALSE;
+			pView->m_pMpe->Write(_T("MB440154"), (long)SockData.nData1);
 			break;
 			// Is
 		case _SigInx::_IsMkTq:
@@ -614,9 +623,11 @@ void CEngrave::GetSignalInductionMotor(SOCKET_DATA SockData)
 		{
 		case _SigInx::_CcwModRe:
 			pDoc->BtnStatus.Induct.Rc = (SockData.nData1 > 0) ? TRUE : FALSE;
+			pView->m_pMpe->Write(_T("MB44017D"), (long)SockData.nData1);
 			break;
 		case _SigInx::_CcwModUn:
 			pDoc->BtnStatus.Induct.Uc = (SockData.nData1 > 0) ? TRUE : FALSE;
+			pView->m_pMpe->Write(_T("MB44017C"), (long)SockData.nData1);
 			break;
 			// Is
 		case _SigInx::_IsCcwModRe:
@@ -641,9 +652,11 @@ void CEngrave::GetSignalCore150mm(SOCKET_DATA SockData)
 		{
 		case _SigInx::_Core150Re:
 			pDoc->BtnStatus.Core150.Rc = (SockData.nData1 > 0) ? TRUE : FALSE;
+			pView->m_pMpe->Write(_T("MB44017E"), (long)SockData.nData1);
 			break;
 		case _SigInx::_Core150Un:
 			pDoc->BtnStatus.Core150.Uc = (SockData.nData1 > 0) ? TRUE : FALSE;
+			pView->m_pMpe->Write(_T("MB44017F"), (long)SockData.nData1);
 			break;
 			// Is
 		case _SigInx::_IsCore150Re:
@@ -668,6 +681,7 @@ void CEngrave::GetSignalEtc(SOCKET_DATA SockData)
 		{
 		case _SigInx::_EmgAoi:
 			pDoc->BtnStatus.Etc.EmgAoi = (SockData.nData1 > 0) ? TRUE : FALSE;
+			//pView->m_pMpe->Write(_T(""), (long)SockData.nData1);
 			break;
 			// Is
 		case _SigInx::_IsEmgAoi:
@@ -861,6 +875,7 @@ void CEngrave::GetSignalPunch(SOCKET_DATA SockData)
 			break;
 		case _SigInx::_OnePnlMk:
 			pDoc->BtnStatus.Mk.MvOne = (SockData.nData1 > 0) ? TRUE : FALSE;
+			pView->m_pMpe->Write(_T("MB440151"), (long)SockData.nData1);
 			break;
 		case _SigInx::_DancerUpMk:
 			pDoc->BtnStatus.Mk.DcRSol = (SockData.nData1 > 0) ? TRUE : FALSE;
@@ -965,6 +980,7 @@ void CEngrave::GetSignalAOIDn(SOCKET_DATA SockData)
 			break;
 		case _SigInx::_OnePnlAoiDn:
 			pDoc->BtnStatus.AoiDn.MvOne = (SockData.nData1 > 0) ? TRUE : FALSE;
+			pView->m_pMpe->Write(_T("MB440151"), (long)SockData.nData1);
 			break;
 		case _SigInx::_ClrRollAoiDn:
 			pDoc->BtnStatus.AoiDn.ClrRoll = (SockData.nData1 > 0) ? TRUE : FALSE;
@@ -1077,6 +1093,7 @@ void CEngrave::GetSignalAOIUp(SOCKET_DATA SockData)
 			break;
 		case _SigInx::_OnePnlAoiUp:
 			pDoc->BtnStatus.AoiUp.MvOne = (SockData.nData1 > 0) ? TRUE : FALSE;
+			pView->m_pMpe->Write(_T("MB440151"), (long)SockData.nData1);
 			break;
 		case _SigInx::_ClrRollAoiUp:
 			pDoc->BtnStatus.AoiUp.ClrRoll = (SockData.nData1 > 0) ? TRUE : FALSE;
@@ -1181,6 +1198,7 @@ void CEngrave::GetSignalEngrave(SOCKET_DATA SockData)
 			break;
 		case _SigInx::_OnePnlEng:
 			pDoc->BtnStatus.Eng.MvOne = (SockData.nData1 > 0) ? TRUE : FALSE;
+			pView->m_pMpe->Write(_T("MB440151"), (long)SockData.nData1);
 			break;
 		case _SigInx::_DancerUpEng:
 			pDoc->BtnStatus.Eng.DcRSol = (SockData.nData1 > 0) ? TRUE : FALSE;

@@ -972,6 +972,14 @@ BOOL CGvisR2R_PunchDoc::LoadWorkingInfo()
 		WorkingInfo.System.sPathMkMenu01 = CString(_T("C:\\PunchWork\\MkMenu01.ini"));
 	}
 
+	if (0 < ::GetPrivateProfileString(_T("System"), _T("MkMenu03Path"), NULL, szData, sizeof(szData), sPath))
+		WorkingInfo.System.sPathMkMenu03 = CString(szData);
+	else
+	{
+		AfxMessageBox(_T("PunchingCurrentInfoPath가 설정되어 있지 않습니다."), MB_ICONWARNING | MB_OK);
+		WorkingInfo.System.sPathMkMenu03 = CString(_T("C:\\PunchWork\\MkMenu03.ini"));
+	}
+
 	if (0 < ::GetPrivateProfileString(_T("System"), _T("PunchingCurrentInfoBufPath"), NULL, szData, sizeof(szData), sPath))
 		WorkingInfo.System.sPathMkCurrInfoBuf = CString(szData);
 	else
@@ -8833,4 +8841,75 @@ void CGvisR2R_PunchDoc::GetMkMenu01()
 
 void CGvisR2R_PunchDoc::SetMkMenu01()
 {
+}
+
+
+void CGvisR2R_PunchDoc::GetMkMenu03Main()
+{
+	CString sPath = WorkingInfo.System.sPathMkMenu03;
+	TCHAR szData[512];
+
+	if (sPath.IsEmpty())
+		return;
+
+	if (0 < ::GetPrivateProfileString(_T("Main"), _T("Ready"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Main.Ready = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Main"), _T("Run"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Main.Run = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Main"), _T("Reset"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Main.Reset = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Main"), _T("Stop"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Main.Stop = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Main"), _T("Auto"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Main.Auto = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Main"), _T("Manual"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Main.Manual = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	pDoc->Status.bAuto = pDoc->BtnStatus.Main.Auto;
+	pDoc->Status.bManual = pDoc->BtnStatus.Main.Manual;
+
+	if (0 < ::GetPrivateProfileString(_T("Main"), _T("Relation"), NULL, szData, sizeof(szData), sPath))
+	{
+		pDoc->BtnStatus.Rc.Relation = (_ttoi(szData) > 0) ? TRUE : FALSE;
+		pDoc->BtnStatus.Mk.Relation = (_ttoi(szData) > 0) ? TRUE : FALSE;
+		pDoc->BtnStatus.AoiDn.Relation = (_ttoi(szData) > 0) ? TRUE : FALSE;
+		pDoc->BtnStatus.AoiUp.Relation = (_ttoi(szData) > 0) ? TRUE : FALSE;
+		pDoc->BtnStatus.Eng.Relation = (_ttoi(szData) > 0) ? TRUE : FALSE;
+		pDoc->BtnStatus.Uc.Relation = (_ttoi(szData) > 0) ? TRUE : FALSE;
+	}
+}
+
+void CGvisR2R_PunchDoc::GetMkMenu03()
+{
+	CString sPath = WorkingInfo.System.sPathMkMenu03;
+	TCHAR szData[512];
+
+	if (sPath.IsEmpty())
+		return;
+
+	if (0 < ::GetPrivateProfileString(_T("TqMotor"), _T("MkTq"), NULL, szData, sizeof(szData), sPath))
+		pDoc->WorkingInfo.Motion.bMkTq = pDoc->BtnStatus.Tq.Mk = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("TqMotor"), _T("AoiTq"), NULL, szData, sizeof(szData), sPath))
+		pDoc->WorkingInfo.Motion.bAoiTq = pDoc->BtnStatus.Tq.Aoi = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("TqMotor"), _T("EngTq"), NULL, szData, sizeof(szData), sPath))
+		pDoc->WorkingInfo.Motion.bEngraveTq = pDoc->BtnStatus.Tq.Eng = (_ttoi(szData) > 0) ? TRUE : FALSE;
+}
+
+void CGvisR2R_PunchDoc::SetMkMenu03(CString sMenu, CString sItem, BOOL bOn)
+{
+	CString sPath = WorkingInfo.System.sPathMkMenu03;
+	CString sData = _T("");
+
+	if (sPath.IsEmpty())
+		return;
+
+	sData.Format(_T("%d"), bOn > 0 ? 1 : 0);
+	::WritePrivateProfileString(sMenu, sItem, sData, sPath);
 }

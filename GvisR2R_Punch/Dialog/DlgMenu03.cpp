@@ -2657,20 +2657,24 @@ void CDlgMenu03::SwEngraveBtn(int nCtrlID, BOOL bOn)
 	{
 	// [Main]
 	case IDC_CHK_34:		// 마킹부 운전준비 스위치 "MB005503"
-		pView->m_pEngrave->SwReady(bOn);
 		pDoc->BtnStatus.Main.Ready = bOn;
+		pDoc->SetMkMenu03(_T("Main"), _T("Ready"), bOn);
+		pView->m_pEngrave->SwReady(bOn);
 		break;
 	case IDC_CHK_0:			// 마킹부 운전 스위치 "MB005501"
-		pView->m_pEngrave->SwRun(bOn);
 		pDoc->BtnStatus.Main.Run = bOn;
+		pDoc->SetMkMenu03(_T("Main"), _T("Run"), bOn);
+		pView->m_pEngrave->SwRun(bOn);
 		break;
 	case IDC_CHK_1:			// 마킹부 리셋 스위치 "MB005504"
-		pView->m_pEngrave->SwReset(bOn);
 		pDoc->BtnStatus.Main.Reset = bOn;
+		pDoc->SetMkMenu03(_T("Main"), _T("Reset"), bOn);
+		pView->m_pEngrave->SwReset(bOn);
 		break;
 	case IDC_CHK_33:		// 마킹부 정지 스위치 "MB005502"
-		pView->m_pEngrave->SwStop(bOn);
 		pDoc->BtnStatus.Main.Stop = bOn;
+		pDoc->SetMkMenu03(_T("Main"), _T("Stop"), bOn);
+		pView->m_pEngrave->SwStop(bOn);
 		break;
 	//case IDC_CHK_:		// 마킹부 자동(ON)/수동(OFF) 스위치 "MB005505"
 	//	pView->m_pEngrave->SwAuto(bOn);
@@ -2681,377 +2685,458 @@ void CDlgMenu03::SwEngraveBtn(int nCtrlID, BOOL bOn)
 
 	// [Torque Motor]
 	case IDC_CHK_2:		// 마킹부 텐션 ON (PC가 ON/OFF시킴) "MB440155"
-		pView->m_pEngrave->SwMkTq(bOn); // pDoc->WorkingInfo.Motion.bMkTq
 		pDoc->WorkingInfo.Motion.bMkTq = pDoc->BtnStatus.Tq.Mk = bOn;
+		pDoc->SetMkMenu03(_T("TqMotor"), _T("MkTq"), bOn);
+		pView->m_pEngrave->SwMkTq(bOn); // pDoc->WorkingInfo.Motion.bMkTq
 		break;
 	case IDC_CHK_3:		// 검사부 텐션 ON (PC가 ON/OFF시킴) "MB440156"
-		pView->m_pEngrave->SwAoiTq(bOn); // pDoc->WorkingInfo.Motion.bAoiTq
 		pDoc->WorkingInfo.Motion.bAoiTq = pDoc->BtnStatus.Tq.Aoi = bOn;
+		pDoc->SetMkMenu03(_T("TqMotor"), _T("AoiTq"), bOn);
+		pView->m_pEngrave->SwAoiTq(bOn); // pDoc->WorkingInfo.Motion.bAoiTq
 		break;
 	case IDC_CHK_84:	// 각인부 텐션 ON (PC가 ON/OFF시킴) "MB440154"
-		pView->m_pEngrave->SwEngTq(bOn); // pDoc->WorkingInfo.Motion.bEngraveTq
 		pDoc->WorkingInfo.Motion.bEngraveTq = pDoc->BtnStatus.Tq.Eng = bOn;
+		pDoc->SetMkMenu03(_T("TqMotor"), _T("EngTq"), bOn);
+		pView->m_pEngrave->SwEngTq(bOn); // pDoc->WorkingInfo.Motion.bEngraveTq
 		break;
 
 	// [Induction Motor}
 	case IDC_CHK_68:	// One Metal		//pView->SetTwoMetal(FALSE, TRUE);
-		pView->m_pEngrave->SwRcInductionCcw(bOn);
 		pDoc->WorkingInfo.LastJob.bOneMetal = pDoc->BtnStatus.Induct.Rc = bOn;
+		pDoc->SetMkMenu03(_T("Induction"), _T("RcCcw"), bOn);
+		pView->m_pEngrave->SwRcInductionCcw(bOn);
 		break;
 
 	case IDC_CHK_69:	// Two Metal		//pView->SetTwoMetal(TRUE, TRUE);
-		pView->m_pEngrave->SwUcInductionCcw(bOn);
 		pDoc->WorkingInfo.LastJob.bTwoMetal = pDoc->BtnStatus.Induct.Uc = bOn;
+		pDoc->SetMkMenu03(_T("Induction"), _T("UcCcw"), bOn);
+		pView->m_pEngrave->SwUcInductionCcw(bOn);
 		break;
 
 	// [Core 150mm]
 	case IDC_CHK_70:	// Recoiler		//SetCore150mmRecoiler(TRUE);
-		pView->m_pEngrave->SwRcCore150mm(bOn);
 		pDoc->BtnStatus.Core150.Rc = bOn;
+		pDoc->SetMkMenu03(_T("Core"), _T("Rc150"), bOn);
+		pView->m_pEngrave->SwRcCore150mm(bOn);
 		break;
 
 	case IDC_CHK_71:	// Uncoiler		//SetCore150mmUncoiler(TRUE);
-		pView->m_pEngrave->SwUcCore150mm(bOn);
 		pDoc->BtnStatus.Core150.Uc = bOn;
+		pDoc->SetMkMenu03(_T("Core"), _T("Uc150"), bOn);
+		pView->m_pEngrave->SwUcCore150mm(bOn);
 		break;
 
 	// Recoiler
 	case IDC_CHK_4:			// 리코일러 연동 온/오프 스위치 "MB005801"
-		pView->m_pEngrave->SwRcRelation(bOn);
 		pDoc->BtnStatus.Rc.Relation = bOn;
 		pDoc->BtnStatus.Mk.Relation = bOn;
 		pDoc->BtnStatus.AoiDn.Relation = bOn;
 		pDoc->BtnStatus.AoiUp.Relation = bOn;
 		pDoc->BtnStatus.Eng.Relation = bOn;
 		pDoc->BtnStatus.Uc.Relation = bOn;
+		pDoc->SetMkMenu03(_T("Main"), _T("Relation"), bOn);
+		pView->m_pEngrave->SwRcRelation(bOn);
 		break;
 	case IDC_CHK_5:			// 리코일러 제품휠 정회전 스위치 "MB00580C"
-		pView->m_pEngrave->SwRcFdCw(bOn);
 		pDoc->BtnStatus.Rc.FdCw = bOn;
+		pDoc->SetMkMenu03(_T("Recoiler"), _T("MvCw"), bOn);
+		pView->m_pEngrave->SwRcFdCw(bOn);
 		break;
 	case IDC_CHK_6:			// 리코일러 제품휠 역회전 스위치 "MB00580D"
-		pView->m_pEngrave->SwRcFdCcw(bOn);
 		pDoc->BtnStatus.Rc.FdCcw = bOn;
+		pDoc->SetMkMenu03(_T("Recoiler"), _T("MvCcw"), bOn);
+		pView->m_pEngrave->SwRcFdCcw(bOn);
 		break;
 	case IDC_CHK_41:		// 리코일러 제품척 클램프 스위치 "MB00580B"
-		pView->m_pEngrave->SwRcReelChuck(bOn);
 		pDoc->BtnStatus.Rc.ReelChuck = bOn;
+		pDoc->SetMkMenu03(_T("Recoiler"), _T("PrdChuck"), bOn);
+		pView->m_pEngrave->SwRcReelChuck(bOn);
 		break;
 	case IDC_CHK_42:		// 리코일러 댄서롤 상승/하강 스위치 "MB005802"
-		pView->m_pEngrave->SwRcDcRlUpDn(bOn);
 		pDoc->BtnStatus.Rc.DcRlUpDn = bOn;
+		pDoc->SetMkMenu03(_T("Recoiler"), _T("DancerUp"), bOn);
+		pView->m_pEngrave->SwRcDcRlUpDn(bOn);
 		break;
 	case IDC_CHK_43:		// 리코일러 제품 이음매(상/좌) 스위치 "MB005805"
-		pView->m_pEngrave->SwRcReelJoinL(bOn);
 		pDoc->BtnStatus.Rc.ReelJoinL = bOn;
+		pDoc->SetMkMenu03(_T("Recoiler"), _T("PasteUpLf"), bOn);
+		pView->m_pEngrave->SwRcReelJoinL(bOn);
 		break;
 	case IDC_CHK_7:			// 리코일러 제품 이음매(하/우) 스위치 "MB005806"
-		pView->m_pEngrave->SwRcReelJoinR(bOn);
 		pDoc->BtnStatus.Rc.ReelJoinR = bOn;
+		pDoc->SetMkMenu03(_T("Recoiler"), _T("PasteUpRt"), bOn);
+		pView->m_pEngrave->SwRcReelJoinR(bOn);
 		break;
 	case IDC_CHK_8:			// 리코일러 제품 이음매 진공 스위치 "MB00580F"
-		pView->m_pEngrave->SwRcReelJoinVac(bOn);
 		pDoc->BtnStatus.Rc.ReelJoinVac = bOn;
+		pDoc->SetMkMenu03(_T("Recoiler"), _T("PasteVac"), bOn);
+		pView->m_pEngrave->SwRcReelJoinVac(bOn);
 		break;
 	case IDC_CHK_44:		// 리코일러 간지척 클램프 스위치 "MB005808"
-		pView->m_pEngrave->SwRcPaperChuck(bOn);
 		pDoc->BtnStatus.Rc.PprChuck = bOn;
+		pDoc->SetMkMenu03(_T("Recoiler"), _T("PprChuck"), bOn);
+		pView->m_pEngrave->SwRcPaperChuck(bOn);
 		break;
 	case IDC_CHK_45:		// 리코일러 간지휠 정회전 스위치 "MB005809"
-		pView->m_pEngrave->SwRcPaperCw(bOn);
 		pDoc->BtnStatus.Rc.PprCw = bOn;
+		pDoc->SetMkMenu03(_T("Recoiler"), _T("PprCw"), bOn);
+		pView->m_pEngrave->SwRcPaperCw(bOn);
 		break;
 	case IDC_CHK_46:		// 리코일러 간지휠 역회전 스위치 "MB00580A"
-		pView->m_pEngrave->SwRcPaperCcw(bOn);
 		pDoc->BtnStatus.Rc.PprCcw = bOn;
+		pDoc->SetMkMenu03(_T("Recoiler"), _T("PprCcw"), bOn);
+		pView->m_pEngrave->SwRcPaperCcw(bOn);
 		break;
 	case IDC_CHK_66:		// 리코일러 Rewinder 동작 스위치 "MB005803"
-		pView->m_pEngrave->SwRcRewinder(bOn);
 		pDoc->BtnStatus.Rc.Rewine = bOn;
+		pDoc->SetMkMenu03(_T("Recoiler"), _T("DoRewind"), bOn);
+		pView->m_pEngrave->SwRcRewinder(bOn);
 		break;
 	case IDC_CHK_67:		// 리코일러 Rewinder 제품 & 간지 스위치 "MB005804"
-		pView->m_pEngrave->SwRcRewinderReelPaper(bOn);
 		pDoc->BtnStatus.Rc.RewineReelPpr = bOn;
+		pDoc->SetMkMenu03(_T("Recoiler"), _T("PrdPprRewind"), bOn);
+		pView->m_pEngrave->SwRcRewinderReelPaper(bOn);
 		break;
 
 	// Punching
 	case IDC_CHK_9:			// 마킹부 연동 온/오프 스위치 "MB005511"
-		pView->m_pEngrave->SwMkRelation(bOn);
 		pDoc->BtnStatus.Rc.Relation = bOn;
 		pDoc->BtnStatus.Mk.Relation = bOn;
 		pDoc->BtnStatus.AoiDn.Relation = bOn;
 		pDoc->BtnStatus.AoiUp.Relation = bOn;
 		pDoc->BtnStatus.Eng.Relation = bOn;
 		pDoc->BtnStatus.Uc.Relation = bOn;
+		pDoc->SetMkMenu03(_T("Main"), _T("Relation"), bOn);
+		pView->m_pEngrave->SwMkRelation(bOn);
 		break;
 	case IDC_CHK_10:		// 마킹부 피딩 정회전 스위치 "MB005513"
-		pView->m_pEngrave->SwMkFdCw(bOn);
 		pDoc->BtnStatus.Mk.FdCw = bOn;
+		pDoc->SetMkMenu03(_T("Punching"), _T("MvCw"), bOn);
+		pView->m_pEngrave->SwMkFdCw(bOn);
 		break;
 	case IDC_CHK_11:		// 마킹부 피딩 역회전 스위치 "MB005514"
-		pView->m_pEngrave->SwMkFdCcw(bOn);
 		pDoc->BtnStatus.Mk.FdCcw = bOn;
+		pDoc->SetMkMenu03(_T("Punching"), _T("MvCcw"), bOn);
+		pView->m_pEngrave->SwMkFdCcw(bOn);
 		break;
 	case IDC_CHK_12:		// 마킹부 피딩 진공 스위치 "MB005515"
-		pView->m_pEngrave->SwMkFdVac(bOn);
 		pDoc->BtnStatus.Mk.FdVac = bOn;
+		pDoc->SetMkMenu03(_T("Punching"), _T("FdVac"), bOn);
+		pView->m_pEngrave->SwMkFdVac(bOn);
 		break;
 	case IDC_CHK_13:		// 마킹부 제품푸쉬 스위치 "MB005516" // (토크 진공 스위치) - X
-		pView->m_pEngrave->SwMkPushUp(bOn);
 		pDoc->BtnStatus.Mk.PushUp = bOn;
+		pDoc->SetMkMenu03(_T("Punching"), _T("PushUp"), bOn);
+		pView->m_pEngrave->SwMkPushUp(bOn);
 		break;
 	case IDC_CHK_14:		// 마킹부 테이블 브로워 스위치 "MB005512"
-		pView->m_pEngrave->SwMkTblBlw(bOn);
 		pDoc->BtnStatus.Mk.TblBlw = bOn;
+		pDoc->SetMkMenu03(_T("Punching"), _T("TblBlw"), bOn);
+		pView->m_pEngrave->SwMkTblBlw(bOn);
 		break;
 	case IDC_CHK_15:		// 마킹부 테이블 진공 스위치 "MB005517"
-		pView->m_pEngrave->SwMkTblVac(bOn);
 		pDoc->BtnStatus.Mk.TblVac = bOn;
+		pDoc->SetMkMenu03(_T("Punching"), _T("TblVac"), bOn);
+		pView->m_pEngrave->SwMkTblVac(bOn);
 		break;
 	case IDC_CHK_51:		// 마킹부 피딩 클램프 스위치 "MB005519"
-		pView->m_pEngrave->SwMkFdClp(bOn);
 		pDoc->BtnStatus.Mk.FdClp = bOn;
+		pDoc->SetMkMenu03(_T("Punching"), _T("FdClamp"), bOn);
+		pView->m_pEngrave->SwMkFdClp(bOn);
 		break;
 	case IDC_CHK_52:		// 마킹부 텐션 클램프 스위치 "MB00551A"
-		pView->m_pEngrave->SwMkTqClp(bOn);
 		pDoc->BtnStatus.Mk.TqClp = bOn;
+		pDoc->SetMkMenu03(_T("Punching"), _T("TensClamp"), bOn);
+		pView->m_pEngrave->SwMkTqClp(bOn);
 		break;
 	case IDC_CHK_16:		// 마킹부 한판넬 이송 스위치 "MB440151"
-		pView->m_pEngrave->SwMkMvOne(bOn);
 		pDoc->BtnStatus.Mk.MvOne = bOn;
+		pDoc->SetMkMenu03(_T("Punching"), _T("OnePnl"), bOn);
+		pView->m_pEngrave->SwMkMvOne(bOn);
 		break;
 	case IDC_CHK_49:		// 마킹부 레이져마크 스위치 "MB005518"
-		pView->m_pEngrave->SwMkLsrPt(bOn);
 		pDoc->BtnStatus.Mk.LsrPt = bOn;
+		pDoc->SetMkMenu03(_T("Punching"), _T("Lsr"), bOn);
+		pView->m_pEngrave->SwMkLsrPt(bOn);
 		break;
 	case IDC_CHK_48:		// 마킹부 댄서롤 상승/하강 스위치 "MB00551B", "X421B"
-		pView->m_pEngrave->SwMkDcRSol(bOn);
 		pDoc->BtnStatus.Mk.DcRSol = bOn;
+		pDoc->SetMkMenu03(_T("Punching"), _T("DancerUp"), bOn);
+		pView->m_pEngrave->SwMkDcRSol(bOn);
 		break;
 
 	// AOI 하면 검사	
 	case IDC_CHK_55:		// 검사부 하 연동 온/오프 스위치 "MB005701"
-		pView->m_pEngrave->SwAoiDnRelation(bOn);
 		pDoc->BtnStatus.Rc.Relation = bOn;
 		pDoc->BtnStatus.Mk.Relation = bOn;
 		pDoc->BtnStatus.AoiDn.Relation = bOn;
 		pDoc->BtnStatus.AoiUp.Relation = bOn;
 		pDoc->BtnStatus.Eng.Relation = bOn;
 		pDoc->BtnStatus.Uc.Relation = bOn;
+		pDoc->SetMkMenu03(_T("Main"), _T("Relation"), bOn);
+		pView->m_pEngrave->SwAoiDnRelation(bOn);
 		break;
 	case IDC_CHK_56:		// 검사부 하 피딩 정회전 스위치 "MB005703"
-		pView->m_pEngrave->SwAoiDnFdCw(bOn);
 		pDoc->BtnStatus.AoiDn.FdCw = bOn;
+		pDoc->SetMkMenu03(_T("AoiDn"), _T("MvCw"), bOn);
+		pView->m_pEngrave->SwAoiDnFdCw(bOn);
 		break;
 	case IDC_CHK_57:		// 검사부 하 피딩 역회전 스위치 "MB005704"
-		pView->m_pEngrave->SwAoiDnFdCcw(bOn);
 		pDoc->BtnStatus.AoiDn.FdCcw = bOn;
+		pDoc->SetMkMenu03(_T("AoiDn"), _T("MvCcw"), bOn);
+		pView->m_pEngrave->SwAoiDnFdCcw(bOn);
 		break;
 	case IDC_CHK_58:		// 검사부 하 피딩 진공 스위치 "MB005705"
-		pView->m_pEngrave->SwAoiDnFdVac(bOn);
 		pDoc->BtnStatus.AoiDn.FdVac = bOn;
+		pDoc->SetMkMenu03(_T("AoiDn"), _T("FdVac"), bOn);
+		pView->m_pEngrave->SwAoiDnFdVac(bOn);
 		break;
 	case IDC_CHK_59:		// 검사부 하 제품푸쉬 스위치 "MB005706" // (토크 진공 스위치) - X
-		pView->m_pEngrave->SwAoiDnPushUp(bOn);
 		pDoc->BtnStatus.AoiDn.PushUp = bOn;
+		pDoc->SetMkMenu03(_T("AoiDn"), _T("PushUp"), bOn);
+		pView->m_pEngrave->SwAoiDnPushUp(bOn);
 		break;
 	case IDC_CHK_60:		// 검사부 하 테이블 브로워 스위치 "MB005702"
-		pView->m_pEngrave->SwAoiDnTblBlw(bOn);
 		pDoc->BtnStatus.AoiDn.TblBlw = bOn;
+		pDoc->SetMkMenu03(_T("AoiDn"), _T("TblBlw"), bOn);
+		pView->m_pEngrave->SwAoiDnTblBlw(bOn);
 		break;
 	case IDC_CHK_61:		// 검사부 하 테이블 진공 스위치 "MB005707"
-		pView->m_pEngrave->SwAoiDnTblVac(bOn);
 		pDoc->BtnStatus.AoiDn.TblVac = bOn;
+		pDoc->SetMkMenu03(_T("AoiDn"), _T("TblVac"), bOn);
+		pView->m_pEngrave->SwAoiDnTblVac(bOn);
 		break;
 	case IDC_CHK_64:		// 검사부 하 피딩 클램프 스위치 "MB005709"
-		pView->m_pEngrave->SwAoiDnFdClp(bOn);
 		pDoc->BtnStatus.AoiDn.FdClp = bOn;
+		pDoc->SetMkMenu03(_T("AoiDn"), _T("FdClamp"), bOn);
+		pView->m_pEngrave->SwAoiDnFdClp(bOn);
 		break;
 	case IDC_CHK_65:		// 검사부 하 텐션 클램프 스위치 "MB00570A"
-		pView->m_pEngrave->SwAoiDnTqClp(bOn);
 		pDoc->BtnStatus.AoiDn.TqClp = bOn;
+		pDoc->SetMkMenu03(_T("AoiDn"), _T("TensClamp"), bOn);
+		pView->m_pEngrave->SwAoiDnTqClp(bOn);
 		break;
 	case IDC_CHK_62:		// 검사부 하 한판넬 이송 스위치 "MB440151"
-		pView->m_pEngrave->SwAoiDnMvOne(bOn);
 		pDoc->BtnStatus.AoiDn.MvOne = bOn;
+		pDoc->SetMkMenu03(_T("AoiDn"), _T("OnePnl"), bOn);
+		pView->m_pEngrave->SwAoiDnMvOne(bOn);
 		break;
 	case IDC_CHK_63:		// 검사부 하 레이져마크 스위치 "MB005708"
-		pView->m_pEngrave->SwAoiDnLsrPt(bOn);
 		pDoc->BtnStatus.AoiDn.LsrPt = bOn;
+		pDoc->SetMkMenu03(_T("AoiDn"), _T("Lsr"), bOn);
+		pView->m_pEngrave->SwAoiDnLsrPt(bOn);
 		break;
 	case IDC_CHK_88:		// 검사부 하 초음파 세정기 속도 스위치 "MB44014F" //pDoc->WorkingInfo.LastJob.bAoiDnCleanner
-		pView->m_pEngrave->SwAoiDnVelSonicBlw(bOn);
 		pDoc->BtnStatus.AoiDn.VelSonicBlw = bOn;
+		pDoc->SetMkMenu03(_T("AoiDn"), _T("VelClrSonic"), bOn);
+		pView->m_pEngrave->SwAoiDnVelSonicBlw(bOn);
 		break;
 		
 
 	// AOI 상면 검사
 	case IDC_CHK_17:		// 검사부 상 연동 온/오프 스위치 "MB005601"
-		pView->m_pEngrave->SwAoiUpRelation(bOn);
 		pDoc->BtnStatus.Rc.Relation = bOn;
 		pDoc->BtnStatus.Mk.Relation = bOn;
 		pDoc->BtnStatus.AoiDn.Relation = bOn;
 		pDoc->BtnStatus.AoiUp.Relation = bOn;
 		pDoc->BtnStatus.Eng.Relation = bOn;
 		pDoc->BtnStatus.Uc.Relation = bOn;
+		pDoc->SetMkMenu03(_T("Main"), _T("Relation"), bOn);
+		pView->m_pEngrave->SwAoiUpRelation(bOn);
 		break;
 	case IDC_CHK_18:		// 검사부 상 피딩 정회전 스위치 "MB005603"
-		pView->m_pEngrave->SwAoiUpFdCw(bOn);
 		pDoc->BtnStatus.AoiUp.FdCw = bOn;
+		pDoc->SetMkMenu03(_T("AoiUp"), _T("MvCw"), bOn);
+		pView->m_pEngrave->SwAoiUpFdCw(bOn);
 		break;
 	case IDC_CHK_19:		// 검사부 상 피딩 역회전 스위치 "MB005604"
-		pView->m_pEngrave->SwAoiUpFdCcw(bOn);
 		pDoc->BtnStatus.AoiUp.FdCcw = bOn;
+		pDoc->SetMkMenu03(_T("AoiUp"), _T("MvCcw"), bOn);
+		pView->m_pEngrave->SwAoiUpFdCcw(bOn);
 		break;
 	case IDC_CHK_20:		// 검사부 상 피딩 진공 스위치 "MB005605"
-		pView->m_pEngrave->SwAoiUpFdVac(bOn);
 		pDoc->BtnStatus.AoiUp.FdVac = bOn;
+		pDoc->SetMkMenu03(_T("AoiUp"), _T("FdVac"), bOn);
+		pView->m_pEngrave->SwAoiUpFdVac(bOn);
 		break;
 	case IDC_CHK_21:		// 검사부 상 제품푸쉬 스위치 "MB005606" // (토크 진공 스위치) - X
-		pView->m_pEngrave->SwAoiUpPushUp(bOn);
 		pDoc->BtnStatus.AoiUp.PushUp = bOn;
+		pDoc->SetMkMenu03(_T("AoiUp"), _T("PushUp"), bOn);
+		pView->m_pEngrave->SwAoiUpPushUp(bOn);
 		break;
 	case IDC_CHK_22:		// 검사부 상 테이블 브로워 스위치 "MB005602"
-		pView->m_pEngrave->SwAoiUpTblBlw(bOn);
 		pDoc->BtnStatus.AoiUp.TblBlw = bOn;
+		pDoc->SetMkMenu03(_T("AoiUp"), _T("TblBlw"), bOn);
+		pView->m_pEngrave->SwAoiUpTblBlw(bOn);
 		break;
 	case IDC_CHK_23:		// 검사부 상 테이블 진공 스위치 "MB005607"
-		pView->m_pEngrave->SwAoiUpTblVac(bOn);
 		pDoc->BtnStatus.AoiUp.TblVac = bOn;
+		pDoc->SetMkMenu03(_T("AoiUp"), _T("TblVac"), bOn);
+		pView->m_pEngrave->SwAoiUpTblVac(bOn);
 		break;
 	case IDC_CHK_53:		// 검사부 상 피딩 클램프 스위치 "MB005609"
-		pView->m_pEngrave->SwAoiUpFdClp(bOn);
 		pDoc->BtnStatus.AoiUp.FdClp = bOn;
+		pDoc->SetMkMenu03(_T("AoiUp"), _T("FdClamp"), bOn);
+		pView->m_pEngrave->SwAoiUpFdClp(bOn);
 		break;
 	case IDC_CHK_54:		// 검사부 상 텐션 클램프 스위치 "MB00560A"
-		pView->m_pEngrave->SwAoiUpTqClp(bOn);
 		pDoc->BtnStatus.AoiUp.TqClp = bOn;
+		pDoc->SetMkMenu03(_T("AoiUp"), _T("TensClamp"), bOn);
+		pView->m_pEngrave->SwAoiUpTqClp(bOn);
 		break;
 	case IDC_CHK_24:		// 검사부 상 한판넬 이송 스위치  "MB440151"
-		pView->m_pEngrave->SwAoiUpMvOne(bOn);
 		pDoc->BtnStatus.AoiUp.MvOne = bOn;
+		pDoc->SetMkMenu03(_T("AoiUp"), _T("OnePnl"), bOn);
+		pView->m_pEngrave->SwAoiUpMvOne(bOn);
 		break;
 	case IDC_CHK_50:		// 검사부 상 레이져마크 스위치 "MB005608"
-		pView->m_pEngrave->SwAoiUpLsrPt(bOn);
 		pDoc->BtnStatus.AoiUp.LsrPt = bOn;
+		pDoc->SetMkMenu03(_T("AoiUp"), _T("Lsr"), bOn);
+		pView->m_pEngrave->SwAoiUpLsrPt(bOn);
 		break;
 
 	// 각인부
 	case IDC_CHK_72:			// 각인부 연동 온/오프 스위치
-		pView->m_pEngrave->SwEngRelation(bOn);
 		pDoc->BtnStatus.Rc.Relation = bOn;
 		pDoc->BtnStatus.Mk.Relation = bOn;
 		pDoc->BtnStatus.AoiDn.Relation = bOn;
 		pDoc->BtnStatus.AoiUp.Relation = bOn;
 		pDoc->BtnStatus.Eng.Relation = bOn;
 		pDoc->BtnStatus.Uc.Relation = bOn;
+		pDoc->SetMkMenu03(_T("Main"), _T("Relation"), bOn);
+		pView->m_pEngrave->SwEngRelation(bOn);
 		break;
 	case IDC_CHK_73:		// 각인부 피딩 정회전 스위치
-		pView->m_pEngrave->SwEngFdCw(bOn);
 		pDoc->BtnStatus.Eng.FdCw = bOn;
+		pDoc->SetMkMenu03(_T("Engraving"), _T("MvCw"), bOn);
+		pView->m_pEngrave->SwEngFdCw(bOn);
 		break;
 	case IDC_CHK_74:		// 각인부 피딩 역회전 스위치
-		pView->m_pEngrave->SwEngFdCcw(bOn);
 		pDoc->BtnStatus.Eng.FdCcw = bOn;
+		pDoc->SetMkMenu03(_T("Engraving"), _T("MvCcw"), bOn);
+		pView->m_pEngrave->SwEngFdCcw(bOn);
 		break;
 	case IDC_CHK_75:		// 각인부 피딩 진공 스위치
-		pView->m_pEngrave->SwEngFdVac(bOn);
 		pDoc->BtnStatus.Eng.FdVac = bOn;
+		pDoc->SetMkMenu03(_T("Engraving"), _T("FdVac"), bOn);
+		pView->m_pEngrave->SwEngFdVac(bOn);
 		break;
 	case IDC_CHK_76:		// 각인부 제품푸쉬 스위치 // (토크 진공 스위치) - X
-		pView->m_pEngrave->SwEngPushUp(bOn);
 		pDoc->BtnStatus.Eng.PushUp = bOn;
+		pDoc->SetMkMenu03(_T("Engraving"), _T("PushUp"), bOn);
+		pView->m_pEngrave->SwEngPushUp(bOn);
 		break;
 	case IDC_CHK_77:		// 각인부 테이블 브로워 스위치
-		pView->m_pEngrave->SwEngTblBlw(bOn);
 		pDoc->BtnStatus.Eng.TblBlw = bOn;
+		pDoc->SetMkMenu03(_T("Engraving"), _T("TblBlw"), bOn);
+		pView->m_pEngrave->SwEngTblBlw(bOn);
 		break;
 	case IDC_CHK_78:		// 각인부 테이블 진공 스위치
-		pView->m_pEngrave->SwEngTblVac(bOn);
 		pDoc->BtnStatus.Eng.TblVac = bOn;
+		pDoc->SetMkMenu03(_T("Engraving"), _T("TblVac"), bOn);
+		pView->m_pEngrave->SwEngTblVac(bOn);
 		break;
 	case IDC_CHK_82:		// 각인부 피딩 클램프 스위치
-		pView->m_pEngrave->SwEngFdClp(bOn);
 		pDoc->BtnStatus.Eng.FdClp = bOn;
+		pDoc->SetMkMenu03(_T("Engraving"), _T("FdClamp"), bOn);
+		pView->m_pEngrave->SwEngFdClp(bOn);
 		break;
 	case IDC_CHK_83:		// 각인부 텐션 클램프 스위치
-		pView->m_pEngrave->SwEngTqClp(bOn);
 		pDoc->BtnStatus.Eng.TqClp = bOn;
+		pDoc->SetMkMenu03(_T("Engraving"), _T("TensClamp"), bOn);
+		pView->m_pEngrave->SwEngTqClp(bOn);
 		break;
 	case IDC_CHK_79:		// 각인부 한판넬 이송 스위치  "MB440151"
-		pView->m_pEngrave->SwEngMvOne(bOn);
 		pDoc->BtnStatus.Eng.MvOne = bOn;
+		pDoc->SetMkMenu03(_T("Engraving"), _T("OnePnl"), bOn);
+		pView->m_pEngrave->SwEngMvOne(bOn);
 		break;
 	case IDC_CHK_81:		// 각인부 레이져마크 스위치 "" IDC_CHK_81
-		pView->m_pEngrave->SwEngLsrPt(bOn);
 		pDoc->BtnStatus.Eng.LsrPt = bOn;
+		pDoc->SetMkMenu03(_T("Engraving"), _T("Lsr"), bOn);
+		pView->m_pEngrave->SwEngLsrPt(bOn);
 		break;
 	case IDC_CHK_80:		// 각인부 댄서롤 상승/하강 스위치
-		pView->m_pEngrave->SwEngDcRSol(bOn);
 		pDoc->BtnStatus.Eng.DcRSol = bOn;
+		pDoc->SetMkMenu03(_T("Engraving"), _T("VelClrSonic"), bOn);
+		pView->m_pEngrave->SwEngDcRSol(bOn);
 		break;
 	case IDC_CHK_87:		// 각인부 초음파 세정기 스위치 "MB44014E" pDoc->WorkingInfo.LastJob.bEngraveCleanner
-		pView->m_pEngrave->SwEngVelSonicBlw(bOn);
 		pDoc->BtnStatus.Eng.VelSonicBlw = bOn;
+		pDoc->SetMkMenu03(_T("Engraving"), _T("DancerUp"), bOn);
+		pView->m_pEngrave->SwEngVelSonicBlw(bOn);
 		break;
 
 	// Uncoiler
 	case IDC_CHK_25:		// 언코일러 연동 온/오프 스위치 "MB005401"
-		pView->m_pEngrave->SwUcRelation(bOn);
 		pDoc->BtnStatus.Rc.Relation = bOn;
 		pDoc->BtnStatus.Mk.Relation = bOn;
 		pDoc->BtnStatus.AoiDn.Relation = bOn;
 		pDoc->BtnStatus.AoiUp.Relation = bOn;
 		pDoc->BtnStatus.Eng.Relation = bOn;
 		pDoc->BtnStatus.Uc.Relation = bOn;
+		pDoc->SetMkMenu03(_T("Main"), _T("Relation"), bOn);
+		pView->m_pEngrave->SwUcRelation(bOn);
 		break;
 	case IDC_CHK_26:		// 언코일러 제품휠 정회전 스위치 "MB00540C"
-		pView->m_pEngrave->SwUcFdCw(bOn);
 		pDoc->BtnStatus.Uc.FdCw = bOn;
+		pDoc->SetMkMenu03(_T("Uncoiler"), _T("MvCw"), bOn);
+		pView->m_pEngrave->SwUcFdCw(bOn);
 		break;
 	case IDC_CHK_27:		// 언코일러 제품휠 역회전 스위치 "MB00540D"
-		pView->m_pEngrave->SwUcFdCcw(bOn);
 		pDoc->BtnStatus.Uc.FdCcw = bOn;
+		pDoc->SetMkMenu03(_T("Uncoiler"), _T("MvCcw"), bOn);
+		pView->m_pEngrave->SwUcFdCcw(bOn);
 		break;
 	case IDC_CHK_35:		// 언코일러 제품척 클램프 스위치 "MB00540B"
-		pView->m_pEngrave->SwUcReelChuck(bOn);
 		pDoc->BtnStatus.Uc.ReelChuck = bOn;
+		pDoc->SetMkMenu03(_T("Uncoiler"), _T("PrdChuck"), bOn);
+		pView->m_pEngrave->SwUcReelChuck(bOn);
 		break;
 	case IDC_CHK_28:		// 언코일러 댄서롤 상승/하강 스위치 "MB005402"
-		pView->m_pEngrave->SwUcDcRlUpDn(bOn);
 		pDoc->BtnStatus.Uc.DcRlUpDn = bOn;
+		pDoc->SetMkMenu03(_T("Uncoiler"), _T("DancerUp"), bOn);
+		pView->m_pEngrave->SwUcDcRlUpDn(bOn);
 		break;
 	case IDC_CHK_30:		// 언코일러 제품 이음매(상/좌) 스위치 "MB005405"
-		pView->m_pEngrave->SwUcReelJoinL(bOn);
 		pDoc->BtnStatus.Uc.ReelJoinL = bOn;
+		pDoc->SetMkMenu03(_T("Uncoiler"), _T("PasteUpLf"), bOn);
+		pView->m_pEngrave->SwUcReelJoinL(bOn);
 		break;
 	case IDC_CHK_37:		// 언코일러 제품 이음매(하/우) 스위치 "MB005406"
-		pView->m_pEngrave->SwUcReelJoinR(bOn);
 		pDoc->BtnStatus.Uc.ReelJoinR = bOn;
+		pDoc->SetMkMenu03(_T("Uncoiler"), _T("PasteUpRt"), bOn);
+		pView->m_pEngrave->SwUcReelJoinR(bOn);
 		break;
 	case IDC_CHK_38:		// 언코일러 제품 이음매 진공 스위치 "MB00540F"
-		pView->m_pEngrave->SwUcReelJoinVac(bOn);
 		pDoc->BtnStatus.Uc.ReelJoinVac = bOn;
+		pDoc->SetMkMenu03(_T("Uncoiler"), _T("PasteVac"), bOn);
+		pView->m_pEngrave->SwUcReelJoinVac(bOn);
 		break;
 	case IDC_CHK_31:		// 언코일러 간지척 클램프 스위치 "MB005408"
-		pView->m_pEngrave->SwUcPaperChuck(bOn);
 		pDoc->BtnStatus.Uc.PprChuck = bOn;
+		pDoc->SetMkMenu03(_T("Uncoiler"), _T("PprChuck"), bOn);
+		pView->m_pEngrave->SwUcPaperChuck(bOn);
 		break;
 	case IDC_CHK_32:		// 언코일러 간지휠 정회전 스위치 "MB005409"
-		pView->m_pEngrave->SwUcPaperCw(bOn);
 		pDoc->BtnStatus.Uc.PprCw = bOn;
+		pDoc->SetMkMenu03(_T("Uncoiler"), _T("PprCw"), bOn);
+		pView->m_pEngrave->SwUcPaperCw(bOn);
 		break;
 	case IDC_CHK_39:		// 언코일러 간지휠 역회전 스위치 "MB00540A"
-		pView->m_pEngrave->SwUcPaperCcw(bOn);
 		pDoc->BtnStatus.Uc.PprCcw = bOn;
+		pDoc->SetMkMenu03(_T("Uncoiler"), _T("PprCcw"), bOn);
+		pView->m_pEngrave->SwUcPaperCcw(bOn);
 		break;
 	case IDC_CHK_29:		// 언코일러 클린롤러 상승/하강 스위치 "MB005403"
-		pView->m_pEngrave->SwUcClRlUpDn(bOn);
 		pDoc->BtnStatus.Uc.ClRlUpDn = bOn;
+		pDoc->SetMkMenu03(_T("Uncoiler"), _T("ClrRollUp"), bOn);
+		pView->m_pEngrave->SwUcClRlUpDn(bOn);
 		break;
 	case IDC_CHK_36:		// 언코일러 클린롤러누름 상승/하강 스위치 "MB005404"
-		pView->m_pEngrave->SwUcClRlPshUpDn(bOn);
 		pDoc->BtnStatus.Uc.ClRlPshUpDn = bOn;
+		pDoc->SetMkMenu03(_T("Uncoiler"), _T("ClrRollPush"), bOn);
+		pView->m_pEngrave->SwUcClRlPshUpDn(bOn);
 		break;
 	}
 #endif
@@ -5377,10 +5462,10 @@ void CDlgMenu03::UpdateSignal()
 
 	Disp();
 
-#ifdef USE_ENGRAVE
-	if (pView && pView->m_pEngrave)
-		pView->m_pEngrave->SetSysSignal();
-#endif
+//#ifdef USE_ENGRAVE
+//	if (pView && pView->m_pEngrave)
+//		pView->m_pEngrave->SetSysSignal();
+//#endif
 }
 
 
