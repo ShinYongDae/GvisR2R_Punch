@@ -553,8 +553,10 @@ void CDlgFrameHigh::DispSigAoi()
 		return;
 
 	BOOL bOn;
+	CString sName = pView->GetCurrentDBName();
 // 	bOn	= pView->m_pDlgMenu03->IsAoiTblVac();				// Out - 검사부 검사 테이블 진공 SOL
-	bOn	= pView->IsAoiTblVac();								// Out - 검사부 검사 테이블 진공 SOL
+	//bOn	= pView->IsAoiTblVac();								// Out - 검사부 검사 테이블 진공 SOL
+	bOn = (sName.MakeUpper() == _T("GVISDB")) ? TRUE : FALSE;
 	if(bOn && myLabel[0].GetImageBk() != LBL_IMG_DN)
 		myLabel[0].SetImageBk(LBL_IMG_DN);
 	else if(!bOn && myLabel[0].GetImageBk() != LBL_IMG_UP)
@@ -694,7 +696,8 @@ void CDlgFrameHigh::SetEngraveLastShot(int nSerial)
 
 	CString str;
 	str.Format(_T("%d"), nSerial);
-	myStc[6].SetText(str);
+	//str.Format(_T("%d"), 0);
+	//myStc[6].SetText(str);
 
 	CString sPath = PATH_WORKING_INFO;
 	pDoc->WorkingInfo.LastJob.sEngraveLastShot = str;

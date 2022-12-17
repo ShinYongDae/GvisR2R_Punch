@@ -151,8 +151,8 @@ void CDlgMenu03::OnShowWindow(BOOL bShow, UINT nStatus)
 void CDlgMenu03::AtDlgShow()
 {
 	LoadImg();
-	m_bTIM_MENU03_DISP = TRUE;
-	SetTimer(TIM_MENU03_DISP, 300, NULL);	// Disp();
+	//m_bTIM_MENU03_DISP = TRUE;
+	//SetTimer(TIM_MENU03_DISP, 300, NULL);	// Disp();
 	SetTimer(TIM_CHK_MREG, 300, NULL);
 
 	UpdateSignal();
@@ -160,7 +160,7 @@ void CDlgMenu03::AtDlgShow()
 
 void CDlgMenu03::AtDlgHide()
 {
-	m_bTIM_MENU03_DISP = FALSE;
+	//m_bTIM_MENU03_DISP = FALSE;
 	DelImg();
 }
 
@@ -171,6 +171,12 @@ void CDlgMenu03::LoadImg()
 	m_bLoadImg = TRUE;
 
 	int i;
+	for (i = 0; i < MAX_MENU03_LABEL; i++)
+	{
+		myLabel[i].LoadImage(ICO_LED_GRY_DlgFrameHigh, LBL_IMG_UP, CSize(20, 20), LBL_POS_CENTER);
+		myLabel[i].LoadImage(ICO_LED_BLU_DlgFrameHigh, LBL_IMG_DN, CSize(20, 20), LBL_POS_CENTER);
+	}
+
 	for (i = 0; i < MAX_MENU03_BTN; i++)
 	{
 		switch (i)
@@ -310,6 +316,10 @@ void CDlgMenu03::DelImg()
 	m_bLoadImg = FALSE;
 
 	int i;
+
+	for (i = 0; i < MAX_MENU03_LABEL; i++)
+		myLabel[i].DelImgList();
+
 	for(i=0; i<MAX_MENU03_BTN; i++)
 		myBtn[i].DelImgList();
 
@@ -326,6 +336,7 @@ BOOL CDlgMenu03::OnInitDialog()
 	InitStatic();
 	InitBtn();
 	InitGroup();
+	InitLabel();
 
 	GetDlgItem(IDC_STC_12_38)->ShowWindow(SW_HIDE);
 	GetDlgItem(IDC_CHK_47)->ShowWindow(SW_HIDE);	// Recoiler-Stop
@@ -349,7 +360,9 @@ BOOL CDlgMenu03::OnInitDialog()
 	//SetJogSpd(m_nFdSpd);
 
 
-	
+	m_bTIM_MENU03_DISP = TRUE;
+	SetTimer(TIM_MENU03_DISP, 300, NULL);	// Disp();
+
 	return TRUE;  // return TRUE unless you set the focus to a control
 	              // EXCEPTION: OCX Property Pages should return FALSE
 }
@@ -1085,6 +1098,24 @@ void CDlgMenu03::InitBtn()
 	{
 		myBtn[i].SetFont(_T("굴림체"), 12, TRUE);
 		myBtn[i].SetTextColor(RGB_BLACK);
+	}
+}
+
+void CDlgMenu03::InitLabel()
+{
+	myLabel[0].SubclassDlgItem(IDC_STC_SIG1, this);
+	myLabel[1].SubclassDlgItem(IDC_STC_SIG2, this);
+	myLabel[2].SubclassDlgItem(IDC_STC_SIG3, this);
+	myLabel[3].SubclassDlgItem(IDC_STC_SIG4, this);
+	myLabel[4].SubclassDlgItem(IDC_STC_SIG5, this);
+
+	for (int i = 0; i < MAX_MENU03_LABEL; i++)
+	{
+		myLabel[i].SetFontName(_T("Arial"));
+		myLabel[i].SetFontSize(18);
+		myLabel[i].SetFontBold(TRUE);
+		myLabel[i].SetTextColor(RGB_DARKRED);
+		myLabel[i].SetImageBk(LBL_IMG_UP);
 	}
 }
 
@@ -3659,11 +3690,12 @@ BOOL CDlgMenu03::DoReset()
 		pView->m_nDebugStep = 12; pView->DispThreadTick();
 		pView->TowerLamp(RGB_RED, TRUE, FALSE);
 		pView->m_nDebugStep = 13; pView->DispThreadTick();
-		pView->DispStsBar(_T("정지-2"), 0);
+		//pView->DispStsBar(_T("정지-2"), 0);
 		pView->m_nDebugStep = 14; pView->DispThreadTick();
 		pView->DispMain(_T("정 지"), RGB_RED);	
 		pView->m_nDebugStep = 15; pView->DispThreadTick();
 		SwAoiReset(TRUE);
+		pView->OpenReelmap();
 
 		pView->m_nDebugStep = 16; pView->DispThreadTick();
 		if(bInit)
@@ -3815,7 +3847,7 @@ void CDlgMenu03::SwStop()
 	pView->m_bSwReset = FALSE;
 
 	//if(!pView->m_bAuto)
-		pView->DispStsBar(_T("정지-3"), 0);
+		//pView->DispStsBar(_T("정지-3"), 0);
 		pView->DispMain(_T("정 지"), RGB_RED);
 	pView->TowerLamp(RGB_RED, TRUE, FALSE);
 #ifdef USE_MPE
@@ -5485,5 +5517,13 @@ void CDlgMenu03::ChkEngBufInitDone()
 		m_bTIM_CHK_DONE_ENG_BUF_INIT = TRUE;
 		SetTimer(TIM_CHK_DONE_ENG_BUF_INIT, 100, NULL);
 	}
+}
+
+void CDlgMenu03::SetLed(int nIdx, BOOL bOn)
+{
+	if (bOn && myLabel[nIdx].GetImageBk() != LBL_IMG_DN)
+		myLabel[nIdx].SetImageBk(LBL_IMG_DN);
+	else if (!bOn && myLabel[nIdx].GetImageBk() != LBL_IMG_UP)
+		myLabel[nIdx].SetImageBk(LBL_IMG_UP);
 }
 

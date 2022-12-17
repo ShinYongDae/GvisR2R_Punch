@@ -319,6 +319,23 @@ BOOL CPcsRgn::GetMkMatrix(int nPcsId, int &nC, int &nR)
 	int nNodeX = nCol;
 	int nNodeY = nRow;
 
+	if (pDoc->WorkingInfo.System.bStripPcsRgnBin)	// DTS용
+	{
+		switch (pDoc->m_Master[0].MasterInfo.nActionCode)	// 0 : Rotation / Mirror 적용 없음(CAM Data 원본), 1 : 좌우 미러, 2 : 상하 미러, 3 : 180 회전, 4 : 270 회전(CCW), 5 : 90 회전(CW)
+		{
+		case 0:
+			break;
+		case 1:
+			nPcsId = pDoc->MirrorLR(nPcsId);
+			break;
+		case 3:
+			nPcsId = pDoc->Rotate180(nPcsId);
+			break;
+		default:
+			break;
+		}
+	}
+
 	if(-1 < nPcsId && nPcsId < (nNodeX*nNodeY))
 	{
 		nC = int(nPcsId/nNodeY);
@@ -341,8 +358,25 @@ BOOL CPcsRgn::GetMkMatrix(int nPcsId, int &nStrip, int &nC, int &nR) // nStrip:0
 {
 	int nNodeX = nCol;
 	int nNodeY = nRow;
-	int nStPcsY = nNodeY / 4;
+	int nStPcsY = nNodeY / MAX_STRIP_NUM;
 	int nRow;// , nCol;
+
+	if (pDoc->WorkingInfo.System.bStripPcsRgnBin)	// DTS용
+	{
+		switch (pDoc->m_Master[0].MasterInfo.nActionCode)	// 0 : Rotation / Mirror 적용 없음(CAM Data 원본), 1 : 좌우 미러, 2 : 상하 미러, 3 : 180 회전, 4 : 270 회전(CCW), 5 : 90 회전(CW)
+		{
+		case 0:
+			break;
+		case 1:
+			nPcsId = pDoc->MirrorLR(nPcsId);
+			break;
+		case 3:
+			nPcsId = pDoc->Rotate180(nPcsId);
+			break;
+		default:
+			break;
+		}
+	}
 
 	if(-1 < nPcsId && nPcsId < (nNodeX*nNodeY))
 	{
@@ -384,3 +418,33 @@ void CPcsRgn::SetPinPos(int nCam, CfPoint ptPnt)
 	m_ptPinPos[nCam].y = ptPnt.y;
 }
 
+
+void CPcsRgn::GetShotRowCol(int& nR, int& nC)
+{
+	nR = nRow;
+	nC = nCol;
+}
+
+void CPcsRgn::SetShotRowCol(int nR, int nC)
+{
+	nRow = nR;
+	nCol = nC;
+}
+
+void CPcsRgn::SetShotRgn(CRect rect)
+{
+	rtFrm.left = rect.left;
+	rtFrm.top = rect.top;
+	rtFrm.right = rect.right;
+	rtFrm.bottom = rect.bottom;
+}
+
+CRect CPcsRgn::GetShotRgn()
+{
+	return rtFrm;
+}
+
+int CPcsRgn::GetTotPcs()
+{
+	return nTotPcs;
+}

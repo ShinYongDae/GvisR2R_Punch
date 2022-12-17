@@ -14,6 +14,7 @@
 #define MAX_MENU03_STC				93
 #define MAX_MENU03_BTN				87
 #define MAX_MENU03_GRP				10
+#define MAX_MENU03_LABEL			5
 
 #define TIM_MENU03_DISP				300
 #define TIM_CHK_DONE_MK				301
@@ -44,6 +45,7 @@ class CDlgMenu03 : public CDialog
 	CMyBtn myBtn[MAX_MENU03_BTN];
 	CMyLabel myStcTitle[MAX_MENU03_STC];
 	CMyGroup myGrp[MAX_MENU03_GRP];
+	CMyLabel myLabel[MAX_MENU03_LABEL];
 
 	BOOL m_bLoadImg;
 	BOOL m_bTIM_MENU03_DISP;
@@ -74,6 +76,7 @@ class CDlgMenu03 : public CDialog
 	void LoadImg();
 	void DelImg();
 
+	void InitLabel();
 	void InitStatic();
 	void InitBtn();
 	void InitGroup();
@@ -292,7 +295,7 @@ public:
 	void UpdateData();
 	void UpdateSignal();
 
-	void ChkDoneEng();
+	void SetLed(int nIdx, BOOL bOn = TRUE);
 
 // Dialog Data
 	//{{AFX_DATA(CDlgMenu03)

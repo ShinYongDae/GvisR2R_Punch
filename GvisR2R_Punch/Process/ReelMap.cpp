@@ -150,8 +150,8 @@ CReelMap::CReelMap(int nLayer, int nPnl, int nPcs, int nDir)
 	
 	m_bThreadAliveReloadRst = FALSE;
 	m_nLastOnThread = 0;
-	m_nTotalPregressReloadRst = 0;
-	m_nPregressReloadRst = 0;
+	m_nTotalProgressReloadRst = 0;
+	m_nProgressReloadRst = 0;
 	m_bDoneReloadRst = FALSE;
 
 	m_nSelMarkingPnl = 2;
@@ -238,7 +238,7 @@ END_MESSAGE_MAP()
 // CReelMap message handlers
 void CReelMap::LoadConfig()
 {
-	TCHAR szData[200];
+	TCHAR szData[MAX_PATH];
 	TCHAR sep[] = { _T(",;\r\n\t") };
 	CString sVal;
 
@@ -252,19 +252,19 @@ void CReelMap::LoadConfig()
 		m_nBkColor[2] = _tstoi(sVal);
 	}
 
-	if (pView && pView->m_pDts)
-	{
-		if (pView->m_pDts->IsUseDts())
-		{
-			LoadDefectTableDB();
-			return;
-		}
-		else
-		{
-			LoadDefectTableIni();
-		}
-	}
-	else
+	//if (pView && pView->m_pDts)
+	//{
+	//	if (pView->m_pDts->IsUseDts())
+	//	{
+	//		LoadDefectTableDB();
+	//		return;
+	//	}
+	//	else
+	//	{
+	//		LoadDefectTableIni();
+	//	}
+	//}
+	//else
 	{
 		LoadDefectTableIni();
 	}
@@ -311,6 +311,7 @@ BOOL CReelMap::LoadDefectTableIni()
 		}
 		else
 		{
+			pView->ClrDispMsg();
 			AfxMessageBox(_T("Error - LoadDefectTableIni()"));
 			return FALSE;
 		}
@@ -439,8 +440,11 @@ BOOL CReelMap::Open(CString sPath)
 
 	BOOL bExist = FALSE;
 	CFileFind findfile;
-	if(findfile.FindFile(sPath))
+	if (findfile.FindFile(sPath))
+	{
 		bExist = TRUE;
+		return TRUE;
+	}
 	else
 		MakeDirRmap();
 
@@ -513,7 +517,7 @@ BOOL CReelMap::Open(CString sPath)
 			fprintf(fp, "%d=\n", i); // m_cBigDef[i]
 		fprintf(fp, "\n");
 
-		for(k=0; k<4; k++)
+		for(k=0; k<MAX_STRIP_NUM; k++)
 		{
 			fprintf(fp, "[Strip%d]\n", k);
 			for(i=1; i<MAX_DEF; i++)
@@ -523,7 +527,7 @@ BOOL CReelMap::Open(CString sPath)
 
 		fprintf(fp, "[StripOut]\n");
 		fprintf(fp, "Total=\n");
-		for(k=0; k<4; k++)
+		for(k=0; k<MAX_STRIP_NUM; k++)
 			fprintf(fp, "%d=\n", k);
 		fprintf(fp, "\n");
 	}
@@ -640,7 +644,7 @@ BOOL CReelMap::OpenUser(CString sPath)
 			fprintf(fp, "%d=\n", i); // m_cBigDef[i]
 		fprintf(fp, "\n");
 
-		for(k=0; k<4; k++)
+		for(k=0; k<MAX_STRIP_NUM; k++)
 		{
 			fprintf(fp, "[Strip%d]\n", k);
 			for(i=1; i<MAX_DEF; i++)
@@ -748,7 +752,7 @@ BOOL CReelMap::Open(CString sPath, CString sModel, CString sLayer, CString sLot)
 			fprintf(fp, "%d=\n", i); // m_cBigDef[i]
 		fprintf(fp, "\n");
 
-		for(k=0; k<4; k++)
+		for(k=0; k<MAX_STRIP_NUM; k++)
 		{
 			fprintf(fp, "[Strip%d]\n", k);
 			for(i=1; i<MAX_DEF; i++)
@@ -870,7 +874,7 @@ BOOL CReelMap::OpenUser(CString sPath, CString sModel, CString sLayer, CString s
 			fprintf(fp, "%d=\n", i); // m_cBigDef[i]
 		fprintf(fp, "\n");
 
-		for(k=0; k<4; k++)
+		for(k=0; k<MAX_STRIP_NUM; k++)
 		{
 			fprintf(fp, "[Strip%d]\n", k);
 			for(i=1; i<MAX_DEF; i++)
@@ -933,6 +937,7 @@ BOOL CReelMap::Write(int nSerial, int nLayer)
 {
 	if(nSerial <= 0)
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Serial Error.62"));
 		return 0;
 	}
@@ -964,7 +969,27 @@ BOOL CReelMap::Write(int nSerial, int nLayer)
 	{
 		if(pDoc->m_pPcr[nLayer][nIdx]->m_pMk[i] != -2) // -2 (NoMarking)
 		{
-			nPcsId = pDoc->m_pPcr[nLayer][nIdx]->m_pDefPcs[i];
+			if (pDoc->WorkingInfo.System.bStripPcsRgnBin)	// DTS용
+			{
+				switch (pDoc->m_Master[0].MasterInfo.nActionCode)	// 0 : Rotation / Mirror 적용 없음(CAM Data 원본), 1 : 좌우 미러, 2 : 상하 미러, 3 : 180 회전, 4 : 270 회전(CCW), 5 : 90 회전(CW)
+				{
+				case 0:
+					nPcsId = pDoc->m_pPcr[nLayer][nIdx]->m_pDefPcs[i];
+					break;
+				case 1:
+					nPcsId = pDoc->MirrorLR(pDoc->m_pPcr[nLayer][nIdx]->m_pDefPcs[i]);
+					break;
+				case 3:
+					nPcsId = pDoc->Rotate180(pDoc->m_pPcr[nLayer][nIdx]->m_pDefPcs[i]);
+					break;
+				default:
+					nPcsId = pDoc->m_pPcr[nLayer][nIdx]->m_pDefPcs[i];
+					break;
+				}
+			}
+			else
+				nPcsId = pDoc->m_pPcr[nLayer][nIdx]->m_pDefPcs[i];
+
 			nDefCode = pDoc->m_pPcr[nLayer][nIdx]->m_pDefType[i];
 
 			nC = int(nPcsId / nNodeY);
@@ -974,7 +999,7 @@ BOOL CReelMap::Write(int nSerial, int nLayer)
 				nR = nPcsId - nNodeY * nC;
 			pPnlBuf[nR][nC] = (short)nDefCode;	// nPnl의 열 정보.
 			if(m_pPnlBuf)
-				m_pPnlBuf[nSerial-1][nR][nC] = pPnlBuf[nR][nC]; // DefCode
+				m_pPnlBuf[nSerial-1][nR][nC] = pPnlBuf[nR][nC]; // DefCode 3D Array : [nSerial][nRow][nCol] - 릴맵파일 정보용.
 		}
 	}
 
@@ -984,7 +1009,7 @@ BOOL CReelMap::Write(int nSerial, int nLayer)
 	strData.Format(_T("%d"), nTotDefPcs);
 	::WritePrivateProfileString(sPnl, _T("Total Defects"), strData, m_sPathShare);
 
-	for(int nRow=0; nRow<nNodeX; nRow++)
+	for(int nRow=0; nRow<nNodeX; nRow++)			// 릴맵 Text(90도 시계방향으로 회전한 모습) 상의 Row : Shot의 첫번째 Col부터 시작해서 밑으로 내려감.
 	{
 		sRow.Format(_T("%02d"), nRow);
 // 		sRow.Format(_T("%2d"), nRow+1);
@@ -994,10 +1019,10 @@ BOOL CReelMap::Write(int nSerial, int nLayer)
 // 		if(nRow==26)
 // 			int brk=0;
 
-		for(int nCol=0; nCol<nNodeY; nCol++)
+		for(int nCol=0; nCol<nNodeY; nCol++)		// 릴맵 Text(90도 시계방향으로 회전한 모습) 상의 Col : 4열 3열 2열 1열 스트립으로 표시됨.
 		{
-			nR = (nNodeY-1)-nCol;
-			nC = nRow;
+			nR = (nNodeY-1)-nCol;				// 릴맵상의 Row
+			nC = nRow;							// 릴맵상의 Col
 
 			if(pDoc->m_pPcr[nLayer][nIdx]->m_nErrPnl == -1 || pDoc->m_pPcr[nLayer][nIdx]->m_nErrPnl == -2)
 			{
@@ -1007,14 +1032,14 @@ BOOL CReelMap::Write(int nSerial, int nLayer)
 			else
 				nDefCode = (int)pPnlBuf[nR][nC] < 0 ? 0 : (int)pPnlBuf[nR][nC];
 
-			strTemp.Format(_T("%2d,"), nDefCode);
+			strTemp.Format(_T("%2d,"), nDefCode);	// 불량코드를 2칸으로 설정
 			
-			if(!nCol)
+			if(!nCol)								// strData에 처음으로 데이터를 추가
 				strData.Insert(0, strTemp);
 			else
 			{
 				int nLen = strData.GetLength();
-				if( !(nCol%nStripY) ) // Separate Strip
+				if( !(nCol%nStripY) )				// Separate Strip (스트립 마다)
 				{
 					strData.Insert(nLen, _T("  "));
 					nLen = strData.GetLength();
@@ -1023,10 +1048,10 @@ BOOL CReelMap::Write(int nSerial, int nLayer)
 			}
 		}
 
-		int nPos = strData.ReverseFind(',');
+		int nPos = strData.ReverseFind(',');		// 릴맵 Text 맨 우측의 ','를 삭제
 		strData.Delete(nPos, 1);
-		::WritePrivateProfileString(sPnl, sRow, strData, m_sPathShare);
-	}
+		::WritePrivateProfileString(sPnl, sRow, strData, m_sPathShare); // 한 라인씩 릴맵 Text를 기록.
+	}	// 릴맵 Text(90도 시계방향으로 회전한 모습) 상의 Row : Shot의 마지막 Col까지 기록하고 끝남.
 
 	for(i=0; i<nNodeY; i++)
 		delete[]  pPnlBuf[i];
@@ -1042,6 +1067,7 @@ BOOL CReelMap::Write(int nSerial, int nLayer, CString sPath)
 {
 	if(nSerial <= 0)
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Serial Error.63"));
 		return 0;
 	}
@@ -1049,7 +1075,7 @@ BOOL CReelMap::Write(int nSerial, int nLayer, CString sPath)
 	int nIdx = pDoc->GetPcrIdx1(nSerial, pDoc->m_bNewLotShare[1]);
 	int nNodeX = pDoc->m_Master[0].m_pPcsRgn->nCol;
 	int nNodeY = pDoc->m_Master[0].m_pPcsRgn->nRow;
-	int nStripY = pDoc->m_Master[0].m_pPcsRgn->nRow / 4; // Strip(1~4);
+	int nStripY = pDoc->m_Master[0].m_pPcsRgn->nRow / MAX_STRIP_NUM; // Strip(1~4);
 	int nTotDefPcs = 0;
 	if(pDoc->m_pPcr[nLayer])
 	{
@@ -1073,7 +1099,27 @@ BOOL CReelMap::Write(int nSerial, int nLayer, CString sPath)
 	{
 		if(pDoc->m_pPcr[nLayer][nIdx]->m_pMk[i] != -2) // -2 (NoMarking)
 		{
-			nPcsId = pDoc->m_pPcr[nLayer][nIdx]->m_pDefPcs[i];
+			if (pDoc->WorkingInfo.System.bStripPcsRgnBin)	// DTS용
+			{
+				switch (pDoc->m_Master[0].MasterInfo.nActionCode)	// 0 : Rotation / Mirror 적용 없음(CAM Data 원본), 1 : 좌우 미러, 2 : 상하 미러, 3 : 180 회전, 4 : 270 회전(CCW), 5 : 90 회전(CW)
+				{
+				case 0:
+					nPcsId = pDoc->m_pPcr[nLayer][nIdx]->m_pDefPcs[i];
+					break;
+				case 1:
+					nPcsId = pDoc->MirrorLR(pDoc->m_pPcr[nLayer][nIdx]->m_pDefPcs[i]);
+					break;
+				case 3:
+					nPcsId = pDoc->Rotate180(pDoc->m_pPcr[nLayer][nIdx]->m_pDefPcs[i]);
+					break;
+				default:
+					nPcsId = pDoc->m_pPcr[nLayer][nIdx]->m_pDefPcs[i];
+					break;
+				}
+			}
+			else
+				nPcsId = pDoc->m_pPcr[nLayer][nIdx]->m_pDefPcs[i];
+
 			nDefCode = pDoc->m_pPcr[nLayer][nIdx]->m_pDefType[i];
 
 			nC = int(nPcsId / nNodeY);
@@ -1083,7 +1129,7 @@ BOOL CReelMap::Write(int nSerial, int nLayer, CString sPath)
 				nR = nPcsId - nNodeY * nC;
 			pPnlBuf[nR][nC] = (short)nDefCode;	// nPnl의 열 정보.
 			if(m_pPnlBuf)
-				m_pPnlBuf[nSerial-1][nR][nC] = pPnlBuf[nR][nC]; // DefCode
+				m_pPnlBuf[nSerial-1][nR][nC] = pPnlBuf[nR][nC];   // DefCode 3D Array : [nSerial][nRow][nCol] - 릴맵파일 정보용. #define PNL_TOT
 		}
 	}
 
@@ -1165,8 +1211,11 @@ void CReelMap::InitPcs()
 			pPcsDef = new int*[nTotPnl];
 			for(k=0; k<nTotPnl; k++)
 			{
-				if(nTotPcs > MAX_PCS)
+				if (nTotPcs > MAX_PCS)
+				{
+					pView->ClrDispMsg();
 					AfxMessageBox(_T("MAX_PCS 초과 Error."));
+				}
 				pPcsDef[k] = new int[MAX_PCS];
 				for(i=0; i<MAX_PCS; i++)
 					pPcsDef[k][i] = DEF_NONE;
@@ -1177,7 +1226,10 @@ void CReelMap::InitPcs()
 // 			pMkInfo = new CString[nTotPcs];
 	}
 	else
+	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Error-InitPcs."));
+	}
 }
 
 // void CReelMap::ResetReelmap()
@@ -1338,7 +1390,7 @@ BOOL CReelMap::Disp(int nMkPnl, BOOL bDumy)
 	TCHAR szData[MAX_PATH];
 	int k, i, nR, nC, nP, nInc=0;
 	//int nCol, nRow;
-	int nLoadPnl;
+	int nLoadPnl, nDefCode;
 	int nNodeX = pDoc->m_Master[0].m_pPcsRgn->nCol; // 10
 	int nNodeY = pDoc->m_Master[0].m_pPcsRgn->nRow; // 5
 
@@ -1403,6 +1455,12 @@ BOOL CReelMap::Disp(int nMkPnl, BOOL bDumy)
 				m_pPnlDefNum[k] = -1;
 				break;
 			}
+			else if (nLoadPnl > pDoc->m_ListBuf[0].GetLast())
+			{
+				m_pPnlNum[k] = 0;
+				m_pPnlDefNum[k] = -1;
+				break;
+			}
 
 			m_pPnlNum[k] = nLoadPnl; // 3 ~ 10
 			if(nLoadPnl <= pView->m_nLotEndSerial || pView->m_nLotEndSerial == 0)
@@ -1413,7 +1471,7 @@ BOOL CReelMap::Disp(int nMkPnl, BOOL bDumy)
 				sPnl.Format(_T("%d"), nLoadPnl);
 				sRow.Format(_T("%02d"), nR);
 				
-				if (0 < ::GetPrivateProfileString(sPnl, sRow, NULL, szData, sizeof(szData), m_sPathBuf))
+				if (0 < ::GetPrivateProfileString(sPnl, sRow, NULL, szData, sizeof(szData), m_sPathBuf)) // DefCode 3D Array : [nSerial][nRow][nCol] - 릴맵파일
 				{
 					for(nC=0; nC<nNodeY; nC++)
 					{
@@ -1427,104 +1485,157 @@ BOOL CReelMap::Disp(int nMkPnl, BOOL bDumy)
 						else		// 짝수.				
 							nP = nNodeY * (nR+1) - (nC+1);
 
-// 						if(nC%2)	// 홀수.
-// 							nP = nNodeY * (nC+1) - (nR+1);
-// 						else		// 짝수.
-// 							nP = nNodeY * nC + nR;
+						if (pDoc->WorkingInfo.System.bStripPcsRgnBin)	// DTS용
+						{
+							switch (pDoc->m_Master[1].MasterInfo.nActionCode)	// 0 : Rotation / Mirror 적용 없음(CAM Data 원본), 1 : 좌우 미러, 2 : 상하 미러, 3 : 180 회전, 4 : 270 회전(CCW), 5 : 90 회전(CW)
+							{
+							case 0:
+								break;
+							case 1:
+								nP = pDoc->MirrorLR(nP);
+								break;
+							case 3:
+								nP = pDoc->Rotate180(nP);
+								break;
+							default:
+								break;
+							}
+						}
 
-						int nDefCode = _tstoi(sVal);
-						pPcsDef[k][nP] = nDefCode; // k=7, nP = PcsIdx
-
-// 						// ChkFixPoint ------------------------------------------------
-// 						if(nLoadPnl == nMkPnl) // 3 == 8
-// 						{
-// 							if(nDefCode > 0)
-// 							{
-// 								nCol = int(nP / nNodeY);
-// 								if(nCol%2)	// 홀수.
-// 									nRow = nNodeY * (nC+1) - nP - 1;
-// 								else		// 짝수.
-// 									nRow = nP - nNodeY * nCol;
-// 
-// 								//CString str;
-//  								////str.Format(_T("%d , %d", nR+1, nNodeX-nC);
-// 								//str.Format(_T("%d , %d", nNodeX-nC-1, nR);
-// 								////pMkInfo[nP].Format(_T("%s\r\n%s", pDoc->m_pReelMap->m_sKorDef[nDefCode], str);
-// 
-// 								if(pDoc->WorkingInfo.LastJob.bContFixDef)
-// 									SetFixPcs(nCol, nRow);
-// 							}
-// 						}
-// 						//------------------------------------------------------------
+						nDefCode = _tstoi(sVal);
+						pPcsDef[k][nP] = nDefCode; // k=7, nP = PcsIdx : 좌상단에서 nP 0이 시작하여 ZigZeg로 우하단으로 증가
 
 					}
 				}
 				else
 				{
-					if(!bDumy)
+					Sleep(300);
+
+					if (0 < ::GetPrivateProfileString(sPnl, sRow, NULL, szData, sizeof(szData), m_sPathBuf))
 					{
-						if(!pView->m_bLastProc && !pDoc->WorkingInfo.LastJob.bSampleTest)
+						for (nC = 0; nC < nNodeY; nC++)
 						{
-							pView->Stop();
-							sMsg.Format(_T("릴맵 데이타를 불러 오지 못했습니다. - [Pnl: %s] [Row: %d]\r\n%s"), sPnl, nR, m_sPathBuf);
- 							//sMsg.Format(_T("ReelmapData missed. - [Pnl: %d] [Row: %d]"), k, nR);
-							pView->MsgBox(sMsg); // 20160725-Temp
-							if(pDataFile)
+							if (nC == 0)
+								sVal = _tcstok(szData, sep);
+							else
+								sVal = _tcstok(NULL, sep);
+
+							if (nR % 2)	// 홀수.
+								nP = nC + nNodeY * nR;
+							else		// 짝수.				
+								nP = nNodeY * (nR + 1) - (nC + 1);
+
+							if (pDoc->WorkingInfo.System.bStripPcsRgnBin)	// DTS용
 							{
-								delete pDataFile;
-								pDataFile = NULL;
-							}
-							//AfxMessageBox(sMsg);
-							return FALSE;
-						}
-						else
-						{
-							m_pPnlNum[k] = 0;
-							m_pPnlDefNum[k] = -1;
-
-							for(nC=0; nC<nNodeY; nC++)
-							{
-								if(nR%2)	// 홀수.
-									nP = nC + nNodeY * nR;
-								else		// 짝수.				
-									nP = nNodeY * (nR+1) - (nC+1);
-
-								int nDefCode = DEF_NONE;
-
-								pPcsDef[k][nP] = nDefCode; // k=7, nP = PcsIdx
+								switch (pDoc->m_Master[1].MasterInfo.nActionCode)	// 0 : Rotation / Mirror 적용 없음(CAM Data 원본), 1 : 좌우 미러, 2 : 상하 미러, 3 : 180 회전, 4 : 270 회전(CCW), 5 : 90 회전(CW)
+								{
+								case 0:
+									break;
+								case 1:
+									nP = pDoc->MirrorLR(nP);
+									break;
+								case 3:
+									nP = pDoc->Rotate180(nP);
+									break;
+								default:
+									break;
+								}
 							}
 
-// 							if(pDataFile)
-// 							{
-// 								delete pDataFile;
-// 								pDataFile = NULL;
-// 							}
-// 							return TRUE;
+							nDefCode = _tstoi(sVal);
+							pPcsDef[k][nP] = nDefCode; // k=7, nP = PcsIdx : 좌상단에서 nP 0이 시작하여 ZigZeg로 우하단으로 증가
 						}
 					}
 					else
 					{
-						for(nC=0; nC<nNodeY; nC++)
+						if (!bDumy)
 						{
-							if(nC==0)
-								sVal = _tcstok(szData,sep);
+							if (!pView->m_bLastProc && !pDoc->WorkingInfo.LastJob.bSampleTest)
+							{
+								pView->Stop();
+								sMsg.Format(_T("릴맵 데이타를 불러 오지 못했습니다. - [Pnl: %s] [Row: %d]\r\n%s"), sPnl, nR, m_sPathBuf);
+								//sMsg.Format(_T("ReelmapData missed. - [Pnl: %d] [Row: %d]"), k, nR);
+								pView->MsgBox(sMsg); // 20160725-Temp
+								if (pDataFile)
+								{
+									delete pDataFile;
+									pDataFile = NULL;
+								}
+								//AfxMessageBox(sMsg);
+								return FALSE;
+							}
 							else
-								sVal = _tcstok(NULL,sep);
-							
-							if(nR%2)	// 홀수.
-								nP = nC + nNodeY * nR;
-							else		// 짝수.
-								nP = nNodeY * (nR+1) - (nC+1);
-// 							if(nC%2)	// 홀수.
-// 								nP = nNodeY * (nC+1) - (nR+1);
-// 							else		// 짝수.
-// 								nP = nNodeY * nC + nR;
+							{
+								m_pPnlNum[k] = 0;
+								m_pPnlDefNum[k] = -1;
 
-							int nDefCode = 0;
-							pPcsDef[k][nP] = nDefCode; // k=7, nP = PcsIdx
+								for (nC = 0; nC < nNodeY; nC++)
+								{
+									if (nR % 2)	// 홀수.
+										nP = nC + nNodeY * nR;
+									else		// 짝수.				
+										nP = nNodeY * (nR + 1) - (nC + 1);
 
-// 							if(pDoc->WorkingInfo.LastJob.bContFixDef)
-// 								SetFixPcs(nC, nR);
+									if (pDoc->WorkingInfo.System.bStripPcsRgnBin)	// DTS용
+									{
+										switch (pDoc->m_Master[1].MasterInfo.nActionCode)	// 0 : Rotation / Mirror 적용 없음(CAM Data 원본), 1 : 좌우 미러, 2 : 상하 미러, 3 : 180 회전, 4 : 270 회전(CCW), 5 : 90 회전(CW)
+										{
+										case 0:
+											break;
+										case 1:
+											nP = pDoc->MirrorLR(nP);
+											break;
+										case 3:
+											nP = pDoc->Rotate180(nP);
+											break;
+										default:
+											break;
+										}
+									}
+
+									nDefCode = DEF_NONE;
+									pPcsDef[k][nP] = nDefCode; // k=7, nP = PcsIdx : 좌상단에서 nP 0이 시작하여 ZigZeg로 우하단으로 증가
+								}
+
+							}
+						}
+						else
+						{
+							for (nC = 0; nC < nNodeY; nC++)
+							{
+								if (nC == 0)
+									sVal = _tcstok(szData, sep);
+								else
+									sVal = _tcstok(NULL, sep);
+
+								if (nR % 2)	// 홀수.
+									nP = nC + nNodeY * nR;
+								else		// 짝수.
+									nP = nNodeY * (nR + 1) - (nC + 1);
+
+								if (pDoc->WorkingInfo.System.bStripPcsRgnBin)	// DTS용
+								{
+									switch (pDoc->m_Master[1].MasterInfo.nActionCode)	// 0 : Rotation / Mirror 적용 없음(CAM Data 원본), 1 : 좌우 미러, 2 : 상하 미러, 3 : 180 회전, 4 : 270 회전(CCW), 5 : 90 회전(CW)
+									{
+									case 0:
+										break;
+									case 1:
+										nP = pDoc->MirrorLR(nP);
+										break;
+									case 3:
+										nP = pDoc->Rotate180(nP);
+										break;
+									default:
+										break;
+									}
+								}
+
+								nDefCode = 0;
+								pPcsDef[k][nP] = nDefCode; // k=7, nP = PcsIdx : 좌상단에서 nP 0이 시작하여 ZigZeg로 우하단으로 증가
+
+	 							//if(pDoc->WorkingInfo.LastJob.bContFixDef)
+	 							//	SetFixPcs(nC, nR);
+							}
 						}
 					}
 				}
@@ -1607,10 +1718,11 @@ CString CReelMap::GetLotEd()
 	return sLot;
 }
 
-void CReelMap::SetLastSerial(int nSerial)
+void CReelMap::SetLastSerial(int nSerial) 	// 릴맵 텍스트 파일의 수율정보를 업데이트함.
 {
 	if(nSerial <= 0)
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Serial Error.64"));
 		return;
 	}
@@ -1642,6 +1754,7 @@ void CReelMap::SetCompletedSerial(int nSerial)
 {
 	if (nSerial <= 0)
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Serial Error.67"));
 		return;
 	}
@@ -1713,7 +1826,7 @@ BOOL CReelMap::InitRst()
 		m_nDef[i] = 0;
 
 	m_nTotStOut = 0;
-	for(k=0; k<4; k++)
+	for(k=0; k<MAX_STRIP_NUM; k++)
 	{
 		m_nStripOut[k] = 0;
 		m_nDefStrip[k] = 0;
@@ -1758,7 +1871,7 @@ void CReelMap::ClrRst()
 		m_nDef[i] = 0;
 
 	m_nTotStOut = 0;
-	for(k=0; k<4; k++)
+	for(k=0; k<MAX_STRIP_NUM; k++)
 	{
 		m_nStripOut[k] = 0;
 		m_nDefStrip[k] = 0;
@@ -1932,7 +2045,7 @@ void CReelMap::ResetYield()
 	{
 		m_stYield.nDefA[k] = 0;
 
-		for (int i = 0; i < MAX_STRIP; i++)
+		for (int i = 0; i < MAX_STRIP_NUM; i++)
 		{
 			m_stYield.nDefPerStrip[i][k] = 0;
 		}
@@ -2249,80 +2362,7 @@ BOOL CReelMap::UpdateYield(int nSerial)
 	}
 
 	CString sPath = m_sPathYield;
-/*
-//	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
-//	int nNodeX = 0, nNodeY = 0;
-//#ifndef TEST_MODE
-//	nNodeX = pDoc->m_Master[0].m_pPcsRgn->nCol;
-//	nNodeY = pDoc->m_Master[0].m_pPcsRgn->nRow;
-//#endif
 
-	//int k, i;
-	//char FileName[MAX_PATH];
-
-	//BOOL bExist = FALSE;
-	//CString sMsg;
-	//CFileFind findfile;
-	//if (findfile.FindFile(sPath))
-	//	bExist = TRUE;
-	//else
-	//	MakeDirRmap();
-
-	//StrToChar(sPath, FileName);
-
-	//FILE *fp = NULL;
-	//fp = fopen(FileName, "a+");
-	//if (fp == NULL)
-	//{
-	//	sMsg.Format(_T("It is trouble to open \r\n %s"), sPath);
-	//	pView->MsgBox(sMsg);
-	//	//AfxMessageBox(_T("It is trouble to open ReelMap.txt"),MB_ICONWARNING|MB_OK);
-	//	return FALSE;
-	//}
-
-	//char* pRtn = NULL;
-	//if (!bExist)
-	//{
-	//	fprintf(fp, "[Info]\n");
-	//	fprintf(fp, "Total Shot=\n");
-	//	fprintf(fp, "\n");
-	//	fprintf(fp, "Total Pcs=\n");
-	//	fprintf(fp, "Good Pcs=\n");
-	//	fprintf(fp, "Bad Pcs=\n");
-	//	fprintf(fp, "\n");
-
-	//	for (i = 1; i < MAX_DEF; i++)
-	//		fprintf(fp, "%d=\n", i); // m_cBigDef[i]
-	//	fprintf(fp, "\n");
-
-	//	fprintf(fp, "Strip0=\n");
-	//	fprintf(fp, "Strip1=\n");
-	//	fprintf(fp, "Strip2=\n");
-	//	fprintf(fp, "Strip3=\n");
-	//	fprintf(fp, "\n");
-
-	//	for (k = 0; k < MAX_STRIP; k++)
-	//	{
-	//		for (i = 1; i < MAX_DEF; i++)
-	//			fprintf(fp, "Strip%d_%d=\n", k, i);
-	//		fprintf(fp, "\n");
-	//	}
-
-	//	fprintf(fp, "StripOut_Total=\n");
-	//	for (k = 0; k < MAX_STRIP; k++)
-	//		fprintf(fp, "StripOut_%d=\n", k);
-	//	fprintf(fp, "\n");
-
-	//	fprintf(fp, "Start Shot=%d\n", nSerial);
-	//	fprintf(fp, "\n");
-	//}
-
-	//fclose(fp);
-
-	//CString strData;
-	//strData.Format(_T("%d"), nSerial);
-	//::WritePrivateProfileString(_T("Info"), _T("Total Shot"), strData, sPath);
-	*/
 	int nPnl = nSerial - 1;
 
 	if (nPnl > 0) // After first shot
@@ -3365,7 +3405,7 @@ BOOL CReelMap::RemakeReelmap()
 		nNodeY = pDoc->m_Master[0].m_pPcsRgn->nRow; // on Cam
 	}
 
-	nStripNumY = 4;
+	nStripNumY = MAX_STRIP_NUM;
 	nPieceNumPerStrip = nNodeY/nStripNumY;
 
 // 	double dRatio=0.0;
@@ -3583,7 +3623,7 @@ BOOL CReelMap::ThreadProcReloadRst( LPVOID lpContext )
 	pThread->m_bThreadAliveReloadRst = TRUE;	
 	
 	pThread->m_cs.Lock();
-	int nSerial = pDoc->GetLastShotMk();
+	int nSerial = pDoc->GetLastShotMk();	// m_pDlgFrameHigh에서 얻거나 없으면, sPathOldFile폴더의 ReelMapDataDn.txt에서 _T("Info"), _T("Marked Shot") 찾음.
 	pThread->m_bRtnThreadReloadRst = pThread->ReloadRst(pThread->m_nLastOnThread);
 	pThread->m_cs.Unlock();
 
@@ -3598,13 +3638,13 @@ BOOL CReelMap::IsDoneReloadRst()
 	return m_bDoneReloadRst;
 }
 
-int CReelMap::GetPregressReloadRst()
+int CReelMap::GetProgressReloadRst()
 {
-	if(m_nTotalPregressReloadRst <= 0)
+	if(m_nTotalProgressReloadRst <= 0)
 		return 0;
 
-	double dA = (double)m_nPregressReloadRst;
-	double dB = (double)m_nTotalPregressReloadRst;
+	double dA = (double)m_nProgressReloadRst;
+	double dB = (double)m_nTotalProgressReloadRst;
 	double dC = 100.0 * dA / dB;
 	int nC = int(dC);
 
@@ -3617,15 +3657,15 @@ BOOL CReelMap::ReloadRst()
 	BOOL bRtn;
 	
 	//nSerial = pDoc->GetLastShotMk();
-	m_nLastOnThread = pDoc->GetLastShotMk();
+	m_nLastOnThread = pDoc->GetLastShotMk();	// m_pDlgFrameHigh에서 얻거나 없으면, sPathOldFile폴더의 ReelMapDataDn.txt에서 _T("Info"), _T("Marked Shot") 찾음.
 
 	//if(nSerial > 0)
 	if(m_nLastOnThread > 0)
 	{
 		//bRtn = ReloadRst(nSerial);
 		m_bDoneReloadRst = FALSE;
-		m_nPregressReloadRst = 0;
-		m_nTotalPregressReloadRst = 0;
+		m_nProgressReloadRst = 0;
+		m_nTotalProgressReloadRst = 0;
 		StartThreadReloadRst();
 		bRtn = TRUE;
 	}
@@ -3665,8 +3705,8 @@ BOOL CReelMap::ReloadRst(int nTo)
 	m_nGoodPcs = 0;
 	m_nBadPcs = 0;
 	
-	m_nTotalPregressReloadRst = nTo*(nNodeX*nNodeY+4)+4*MAX_DEF+MAX_DEF;
-	m_nPregressReloadRst=0;
+	m_nTotalProgressReloadRst = nTo*(nNodeX*nNodeY+4)+4*MAX_DEF+MAX_DEF;
+	m_nProgressReloadRst=0;
 
 	for(nPnl=0; nPnl<nTo; nPnl++)
 	{
@@ -3681,7 +3721,7 @@ BOOL CReelMap::ReloadRst(int nTo)
 			{
 				for(nCol=0; nCol<nNodeY; nCol++)
 				{
-					m_nPregressReloadRst++;
+					m_nProgressReloadRst++;
 
 					if(nCol==0)
 						sVal = _tcstok(szData,sep);
@@ -3719,7 +3759,7 @@ BOOL CReelMap::ReloadRst(int nTo)
 		double dStOutRto = _tstof(pDoc->WorkingInfo.LastJob.sStripOutRatio) / 100.0; //atof
 		for(nStrip=0; nStrip<4; nStrip++)
 		{
-			m_nPregressReloadRst++;
+			m_nProgressReloadRst++;
 
 			if(nDefStrip[nStrip] >= nStripPcs * dStOutRto)
 				m_nStripOut[nStrip]++;
@@ -3756,7 +3796,7 @@ BOOL CReelMap::ReloadRst(int nTo)
 
 		for(i=1; i<MAX_DEF; i++)
 		{
-			m_nPregressReloadRst++;
+			m_nProgressReloadRst++;
 
 			strItem.Format(_T("Strip%d"), k);
 			strMenu.Format(_T("%d"), i);
@@ -3769,7 +3809,7 @@ BOOL CReelMap::ReloadRst(int nTo)
 
 	for(i=1; i<MAX_DEF; i++)
 	{
-		m_nPregressReloadRst++;
+		m_nProgressReloadRst++;
 
 		strMenu.Format(_T("%d"), i);
 		strData.Format(_T("%d"), m_nDef[i]); // 불량이름별 불량수

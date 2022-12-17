@@ -586,6 +586,9 @@ public:
 	BOOL UpdateStripRatio();
 	BOOL UpdateDef();
 
+	void SwMenu01UpdateWorking(BOOL bOn);
+	void IsSwMenu01UpdateWorking(BOOL bOn);
+
 protected:
 	afx_msg LRESULT wmClientReceived(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT wmClientClosed(WPARAM wParam, LPARAM lParam);

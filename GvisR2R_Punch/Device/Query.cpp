@@ -36,6 +36,101 @@ void CQuery::InitDB(LPCTSTR szServerIP, LPCTSTR szCatalog, LPCTSTR szUserID, LPC
 	}
 }
 
+BOOL CQuery::IsDataType(VARTYPE vT)
+{
+	switch(vT)
+	{
+	case VT_I2:			// 2
+	case VT_I4:			// 3,
+	case VT_R4:			// 4,
+	case VT_R8:			// 5,
+	case VT_CY:			// 6,
+	case VT_DATE:		// 7,
+	case VT_BSTR:		// 8,
+	case VT_BOOL:		// 11,
+	case VT_VARIANT:	// 12,
+	case VT_DECIMAL:	// 14,
+	case VT_I1:			// 16,
+	case VT_UI1:		// 17,
+	case VT_UI2:		// 18,
+	case VT_UI4:		// 19,
+	case VT_I8:			// 20,
+	case VT_UI8:		// 21,
+	case VT_INT:		// 22,
+	case VT_UINT:		// 23,
+	case VT_VOID:		// 24,
+	case VT_LPSTR:		// 30,
+	case VT_LPWSTR:		// 31,
+	case VT_RECORD:		// 36,
+	case VT_INT_PTR:	// 37,
+	case VT_UINT_PTR:	// 38,
+	case VT_FILETIME:	// 64,
+		;
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+BOOL CQuery::Execute(CString sQuery, CStringArray& sArrayData, int& nTotalRow, int&nTotalCol)
+{
+
+	if (!m_dataSource.ExecuteQuery((LPCTSTR)sQuery))
+	{
+		CString strMsg;
+		strMsg.Format(_T("Error occur at m_dataSource.ExecuteQuery() at GetCustomerNameList()\r\n%s"), m_dataSource.GetLastError());
+		Log(strMsg); AfxMessageBox(strMsg, MB_ICONSTOP);
+		return FALSE;
+	}
+
+	long lMaxCols=0, lMaxRows=0, lRow=0, lCol=0;
+	lMaxCols = m_dataSource.m_pRS->Fields->Count;
+	lMaxRows = m_dataSource.m_pRS->RecordCount;
+
+	if (lMaxRows > 0)
+	{
+		nTotalRow = lMaxRows;
+		nTotalCol = lMaxCols;
+
+		_variant_t vColName, vValue;
+		CString strData;
+		m_dataSource.m_pRS->MoveFirst();
+		for (lRow = 0; lRow < lMaxRows; lRow++)
+		{
+			for (lCol = 0; lCol < lMaxCols; lCol++)
+			{
+				vValue = m_dataSource.m_pRS->Fields->Item[(long)lCol]->Value;
+				//if(vValue.vt == VT_NULL || vValue.vt == VT_EMPTY)
+				if(!IsDataType(vValue.vt))
+				{
+					sArrayData.Add(_T("NULL"));
+				}
+				else
+				{
+					vValue.ChangeType(VT_BSTR);
+					strData = vValue.bstrVal;
+
+					//if(strData.IsEmpty())
+					//{
+					//	sArrayData.Add(_T("Empty"));
+					//}
+					//else
+					{
+						sArrayData.Add(strData);
+					}
+				}
+			}
+			m_dataSource.m_pRS->MoveNext();
+		}
+		return TRUE;
+	}
+
+	CString strMsg;
+	strMsg.Format(_T("Not found record for query."));
+	MessageBoxTimeout(NULL, strMsg, _T("Warnning"), MB_OK | MB_SETFOREGROUND | MB_APPLMODAL | MB_ICONSTOP, 0, 500);
+	return FALSE;
+}
+
 int CQuery::GetCustomerNameList(CStringArray &strCustomerName)
 {
 	CString strQuery;
@@ -632,6 +727,50 @@ BOOL CQuery::FindEquipCode(CString strEquipName, CString &strEquipCode)
 	return FALSE;
 }
 
+double CQuery::GetCamInfoResolution(CString strModelName, CString strLayerName)
+{
+	CString strQuery;
+	long lMaxCols, lMaxRows;
+	CString strName, strData, strData2;
+	_variant_t vColName, vValue;
+	double dRes = -1.0;
+
+	strQuery.Format(_T("SELECT RESOLUTION FROM CAMINFO WHERE MODEL_NAME = '%s' AND LAYER_NAME = '%s'"), strModelName, strLayerName);
+
+	if (!m_dataSource.ExecuteQuery((LPCTSTR)strQuery))
+	{
+		CString strMsg;
+		strMsg.Format(_T("Error occur at m_dataSource.ExecuteQuery() at GetCamInfoResolution()\r\n%s"), m_dataSource.GetLastError());
+		Log(strMsg);
+		AfxMessageBox(strMsg, MB_ICONSTOP);
+		return dRes;
+	}
+
+	lMaxCols = m_dataSource.m_pRS->Fields->Count;
+	lMaxRows = m_dataSource.m_pRS->RecordCount;
+
+	if (lMaxRows > 0)
+	{
+		m_dataSource.m_pRS->MoveFirst();
+		//	for(long lRow=0; lRow<lMaxRows; lRow++)
+		{
+			vValue = m_dataSource.m_pRS->Fields->Item[(long)0]->Value;     //master offsetx
+			if (vValue.vt != VT_NULL)
+			{
+				vValue.ChangeType(VT_BSTR);
+				strData = vValue.bstrVal;
+				dRes = _ttof(strData);
+			}
+			//else
+			//{
+			//	dRes = -1.0;
+			//}
+		}
+	}
+
+	return dRes;
+}
+
 CString CQuery::GetCamInfoData(CString strModelName, CString strLayerCode, CString strLayerName)
 {
 	CString strQuery;
@@ -680,6 +819,66 @@ CString CQuery::GetCamInfoData(CString strModelName, CString strLayerCode, CStri
 
 	return MasterPath;
 
+}
+
+BOOL CQuery::LoadMasterSpec(CString sModelN, CString sLayerN, double& dRes, CString& sPathMstLoc, CString& sPathCadLoc)
+{
+	CString strQuery;
+	long lMaxCols, lMaxRows;
+	CString strName, strData, strData2;
+	_variant_t vColName, vValue;
+	CString MasterPath = _T("");
+
+
+	// Get piece region for model
+	CString sModelCode;
+	GetModelCode(sModelN, sModelCode);
+
+	strQuery.Format(_T("SELECT RESOLUTION, MASTER_PATH, CADLINK_PATH FROM CAMINFO WHERE MODEL_NAME = '%s' AND LAYER_NAME = '%s'"), sModelN, sLayerN);
+
+	if (!m_dataSource.ExecuteQuery((LPCTSTR)strQuery))
+	{
+		CString strMsg;
+		strMsg.Format(_T("Error occur at m_dataSource.ExecuteQuery() at LoadMasterSpec()\r\n%s"), m_dataSource.GetLastError());
+		Log(strMsg);
+		AfxMessageBox(strMsg, MB_ICONSTOP);
+		return FALSE;
+	}
+
+	lMaxCols = m_dataSource.m_pRS->Fields->Count;
+	lMaxRows = m_dataSource.m_pRS->RecordCount;
+
+	//MasterInfo.dPixelSize = ; // [um] _T("MACHINE"), _T("PixelSize") --> RESOLUTION(caminfo)
+	//MasterInfo.strMasterLocation = ; // _T("MASTER"), _T("MASTERLOCATION1") --> MASTER_PATH(caminfo) - (model,layer)
+	//MasterInfo.nImageCompression = ; // _T("SPEC"), _T("Compression") --> X
+	//MasterInfo.strCADImgPath = ; // _T("MASTER"), _T("CADLINKLOCATION") --> CADLINK_PATH(caminfo)
+	//MasterInfo.strCADImgBackUpPath = ; // _T("MASTER"), _T("CadLinkLocationBackUp") --> X
+	//MasterInfo.bTwoMetalInspection = ; // _T("MASTER"), _T("TopBottomInspection") --> X
+	//MasterInfo.strTwoMetalOppLayer = ; // _T("MASTER"), _T("OppLayerName") --> X
+
+	if (lMaxRows > 0)
+	{
+		m_dataSource.m_pRS->MoveFirst();
+
+		vValue = m_dataSource.m_pRS->Fields->Item[(long)0]->Value;
+		vValue.ChangeType(VT_BSTR);
+		strData = vValue.bstrVal;
+		dRes = _ttof(strData);
+
+		vValue = m_dataSource.m_pRS->Fields->Item[(long)1]->Value;
+		vValue.ChangeType(VT_BSTR);
+		strData = vValue.bstrVal;
+		sPathMstLoc = strData;
+
+		vValue = m_dataSource.m_pRS->Fields->Item[(long)2]->Value;
+		vValue.ChangeType(VT_BSTR);
+		strData = vValue.bstrVal;
+		sPathCadLoc = strData;
+
+		return TRUE;
+	}
+
+	return FALSE;
 }
 
 CString CQuery::GetCamSpecDirFromRSTH(CString strLotCode, CString strLayerCode, CString strLayerName)
@@ -2600,4 +2799,89 @@ void CQuery::StringToChar(CString str, char* pCh) // char* returned must be dele
 																			  //3. wchar_t* to char* conversion
 	WideCharToMultiByte(CP_ACP, 0, wszStr, -1, pCh, nLenth, 0, 0);
 	return;
+}
+
+BOOL CQuery::LoadPieceOut(CString strLotName, int nSerial, int* pPieceOutIndex, int& nTotalPieceOut)
+{
+	CString strQuery;
+	strQuery.Format(_T("SELECT OUT_CODE FROM `gvisdb`.`pieceout` WHERE LOT_CODE = '%s' AND SERIAL_CODE = '%d'"), strLotName, nSerial);
+
+	if (!m_dataSource.ExecuteQuery((LPCTSTR)strQuery))
+	{
+		CString strMsg;
+		strMsg.Format(_T("Error occur at m_dataSource.ExecuteQuery() at LoadPieceOut()\r\n%s"), m_dataSource.GetLastError());
+		Log(strMsg); AfxMessageBox(strMsg, MB_ICONSTOP);
+		return FALSE;
+	}
+
+	long lMaxCols = m_dataSource.m_pRS->Fields->Count;
+	long lMaxRows = m_dataSource.m_pRS->RecordCount;
+
+	if (lMaxRows > 0)
+	{
+		_variant_t vColName, vValue;
+		CString strData;
+		m_dataSource.m_pRS->MoveFirst();
+		for (int lRow = 0; lRow < lMaxRows; lRow++)
+		{
+			// fetch lot code & return
+			vValue = m_dataSource.m_pRS->Fields->Item[(long)0]->Value;
+			if (vValue.vt != VT_NULL)
+			{
+				vValue.ChangeType(VT_INT);
+				pPieceOutIndex[lRow] = vValue.intVal;
+			}
+			m_dataSource.m_pRS->MoveNext();
+		}
+
+		nTotalPieceOut = (int)lMaxRows;
+		return TRUE;
+	}
+	
+	nTotalPieceOut = 0;
+	return TRUE;
+}
+
+
+BOOL CQuery::GetCurrentDBName(CString &sName)
+{
+	CString strQuery;
+	strQuery.Format(_T("SELECT DATABASE()"));
+
+	if (!m_dataSource.ExecuteQuery((LPCTSTR)strQuery))
+	{
+		CString strMsg;
+		strMsg.Format(_T("Error occur at m_dataSource.ExecuteQuery() at LoadPieceOut()\r\n%s"), m_dataSource.GetLastError());
+		Log(strMsg); AfxMessageBox(strMsg, MB_ICONSTOP);
+		return FALSE;
+	}
+
+	long lMaxCols = m_dataSource.m_pRS->Fields->Count;
+	long lMaxRows = m_dataSource.m_pRS->RecordCount;
+
+	if (lMaxRows > 0)
+	{
+		_variant_t vColName, vValue;
+		CString strData;
+		m_dataSource.m_pRS->MoveFirst();
+		vValue = m_dataSource.m_pRS->Fields->Item[(long)0]->Value;
+		vValue.ChangeType(VT_BSTR);
+		sName = vValue.bstrVal;
+		//for (int lRow = 0; lRow < lMaxRows; lRow++)
+		//{
+		//	// fetch lot code & return
+		//	vValue = m_dataSource.m_pRS->Fields->Item[(long)0]->Value;
+		//	if (vValue.vt != VT_NULL)
+		//	{
+		//		vValue.ChangeType(VT_INT);
+		//		pPieceOutIndex[lRow] = vValue.intVal;
+		//	}
+		//	m_dataSource.m_pRS->MoveNext();
+		//}
+
+		//nTotalPieceOut = (int)lMaxRows;
+		return TRUE;
+	}
+
+	return FALSE;
 }

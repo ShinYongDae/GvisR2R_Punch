@@ -537,7 +537,7 @@ BOOL CDlgMenu02::OnInitDialog()
 // 	GetDlgItem(IDC_CHK_ELEC_TEST)->ShowWindow(SW_HIDE);
 
 	
-	ShowDlg(IDD_DLG_UTIL_03);
+	//ShowDlg(IDD_DLG_UTIL_03);
 #ifdef USE_FLUCK
 	ShowDlg(IDD_DLG_UTIL_06);
 #endif
@@ -1906,9 +1906,12 @@ BOOL CDlgMenu02::MovePos(int nPos)
 			pView->m_pMotion->GetSpeedProfile(TRAPEZOIDAL, AXIS_X0, fLen, fVel, fAcc, fJerk);
 			if(!pView->m_pMotion->Move(MS_X0Y0, pPos, fVel, fAcc, fAcc))
 			{
-				if(!pView->m_pMotion->Move(MS_X0Y0, pPos, fVel, fAcc, fAcc))
+				if (!pView->m_pMotion->Move(MS_X0Y0, pPos, fVel, fAcc, fAcc))
+				{
+					pView->ClrDispMsg();
 					AfxMessageBox(_T("Move XY Error..."));
 			}
+		}
 		}
 
 		return TRUE;
@@ -1946,9 +1949,12 @@ BOOL CDlgMenu02::MovePos2(int nPos)
 			pView->m_pMotion->GetSpeedProfile(TRAPEZOIDAL, AXIS_X1, fLen, fVel, fAcc, fJerk);
 			if(!pView->m_pMotion->Move(MS_X1Y1, pPos, fVel, fAcc, fAcc))
 			{
-				if(!pView->m_pMotion->Move(MS_X1Y1, pPos, fVel, fAcc, fAcc))
+				if (!pView->m_pMotion->Move(MS_X1Y1, pPos, fVel, fAcc, fAcc))
+				{
+					pView->ClrDispMsg();
 					AfxMessageBox(_T("Move XY Error..."));
 			}
+		}
 		}
 
 		return TRUE;
@@ -1989,9 +1995,12 @@ BOOL CDlgMenu02::MovePinPos()
 			pView->m_pMotion->GetSpeedProfile(TRAPEZOIDAL, AXIS_X0, fLen, fVel, fAcc, fJerk);
 			if(!pView->m_pMotion->Move(MS_X0Y0, pPos, fVel, fAcc, fAcc))
 			{
-				if(!pView->m_pMotion->Move(MS_X0Y0, pPos, fVel, fAcc, fAcc))
+				if (!pView->m_pMotion->Move(MS_X0Y0, pPos, fVel, fAcc, fAcc))
+				{
+					pView->ClrDispMsg();
 					AfxMessageBox(_T("Move XY Error..."));
 			}
+		}
 		}
 
 		return TRUE;
@@ -2031,9 +2040,12 @@ BOOL CDlgMenu02::MovePinPos2()
 			pView->m_pMotion->GetSpeedProfile(TRAPEZOIDAL, AXIS_X1, fLen, fVel, fAcc, fJerk);
 			if(!pView->m_pMotion->Move(MS_X1Y1, pPos, fVel, fAcc, fAcc))
 			{
-				if(!pView->m_pMotion->Move(MS_X0Y0, pPos, fVel, fAcc, fAcc))
+				if (!pView->m_pMotion->Move(MS_X0Y0, pPos, fVel, fAcc, fAcc))
+				{
+					pView->ClrDispMsg();
 					AfxMessageBox(_T("Move XY Error..."));
 			}
+		}
 		}
 
 		return TRUE;
@@ -2090,8 +2102,11 @@ BOOL CDlgMenu02::Move2PntAlign0(int nPos)
 			if (!pView->m_pMotion->Move(MS_X0Y0, pPos, fVel, fAcc, fAcc))
 			{
 				if (!pView->m_pMotion->Move(MS_X0Y0, pPos, fVel, fAcc, fAcc))
+				{
+					pView->ClrDispMsg();
 					AfxMessageBox(_T("Move XY Error..."));
 			}
+		}
 		}
 
 		return TRUE;
@@ -2145,8 +2160,11 @@ BOOL CDlgMenu02::Move4PntAlign0(int nPos)
 			if (!pView->m_pMotion->Move(MS_X0Y0, pPos, fVel, fAcc, fAcc))
 			{
 				if (!pView->m_pMotion->Move(MS_X0Y0, pPos, fVel, fAcc, fAcc))
+				{
+					pView->ClrDispMsg();
 					AfxMessageBox(_T("Move XY Error..."));
 			}
+		}
 		}
 
 		return TRUE;
@@ -2204,8 +2222,11 @@ BOOL CDlgMenu02::Move2PntAlign1(int nPos)
 			if (!pView->m_pMotion->Move(MS_X1Y1, pPos, fVel, fAcc, fAcc))
 			{
 				if (!pView->m_pMotion->Move(MS_X1Y1, pPos, fVel, fAcc, fAcc))
+				{
+					pView->ClrDispMsg();
 					AfxMessageBox(_T("Move XY Error..."));
 			}
+		}
 		}
 
 		return TRUE;
@@ -2260,8 +2281,11 @@ BOOL CDlgMenu02::Move4PntAlign1(int nPos)
 			if (!pView->m_pMotion->Move(MS_X1Y1, pPos, fVel, fAcc, fAcc))
 			{
 				if (!pView->m_pMotion->Move(MS_X1Y1, pPos, fVel, fAcc, fAcc))
+				{
+					pView->ClrDispMsg();
 					AfxMessageBox(_T("Move XY Error..."));
 			}
+		}
 		}
 
 		return TRUE;
@@ -2296,6 +2320,8 @@ void CDlgMenu02::SetPinPos(int nCam, CfPoint ptPnt)
 		::WritePrivateProfileString(_T("Motion"), _T("PIN_POS1_X"), pDoc->WorkingInfo.Motion.sPinPosX[nCam], sPath);
 		::WritePrivateProfileString(_T("Motion"), _T("PIN_POS1_Y"), pDoc->WorkingInfo.Motion.sPinPosY[nCam], sPath);
 	}
+
+	pView->SetAlignPos();
 }
 
 void CDlgMenu02::OnBtnPinSave() 
@@ -2421,9 +2447,12 @@ void CDlgMenu02::OnBtnHomeMove()
 			if(!pView->m_pMotion->Move(MS_X0Y0, pTgtPos, fVel, fAcc, fAcc))
 			{
 				if(!pView->m_pMotion->Move(MS_X0Y0, pTgtPos, fVel, fAcc, fAcc))
+				{
+					pView->ClrDispMsg();
 					AfxMessageBox(_T("Move XY Error..."));
 			}
 		}
+	}
 	}
 }
 
@@ -2456,8 +2485,11 @@ void CDlgMenu02::OnBtnHomeMove2()
 			if(!pView->m_pMotion->Move(MS_X1Y1, pTgtPos, fVel, fAcc, fAcc))
 			{
 				if(!pView->m_pMotion->Move(MS_X1Y1, pTgtPos, fVel, fAcc, fAcc))
+				{
+					pView->ClrDispMsg();
 					AfxMessageBox(_T("Move XY Error..."));
 			}
+		}
 		}
 	}	
 }
@@ -2802,6 +2834,7 @@ void CDlgMenu02::Grab2PntAlign()
 
 	if (nPos == -1)
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Error - Grab2PntAlign() failed!"));
 		return;
 	}
@@ -2867,6 +2900,7 @@ void CDlgMenu02::Grab4PntAlign()
 
 	if (nPos == -1)
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Error - Grab4PntAlign() failed!"));
 		return;
 	}
@@ -3129,8 +3163,11 @@ void CDlgMenu02::SwMarking()
 		if(!pView->m_pMotion->Move(MS_X0Y0, pPos, fVel, fAcc, fAcc))
 		{
 			if(!pView->m_pMotion->Move(MS_X0Y0, pPos, fVel, fAcc, fAcc))
+			{
+				pView->ClrDispMsg();
 				AfxMessageBox(_T("Move XY Error..."));
 		}
+	}
 	}
 
 
@@ -3186,8 +3223,11 @@ void CDlgMenu02::SwMarking2()
 		if(!pView->m_pMotion->Move(MS_X1Y1, pPos, fVel, fAcc, fAcc))
 		{
 			if(!pView->m_pMotion->Move(MS_X1Y1, pPos, fVel, fAcc, fAcc))
+			{
+				pView->ClrDispMsg();
 				AfxMessageBox(_T("Move XY Error..."));
 		}
+	}
 	}
 
 
@@ -3261,8 +3301,11 @@ void CDlgMenu02::MarkingOff()
 		if(!pView->m_pMotion->Move(MS_X0Y0, pPos, fVel, fAcc, fAcc))
 		{
 			if(!pView->m_pMotion->Move(MS_X0Y0, pPos, fVel, fAcc, fAcc))
+			{
+				pView->ClrDispMsg();
 				AfxMessageBox(_T("Move XY Error..."));
 		}
+	}
 	}
 }
 
@@ -3306,8 +3349,11 @@ void CDlgMenu02::MarkingOff2()
 		if(!pView->m_pMotion->Move(MS_X1Y1, pPos, fVel, fAcc, fAcc))
 		{
 			if(!pView->m_pMotion->Move(MS_X1Y1, pPos, fVel, fAcc, fAcc))
+			{
+				pView->ClrDispMsg();
 				AfxMessageBox(_T("Move XY Error..."));
 		}
+	}
 	}
 }
 
@@ -3564,9 +3610,12 @@ BOOL CDlgMenu02::PreTranslateMessage(MSG* pMsg)
 				if (!pView->m_pMotion->Move(MS_X0Y0, pPos, fVel, fAcc, fAcc))
 				{
 					if (!pView->m_pMotion->Move(MS_X0Y0, pPos, fVel, fAcc, fAcc))
+					{
+						pView->ClrDispMsg();
 						AfxMessageBox(_T("Move X0Y0 Error..."));
 				}
 			}
+		}
 		}
 		else if(pMsg->message == WM_LBUTTONDBLCLK && GetDlgItem(IDC_STC_VISION_2)->GetSafeHwnd() == pMsg->hwnd)
 		{
@@ -3586,10 +3635,13 @@ BOOL CDlgMenu02::PreTranslateMessage(MSG* pMsg)
 				if (!pView->m_pMotion->Move(MS_X1Y1, pPos, fVel, fAcc, fAcc))
 				{
 					if (!pView->m_pMotion->Move(MS_X1Y1, pPos, fVel, fAcc, fAcc))
+					{
+						pView->ClrDispMsg();
 						AfxMessageBox(_T("Move X1Y1 Error..."));
 				}
 			}
 		}
+	}
 	}
 #endif
 	if (pMsg->message != WM_KEYDOWN)
@@ -4032,6 +4084,7 @@ void CDlgMenu02::Grab2PntAlign2()
 
 	if (nPos == -1)
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Error - Grab2PntAlign2() failed!"));
 		return;
 	}
@@ -4098,6 +4151,7 @@ void CDlgMenu02::Grab4PntAlign2()
 
 	if (nPos == -1)
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("Error - Grab4PntAlign2() failed!"));
 		return;
 	}

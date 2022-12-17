@@ -1150,13 +1150,17 @@
 #define IDC_CHK_MK_1                    1361
 #define IDC_BTN_SAVE3                   1361
 #define IDC_STC_1_8                     1361
+#define IDC_STC_SIG1                    1361
 #define IDC_CHK_MK_2                    1362
 #define IDC_BTN_MES                     1362
 #define IDC_STC_1_9                     1362
+#define IDC_STC_SIG2                    1362
 #define IDC_CHK_MK_3                    1363
 #define IDC_STC_2_0                     1363
+#define IDC_STC_SIG3                    1363
 #define IDC_STC_2_1                     1364
 #define IDC_STC_2_2                     1365
+#define IDC_STC_SIG5                    1365
 #define IDC_STC_2_3                     1366
 #define IDC_STC_2_4                     1367
 #define IDC_STC_2_5                     1368

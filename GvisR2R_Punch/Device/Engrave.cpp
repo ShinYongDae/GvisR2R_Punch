@@ -1504,6 +1504,7 @@ void CEngrave::GetOpInfo(SOCKET_DATA SockData)
 			{
 				m_bGetOpInfo = TRUE;
 				pDoc->WorkingInfo.LastJob.bDualTest = (SockData.nData1 > 0) ? TRUE : FALSE;
+				pView->SetDualTest(pDoc->WorkingInfo.LastJob.bDualTest);
 			}
 			break;
 		case _SigInx::_SampleTest:
@@ -1511,6 +1512,9 @@ void CEngrave::GetOpInfo(SOCKET_DATA SockData)
 			{
 				m_bGetOpInfo = TRUE;
 				pDoc->WorkingInfo.LastJob.bSampleTest = (SockData.nData1 > 0) ? TRUE : FALSE;
+#ifdef USE_MPE
+				pView->m_pMpe->Write(_T("MB44017B"), (pDoc->WorkingInfo.LastJob.bSampleTest) ? 1 : 0);		// Sample 검사 On
+#endif
 			}
 			break;
 		case _SigInx::_TestMode:
@@ -1545,14 +1549,20 @@ void CEngrave::GetOpInfo(SOCKET_DATA SockData)
 			if(pDoc->WorkingInfo.LastJob.bOneMetal != (SockData.nData1 > 0) ? TRUE : FALSE)	// OneMetal : TRUE -> SetTwoMetal(FALSE);
 			{
 				m_bGetOpInfo = TRUE;
-				pDoc->WorkingInfo.LastJob.bOneMetal = (SockData.nData1 > 0) ? TRUE : FALSE;	// OneMetal : TRUE -> SetTwoMetal(FALSE);
+				pDoc->BtnStatus.Induct.Rc = pDoc->WorkingInfo.LastJob.bOneMetal = (SockData.nData1 > 0) ? TRUE : FALSE;	// OneMetal : TRUE -> SetTwoMetal(FALSE);
+#ifdef USE_MPE
+				pView->m_pMpe->Write(_T("MB44017D"), 1);
+#endif
 			}
 			break;
 		case _SigInx::_UncoilerCcw:
 			if(pDoc->WorkingInfo.LastJob.bTwoMetal != (SockData.nData1 > 0) ? TRUE : FALSE)	// TwoMetal : TRUE -> SetTwoMetal(TRUE);
 			{
 				m_bGetOpInfo = TRUE;
-				pDoc->WorkingInfo.LastJob.bTwoMetal = (SockData.nData1 > 0) ? TRUE : FALSE;	// TwoMetal : TRUE -> SetTwoMetal(TRUE);
+				pDoc->BtnStatus.Induct.Uc = pDoc->WorkingInfo.LastJob.bTwoMetal = (SockData.nData1 > 0) ? TRUE : FALSE;	// TwoMetal : TRUE -> SetTwoMetal(TRUE);
+#ifdef USE_MPE
+				pView->m_pMpe->Write(_T("MB44017C"), 1);
+#endif
 			}
 			break;
 		case _SigInx::_AlignMethode:
@@ -1567,6 +1577,10 @@ void CEngrave::GetOpInfo(SOCKET_DATA SockData)
 			{
 				m_bGetOpInfo = TRUE;
 				pDoc->WorkingInfo.LastJob.bRclDrSen = (SockData.nData1 > 0) ? TRUE : FALSE;
+#ifdef USE_MPE
+				if (pView && pView->m_pMpe)
+					pView->m_pMpe->Write(_T("MB440163"), pDoc->WorkingInfo.LastJob.bRclDrSen ? 1 : 0);	// 리코일러Door센서 사용
+#endif
 			}
 			break;
 		case _SigInx::_DoorAoiUp:
@@ -1574,6 +1588,10 @@ void CEngrave::GetOpInfo(SOCKET_DATA SockData)
 			{
 				m_bGetOpInfo = TRUE;
 				pDoc->WorkingInfo.LastJob.bAoiUpDrSen = (SockData.nData1 > 0) ? TRUE : FALSE;
+#ifdef USE_MPE
+				if (pView && pView->m_pMpe)
+					pView->m_pMpe->Write(_T("MB440166"), pDoc->WorkingInfo.LastJob.bAoiUpDrSen ? 1 : 0);	// AOI(상) Door센서 사용
+#endif
 			}
 			break;
 		case _SigInx::_DoorAoiDn:
@@ -1581,6 +1599,10 @@ void CEngrave::GetOpInfo(SOCKET_DATA SockData)
 			{
 				m_bGetOpInfo = TRUE;
 				pDoc->WorkingInfo.LastJob.bAoiDnDrSen = (SockData.nData1 > 0) ? TRUE : FALSE;
+#ifdef USE_MPE
+				if (pView && pView->m_pMpe)
+					pView->m_pMpe->Write(_T("MB440167"), pDoc->WorkingInfo.LastJob.bAoiDnDrSen ? 1 : 0);	// AOI(하) Door센서 사용
+#endif
 			}
 			break;
 		case _SigInx::_DoorMk:
@@ -1588,6 +1610,10 @@ void CEngrave::GetOpInfo(SOCKET_DATA SockData)
 			{
 				m_bGetOpInfo = TRUE;
 				pDoc->WorkingInfo.LastJob.bMkDrSen = (SockData.nData1 > 0) ? TRUE : FALSE;
+#ifdef USE_MPE
+				if (pView && pView->m_pMpe)
+					pView->m_pMpe->Write(_T("MB440164"), pDoc->WorkingInfo.LastJob.bMkDrSen ? 1 : 0);	// 마킹Door센서 사용
+#endif
 			}
 			break;
 		case _SigInx::_DoorEngrave:
@@ -1595,6 +1621,10 @@ void CEngrave::GetOpInfo(SOCKET_DATA SockData)
 			{
 				m_bGetOpInfo = TRUE;
 				pDoc->WorkingInfo.LastJob.bEngvDrSen = (SockData.nData1 > 0) ? TRUE : FALSE;
+#ifdef USE_MPE
+				if (pView && pView->m_pMpe)
+					pView->m_pMpe->Write(_T("MB44019B"), pDoc->WorkingInfo.LastJob.bEngvDrSen ? 1 : 0);	// 각인부 Door센서 사용
+#endif
 			}
 			break;
 		case _SigInx::_DoorUncoiler:
@@ -1602,6 +1632,10 @@ void CEngrave::GetOpInfo(SOCKET_DATA SockData)
 			{
 				m_bGetOpInfo = TRUE;
 				pDoc->WorkingInfo.LastJob.bUclDrSen = (SockData.nData1 > 0) ? TRUE : FALSE;
+#ifdef USE_MPE
+				if (pView && pView->m_pMpe)
+					pView->m_pMpe->Write(_T("MB440168"), pDoc->WorkingInfo.LastJob.bUclDrSen ? 1 : 0);	// 언코일러Door센서 사용
+#endif
 			}
 			break;
 		case _SigInx::_SaftyMk:
@@ -1616,6 +1650,10 @@ void CEngrave::GetOpInfo(SOCKET_DATA SockData)
 			{
 				m_bGetOpInfo = TRUE;
 				pDoc->WorkingInfo.LastJob.bUseAoiUpCleanRoler = (SockData.nData1 > 0) ? TRUE : FALSE;
+#ifdef USE_MPE
+				if (pView && pView->m_pMpe)
+					pView->m_pMpe->Write(_T("MB44010E"), pDoc->WorkingInfo.LastJob.bUseAoiUpCleanRoler ? 1 : 0);
+#endif
 			}
 			break;
 		case _SigInx::_CleannerAoiDn:
@@ -1623,6 +1661,10 @@ void CEngrave::GetOpInfo(SOCKET_DATA SockData)
 			{
 				m_bGetOpInfo = TRUE;
 				pDoc->WorkingInfo.LastJob.bUseAoiDnCleanRoler = (SockData.nData1 > 0) ? TRUE : FALSE;
+#ifdef USE_MPE
+				if (pView && pView->m_pMpe)
+					pView->m_pMpe->Write(_T("MB44010F"), pDoc->WorkingInfo.LastJob.bUseAoiDnCleanRoler ? 1 : 0);
+#endif
 			}
 			break;
 		case _SigInx::_UltraSonicAoiDn:
@@ -1630,6 +1672,10 @@ void CEngrave::GetOpInfo(SOCKET_DATA SockData)
 			{
 				m_bGetOpInfo = TRUE;
 				pDoc->WorkingInfo.LastJob.bUseAoiDnUltrasonic = (SockData.nData1 > 0) ? TRUE : FALSE;
+#ifdef USE_MPE
+				if (pView && pView->m_pMpe)
+					pView->m_pMpe->Write(_T("MB44016F"), pDoc->WorkingInfo.LastJob.bUseAoiDnUltrasonic ? 1 : 0);
+#endif
 			}
 			break;
 		case _SigInx::_UltraSonicEngrave:
@@ -1637,6 +1683,10 @@ void CEngrave::GetOpInfo(SOCKET_DATA SockData)
 			{
 				m_bGetOpInfo = TRUE;
 				pDoc->WorkingInfo.LastJob.bUseEngraveUltrasonic = (SockData.nData1 > 0) ? TRUE : FALSE;
+#ifdef USE_MPE
+				if (pView && pView->m_pMpe)
+					pView->m_pMpe->Write(_T("MB44016E"), pDoc->WorkingInfo.LastJob.bUseEngraveUltrasonic ? 1 : 0);
+#endif
 			}
 			break;
 		case _SigInx::_TempPause:
@@ -1644,6 +1694,7 @@ void CEngrave::GetOpInfo(SOCKET_DATA SockData)
 			{
 				m_bGetOpInfo = TRUE;
 				pDoc->WorkingInfo.LastJob.bTempPause = (SockData.nData1 > 0) ? TRUE : FALSE;
+				pView->m_pMpe->Write(_T("MB440183"), pDoc->WorkingInfo.LastJob.bTempPause ? 1 : 0);	// 일시정지사용(PC가 On시키고, PLC가 확인하고 Off시킴)
 			}
 			break;
 		case _SigInx::_LotCut:
@@ -1922,30 +1973,37 @@ void CEngrave::GetInfo(SOCKET_DATA SockData)
 			}
 			break;
 		case _ItemInx::_TotReelLen:
+			m_bGetInfo = TRUE;
 			pDoc->WorkingInfo.LastJob.sReelTotLen = CharToString(SockData.strData);
 			pDoc->WorkingInfo.Lot.sTotalReelDist = CharToString(SockData.strData);
 			break;
 		case _ItemInx::_PartVel:
+			m_bGetInfo = TRUE;
 			pDoc->WorkingInfo.LastJob.sPartialSpd = CharToString(SockData.strData);
 
 			::WritePrivateProfileString(_T("Last Job"), _T("Partial Speed"), pDoc->WorkingInfo.LastJob.sPartialSpd, PATH_WORKING_INFO);
 			break;
 		case _ItemInx::_TempStopLen:
+			m_bGetInfo = TRUE;
 			pDoc->WorkingInfo.LastJob.sTempPauseLen = CharToString(SockData.strData);
 			pDoc->WorkingInfo.Lot.sStopDist = CharToString(SockData.strData);
 			break;
 		case _ItemInx::_LotCutLen:
+			m_bGetInfo = TRUE;
 			pDoc->WorkingInfo.LastJob.sLotSepLen = CharToString(SockData.strData);
 			pDoc->WorkingInfo.Lot.sSeparateDist = CharToString(SockData.strData);
 			break;
 		case _ItemInx::_LotCutPosLen:
+			m_bGetInfo = TRUE;
 			pDoc->WorkingInfo.LastJob.sLotCutPosLen = CharToString(SockData.strData);
 			pDoc->WorkingInfo.Lot.sCuttingDist = CharToString(SockData.strData);
 			break;
 		case _ItemInx::_LotSerial:
+			m_bGetInfo = TRUE;
 			pDoc->WorkingInfo.LastJob.sLotSerial = CharToString(SockData.strData);
 			break;
 		case _ItemInx::_MkVerfyLen:
+			m_bGetInfo = TRUE;
 			pDoc->WorkingInfo.LastJob.sVerifyLen = CharToString(SockData.strData);
 			break;
 		default:
@@ -8596,4 +8654,25 @@ BOOL CEngrave::UpdateDef()
 	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
 
 	return TRUE;
+}
+
+
+void CEngrave::SwMenu01UpdateWorking(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_UpdateWork;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
+}
+
+void CEngrave::IsSwMenu01UpdateWorking(BOOL bOn)
+{
+	SOCKET_DATA SocketData;
+	SocketData.nCmdCode = _SetSig;
+
+	SocketData.nMsgID = _SigInx::_IsUpdateWork;
+	SocketData.nData1 = bOn ? 1 : 0;
+	SendCommand(SocketData);
 }

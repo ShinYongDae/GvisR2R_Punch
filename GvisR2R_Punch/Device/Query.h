@@ -24,6 +24,7 @@ class CQuery
 	void Log(CString strMsg, int nType = 0);
 	void StringToChar(CString str, char* pCh); // char* returned must be deleted... 
 	BOOL DirectoryExists(LPCTSTR szPath);
+	BOOL IsDataType(VARTYPE nType);
 
 public:
 	CQuery();
@@ -31,6 +32,7 @@ public:
 
 	void InitDB(LPCTSTR szServerIP, LPCTSTR szCatalog, LPCTSTR szUserID, LPCTSTR szUserPassword);
 	void InitDB(LPCTSTR szServerIP, LPCTSTR szCatalog, LPCTSTR szUserID, LPCTSTR szUserPassword, int nDbtype);
+	BOOL Execute(CString sQuery, CStringArray& sArrayData, int& nTotalRow, int&nTotalCol);
 
 	int GetCustomerNameList(CStringArray &strCustomerName);
 	BOOL FindCustomerCode(CString strCustomerName, CString &strCustomerCode);
@@ -42,7 +44,9 @@ public:
 	int GetEquipmentNameList(CStringArray &strEquipName);
 	BOOL GetEquipmentName(int nIndex, CString &strEquipName);
 	BOOL FindEquipCode(CString strEquipName, CString &strEquipCode);
+	double GetCamInfoResolution(CString strModelName, CString strLayerName);
 	CString GetCamInfoData(CString strModelName, CString strLayerCode, CString strLayerName);
+	BOOL LoadMasterSpec(CString sModelN, CString sLayerN, double& dRes, CString& sPathMstLoc, CString& sPathCadLoc);
 	CString GetCamSpecDirFromRSTH(CString strLotCode, CString strLayerCode, CString strLayerName);
 	BOOL GetInspectionRegionByModel(CString strModelName, double &fWidth, double &fHeight);
 	BOOL GetNumberOfStripRegionFromMODEL(CString strModelCode, int &nNumOfRegion);
@@ -79,5 +83,8 @@ public:
 	BOOL GetMirrorTypeName(int nIndex, CString &strMirrorName);
 	BOOL GetMirrorTypeCode(CString strModelName, CString strLotName, CString strLayerName, CString &strMirrorCode);
 	BOOL FindMirrorTypeCode(CString strMirrorName, CString &strMirrorCode);
+
+	BOOL LoadPieceOut(CString strLotName, int nSerial, int* pPieceOutIndex, int& nTotalPieceOut);
+	BOOL GetCurrentDBName(CString &sName);
 };
 

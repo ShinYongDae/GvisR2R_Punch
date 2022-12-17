@@ -220,7 +220,7 @@ AdoNS::_RecordsetPtr CAdoConnection::Execute(LPCTSTR szQuery)
 		_bstr_t strConn( myConn );
 		HRESULT hr = RS.CreateInstance(__uuidof(AdoNS::Recordset));
 
-if(m_nDBtype ==1)
+		if(m_nDBtype ==1)
 		RS->CursorLocation = AdoNS::adUseClient;
 	
 		RS->Open(szQuery, strConn, AdoNS::adOpenStatic, AdoNS::adLockReadOnly, AdoNS::adCmdText);

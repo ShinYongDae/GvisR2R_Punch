@@ -61,11 +61,27 @@ CGvisR2R_PunchDoc::CGvisR2R_PunchDoc()
 	m_pReelMapAllUp = NULL;
 	m_pReelMapAllDn = NULL;
 
+	//m_pReelMapInner = NULL;
+	//m_pReelMapInnerUp = NULL;
+	//m_pReelMapInnerDn = NULL;
+	//m_pReelMapInnerAllUp = NULL;
+	//m_pReelMapInnerAllDn = NULL;
+	//m_pReelMapInOuterUp = NULL;
+	//m_pReelMapInOuterDn = NULL;
+
 	for (i = 0; i < MAX_PCR; i++)
 	{
 		for (k = 0; k < MAX_PCR_PNL; k++)
+		{
 			m_pPcr[i][k] = NULL;
+			//m_pPcrInner[i][k] = NULL;
+		}
 	}
+	//for (k = 0; k < MAX_PCR_PNL; k++)
+	//{
+	//	m_pPcrMk[k] = NULL;
+	//	m_pPcrMkInner[k] = NULL;
+	//}
 
 	pMkInfo = NULL;
 
@@ -273,6 +289,48 @@ CGvisR2R_PunchDoc::~CGvisR2R_PunchDoc()
 		m_pReelMapAllDn = NULL;
 	}
 
+	//if (m_pReelMapInner)
+	//{
+	//	delete m_pReelMapInner;
+	//	m_pReelMapInner = NULL;
+	//}
+
+	//if (m_pReelMapInnerUp)
+	//{
+	//	delete m_pReelMapInnerUp;
+	//	m_pReelMapInnerUp = NULL;
+	//}
+
+	//if (m_pReelMapInnerDn)
+	//{
+	//	delete m_pReelMapInnerDn;
+	//	m_pReelMapInnerDn = NULL;
+	//}
+
+	//if (m_pReelMapInnerAllUp)
+	//{
+	//	delete m_pReelMapInnerAllUp;
+	//	m_pReelMapInnerAllUp = NULL;
+	//}
+
+	//if (m_pReelMapInnerAllDn)
+	//{
+	//	delete m_pReelMapInnerAllDn;
+	//	m_pReelMapInnerAllDn = NULL;
+	//}
+
+	//if (m_pReelMapInOuterUp)
+	//{
+	//	delete m_pReelMapInOuterUp;
+	//	m_pReelMapInOuterUp = NULL;
+	//}
+
+	//if (m_pReelMapInOuterDn)
+	//{
+	//	delete m_pReelMapInOuterDn;
+	//	m_pReelMapInOuterDn = NULL;
+	//}
+
 	if (pMkInfo)
 	{
 		delete[] pMkInfo;
@@ -346,10 +404,30 @@ CGvisR2R_PunchDoc::~CGvisR2R_PunchDoc()
 				delete m_pPcr[i][k];
 				m_pPcr[i][k] = NULL;
 			}
+
+			//if (m_pPcrInner[i][k])
+			//{
+			//	delete m_pPcrInner[i][k];
+			//	m_pPcrInner[i][k] = NULL;
+			//}
 		}
 		//delete[] m_pPcr[i];
 		//m_pPcr[i] = NULL;
 	}
+
+	//for (k = 0; k < MAX_PCR_PNL; k++)
+	//{
+	//	if (m_pPcrMk[k])
+	//	{
+	//		delete m_pPcrMk[k];
+	//		m_pPcrMk[k] = NULL;
+	//	}
+	//	if (m_pPcrMkInner[k])
+	//	{
+	//		delete m_pPcrMkInner[k];
+	//		m_pPcrMkInner[k] = NULL;
+	//	}
+	//}
 }
 
 BOOL CGvisR2R_PunchDoc::OnNewDocument()
@@ -960,7 +1038,7 @@ BOOL CGvisR2R_PunchDoc::LoadWorkingInfo()
 		WorkingInfo.System.sPathMonDispMain = CString(szData);
 	else
 	{
-		AfxMessageBox(_T("PunchingCurrentInfoPath가 설정되어 있지 않습니다."), MB_ICONWARNING | MB_OK);
+		AfxMessageBox(_T("MonDispMainPath가 설정되어 있지 않습니다."), MB_ICONWARNING | MB_OK);
 		WorkingInfo.System.sPathMonDispMain = CString(_T("C:\\PunchWork\\MonDispMain.ini"));
 	}
 
@@ -968,7 +1046,7 @@ BOOL CGvisR2R_PunchDoc::LoadWorkingInfo()
 		WorkingInfo.System.sPathMkMenu01 = CString(szData);
 	else
 	{
-		AfxMessageBox(_T("PunchingCurrentInfoPath가 설정되어 있지 않습니다."), MB_ICONWARNING | MB_OK);
+		AfxMessageBox(_T("MkMenu01Path가 설정되어 있지 않습니다."), MB_ICONWARNING | MB_OK);
 		WorkingInfo.System.sPathMkMenu01 = CString(_T("C:\\PunchWork\\MkMenu01.ini"));
 	}
 
@@ -976,8 +1054,16 @@ BOOL CGvisR2R_PunchDoc::LoadWorkingInfo()
 		WorkingInfo.System.sPathMkMenu03 = CString(szData);
 	else
 	{
-		AfxMessageBox(_T("PunchingCurrentInfoPath가 설정되어 있지 않습니다."), MB_ICONWARNING | MB_OK);
+		AfxMessageBox(_T("MkMenu03Path가 설정되어 있지 않습니다."), MB_ICONWARNING | MB_OK);
 		WorkingInfo.System.sPathMkMenu03 = CString(_T("C:\\PunchWork\\MkMenu03.ini"));
+	}
+
+	if (0 < ::GetPrivateProfileString(_T("System"), _T("MkInfoPath"), NULL, szData, sizeof(szData), sPath))
+		WorkingInfo.System.sPathMkInfo = CString(szData);
+	else
+	{
+		AfxMessageBox(_T("MkInfoPath가 설정되어 있지 않습니다."), MB_ICONWARNING | MB_OK);
+		WorkingInfo.System.sPathMkInfo = CString(_T("C:\\PunchWork\\MkInfoPath.ini"));
 	}
 
 	if (0 < ::GetPrivateProfileString(_T("System"), _T("PunchingCurrentInfoBufPath"), NULL, szData, sizeof(szData), sPath))
@@ -1003,6 +1089,22 @@ BOOL CGvisR2R_PunchDoc::LoadWorkingInfo()
 	{
 		AfxMessageBox(_T("AOIUpPath가 설정되어 있지 않습니다."), MB_ICONWARNING | MB_OK);
 		WorkingInfo.System.sPathAoiUp = CString(_T(""));
+	}
+
+	if (0 < ::GetPrivateProfileString(_T("System"), _T("UseDTS"), NULL, szData, sizeof(szData), sPath))
+		WorkingInfo.System.bUseDTS = _ttoi(szData);
+	else
+	{
+		AfxMessageBox(_T("UseDTS가 설정되어 있지 않습니다."), MB_ICONWARNING | MB_OK);
+		WorkingInfo.System.bUseDTS = FALSE;
+	}
+
+	if (0 < ::GetPrivateProfileString(_T("System"), _T("AOIUpDtsPath"), NULL, szData, sizeof(szData), sPath))
+		WorkingInfo.System.sPathAoiUpDts = CString(szData);
+	else
+	{
+		AfxMessageBox(_T("AOIUpDtsPath가 설정되어 있지 않습니다."), MB_ICONWARNING | MB_OK);
+		WorkingInfo.System.sPathAoiUpDts = CString(_T(""));
 	}
 
 	if (0 < ::GetPrivateProfileString(_T("System"), _T("AoiUpCurrentInfoPath"), NULL, szData, sizeof(szData), sPath))
@@ -1035,6 +1137,14 @@ BOOL CGvisR2R_PunchDoc::LoadWorkingInfo()
 	{
 		AfxMessageBox(_T("AOIDnPath가 설정되어 있지 않습니다."), MB_ICONWARNING | MB_OK);
 		WorkingInfo.System.sPathAoiDn = CString(_T(""));
+	}
+
+	if (0 < ::GetPrivateProfileString(_T("System"), _T("AOIDnDtsPath"), NULL, szData, sizeof(szData), sPath))
+		WorkingInfo.System.sPathAoiDnDts = CString(szData);
+	else
+	{
+		AfxMessageBox(_T("AOIDnDtsPath가 설정되어 있지 않습니다."), MB_ICONWARNING | MB_OK);
+		WorkingInfo.System.sPathAoiDnDts = CString(_T(""));
 	}
 
 	if (0 < ::GetPrivateProfileString(_T("System"), _T("AoiDnCurrentInfoPath"), NULL, szData, sizeof(szData), sPath))
@@ -1220,6 +1330,16 @@ BOOL CGvisR2R_PunchDoc::LoadWorkingInfo()
 		m_nDelayShow = 500;
 
 	// [Last Job]
+	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("MkSt"), NULL, szData, sizeof(szData), sPath))
+		pView->m_bMkSt = _ttoi(szData) > 0 ? TRUE : FALSE;
+	else
+		pView->m_bMkSt = FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("MkStAuto"), NULL, szData, sizeof(szData), sPath))
+		pView->m_nMkStAuto = _ttoi(szData);
+	else
+		pView->m_nMkStAuto = 0;
+
 	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Process Code"), NULL, szData, sizeof(szData), sPath))
 		WorkingInfo.LastJob.sProcessNum = CString(szData);
 	else
@@ -1255,10 +1375,28 @@ BOOL CGvisR2R_PunchDoc::LoadWorkingInfo()
 	else
 		WorkingInfo.LastJob.nTestMode = 0;
 
+	if (WorkingInfo.LastJob.nTestMode == MODE_INNER)
+	{
+		pDoc->SetMkInfo(_T("Signal"), _T("Inner Test On"), TRUE);
+		pDoc->SetMkInfo(_T("Signal"), _T("Outer Test On"), FALSE);
+	}
+	else if (WorkingInfo.LastJob.nTestMode == MODE_OUTER)
+	{
+		pDoc->SetMkInfo(_T("Signal"), _T("Inner Test On"), FALSE);
+		pDoc->SetMkInfo(_T("Signal"), _T("Outer Test On"), TRUE);
+	}
+	else
+	{
+		pDoc->SetMkInfo(_T("Signal"), _T("Inner Test On"), FALSE);
+		pDoc->SetMkInfo(_T("Signal"), _T("Outer Test On"), FALSE);
+	}
+
 	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Use Dual AOI"), NULL, szData, sizeof(szData), sPath))
 		WorkingInfo.LastJob.bDualTest = _ttoi(szData) ? TRUE : FALSE;
 	else
 		WorkingInfo.LastJob.bDualTest = TRUE;
+
+	pDoc->SetMkInfo(_T("Signal"), _T("Use Dual AOI"), WorkingInfo.LastJob.bDualTest);
 
 	if (WorkingInfo.LastJob.bDualTest)
 	{
@@ -1363,6 +1501,8 @@ BOOL CGvisR2R_PunchDoc::LoadWorkingInfo()
 	else
 		WorkingInfo.LastJob.bLotSep = FALSE;
 
+	pDoc->SetMkInfo(_T("Signal"), _T("SeparateLot"), WorkingInfo.LastJob.bLotSep);
+
 	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Lot Seperate Length"), NULL, szData, sizeof(szData), sPath))
 		WorkingInfo.LastJob.sLotSepLen = CString(szData);
 	else
@@ -1383,6 +1523,8 @@ BOOL CGvisR2R_PunchDoc::LoadWorkingInfo()
 		WorkingInfo.LastJob.bTempPause = _ttoi(szData) ? TRUE : FALSE;
 	else
 		WorkingInfo.LastJob.bTempPause = FALSE;
+
+	pDoc->SetMkInfo(_T("Signal"), _T("TempStop"), WorkingInfo.LastJob.bTempPause);
 
 	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Merging Layer"), NULL, szData, sizeof(szData), sPath))
 		WorkingInfo.LastJob.nMergingLayer = _ttoi(szData);
@@ -1421,6 +1563,8 @@ BOOL CGvisR2R_PunchDoc::LoadWorkingInfo()
 	else
 		WorkingInfo.LastJob.bContFixDef = FALSE;
 
+	pDoc->SetMkInfo(_T("Signal"), _T("FixBed"), pDoc->WorkingInfo.LastJob.bContFixDef);
+
 	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Shot Num of Range in Fix Defect"), NULL, szData, sizeof(szData), sPath))
 		WorkingInfo.LastJob.sNumRangeFixDef = CString(szData);
 	else
@@ -1448,30 +1592,43 @@ BOOL CGvisR2R_PunchDoc::LoadWorkingInfo()
 	else
 		WorkingInfo.LastJob.bRclDrSen = TRUE;
 
+	pDoc->SetMkInfo(_T("Signal"), _T("DoorSensRecoil"), pDoc->WorkingInfo.LastJob.bRclDrSen);
+
 	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Use Marking Door Sensor"), NULL, szData, sizeof(szData), sPath))
 		WorkingInfo.LastJob.bMkDrSen = _ttoi(szData) ? TRUE : FALSE;
 	else
 		WorkingInfo.LastJob.bMkDrSen = TRUE;
+
+	pDoc->SetMkInfo(_T("Signal"), _T("DoorSensPunch"), pDoc->WorkingInfo.LastJob.bMkDrSen);
+
 
 	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Use AoiUp Door Sensor"), NULL, szData, sizeof(szData), sPath))
 		WorkingInfo.LastJob.bAoiUpDrSen = _ttoi(szData) ? TRUE : FALSE;
 	else
 		WorkingInfo.LastJob.bAoiUpDrSen = TRUE;
 
+	pDoc->SetMkInfo(_T("Signal"), _T("DoorSensAoiUp"), pDoc->WorkingInfo.LastJob.bAoiUpDrSen);
+
 	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Use AoiDn Door Sensor"), NULL, szData, sizeof(szData), sPath))
 		WorkingInfo.LastJob.bAoiDnDrSen = _ttoi(szData) ? TRUE : FALSE;
 	else
 		WorkingInfo.LastJob.bAoiDnDrSen = TRUE;
+
+	pDoc->SetMkInfo(_T("Signal"), _T("DoorSensAoiDn"), pDoc->WorkingInfo.LastJob.bAoiDnDrSen);
 
 	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Use Uncoiler Door Sensor"), NULL, szData, sizeof(szData), sPath))
 		WorkingInfo.LastJob.bUclDrSen = _ttoi(szData) ? TRUE : FALSE;
 	else
 		WorkingInfo.LastJob.bUclDrSen = TRUE;
 
+	pDoc->SetMkInfo(_T("Signal"), _T("DoorSensUncoil"), pDoc->WorkingInfo.LastJob.bUclDrSen);
+
 	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Use Engrave Door Sensor"), NULL, szData, sizeof(szData), sPath))
 		WorkingInfo.LastJob.bEngvDrSen = _ttoi(szData) ? TRUE : FALSE;
 	else
 		WorkingInfo.LastJob.bEngvDrSen = TRUE;
+
+	pDoc->SetMkInfo(_T("Signal"), _T("DoorSensEngrave"), pDoc->WorkingInfo.LastJob.bEngvDrSen);
 
 	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Use Buffer Door Sensor"), NULL, szData, sizeof(szData), sPath))
 		WorkingInfo.LastJob.bBufDrSen = _ttoi(szData) ? TRUE : FALSE;
@@ -1492,6 +1649,8 @@ BOOL CGvisR2R_PunchDoc::LoadWorkingInfo()
 		WorkingInfo.LastJob.bMkSftySen = _ttoi(szData) ? TRUE : FALSE;
 	else
 		WorkingInfo.LastJob.bMkSftySen = TRUE;
+
+	pDoc->SetMkInfo(_T("Signal"), _T("SaftySensPunch"), pDoc->WorkingInfo.LastJob.bMkSftySen);
 
 	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Use Aoi Safty Sensor"), NULL, szData, sizeof(szData), sPath))
 		WorkingInfo.LastJob.bAoiSftySen = _ttoi(szData) ? TRUE : FALSE;
@@ -1518,10 +1677,14 @@ BOOL CGvisR2R_PunchDoc::LoadWorkingInfo()
 	else
 		WorkingInfo.LastJob.bUseAoiUpCleanRoler = TRUE;
 
+	pDoc->SetMkInfo(_T("Signal"), _T("CleanRolerAoiUp"), pDoc->WorkingInfo.LastJob.bUseAoiUpCleanRoler);
+
 	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Use Dn Aoi CleanRoler"), NULL, szData, sizeof(szData), sPath))
 		WorkingInfo.LastJob.bUseAoiDnCleanRoler = _ttoi(szData) ? TRUE : FALSE;
 	else
 		WorkingInfo.LastJob.bUseAoiDnCleanRoler = TRUE;
+
+	pDoc->SetMkInfo(_T("Signal"), _T("CleanRolerAoiDn"), pDoc->WorkingInfo.LastJob.bUseAoiDnCleanRoler);
 
 	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Engrave Order Num"), NULL, szData, sizeof(szData), sPath))
 		WorkingInfo.LastJob.sEngOrderNum = CString(szData);
@@ -1610,16 +1773,24 @@ BOOL CGvisR2R_PunchDoc::LoadWorkingInfo()
 	else
 		WorkingInfo.LastJob.bOneMetal = FALSE;
 
+	pDoc->SetMkInfo(_T("Signal"), _T("RecoilerCcw"), WorkingInfo.LastJob.bOneMetal);
+
+
 	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Two Metal On"), NULL, szData, sizeof(szData), sPath))
 		WorkingInfo.LastJob.bTwoMetal = _ttoi(szData) ? TRUE : FALSE;
 	else
 		WorkingInfo.LastJob.bTwoMetal = FALSE;
+
+	pDoc->SetMkInfo(_T("Signal"), _T("UncoilerCcw"), WorkingInfo.LastJob.bTwoMetal);
 
 
 	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Sample Test On"), NULL, szData, sizeof(szData), sPath))
 		WorkingInfo.LastJob.bSampleTest = _ttoi(szData) ? TRUE : FALSE;
 	else
 		WorkingInfo.LastJob.bSampleTest = FALSE;
+
+	pDoc->SetMkInfo(_T("Signal"), _T("Sample Test On"), WorkingInfo.LastJob.bSampleTest);
+
 
 	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Sample Test Shot Num"), NULL, szData, sizeof(szData), sPath))
 		WorkingInfo.LastJob.sSampleTestShotNum = CString(szData);
@@ -1658,15 +1829,36 @@ BOOL CGvisR2R_PunchDoc::LoadWorkingInfo()
 	else
 		WorkingInfo.LastJob.nAlignMethode = TWO_POINT;
 
+	switch (pDoc->WorkingInfo.LastJob.nAlignMethode)
+	{
+	case TWO_POINT:
+		pDoc->SetMkInfo(_T("Signal"), _T("2PtAlign"), TRUE);
+		pDoc->SetMkInfo(_T("Signal"), _T("4PtAlign"), FALSE);
+		break;
+	case FOUR_POINT:
+		pDoc->SetMkInfo(_T("Signal"), _T("2PtAlign"), FALSE);
+		pDoc->SetMkInfo(_T("Signal"), _T("4PtAlign"), TRUE);
+		break;
+	default:
+		pDoc->SetMkInfo(_T("Signal"), _T("2PtAlign"), TRUE);
+		pDoc->SetMkInfo(_T("Signal"), _T("4PtAlign"), FALSE);
+		break;
+	}
+
+
 	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Use Engrave Cleanner"), NULL, szData, sizeof(szData), sPath))
 		WorkingInfo.LastJob.bUseEngraveUltrasonic = _ttoi(szData);
 	else
 		WorkingInfo.LastJob.bUseEngraveUltrasonic= FALSE;
 
+	pDoc->SetMkInfo(_T("Signal"), _T("UltrasonicEngrave"), pDoc->WorkingInfo.LastJob.bUseEngraveUltrasonic);
+
 	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Use AoiDn Cleanner"), NULL, szData, sizeof(szData), sPath))
 		WorkingInfo.LastJob.bUseAoiDnUltrasonic = _ttoi(szData);
 	else
 		WorkingInfo.LastJob.bUseAoiDnUltrasonic = FALSE;
+
+	pDoc->SetMkInfo(_T("Signal"), _T("UltrasonicAoi"), pDoc->WorkingInfo.LastJob.bUseAoiDnUltrasonic);
 
 	if (0 < ::GetPrivateProfileString(_T("Last Job"), _T("Engrave Cleanner Vel"), NULL, szData, sizeof(szData), sPath))
 		WorkingInfo.LastJob.bVelEngraveUltrasonic = _ttoi(szData);
@@ -3696,9 +3888,9 @@ void CGvisR2R_PunchDoc::ClrPcr()
 	int nIdx, i, k;
 	for (i = 0; i < MAX_PCR; i++)
 	{
-		if (m_pPcr[i][0])
+		for (nIdx = 0; nIdx < MAX_PCR_PNL; nIdx++)
 		{
-			for (nIdx = 0; nIdx < MAX_PCR_PNL; nIdx++)
+			if (m_pPcr[i][0])
 			{
 				m_pPcr[i][nIdx]->m_nIdx = 0;							// m_nIdx : From 0 to nTot.....
 				m_pPcr[i][nIdx]->m_nSerial = 0;
@@ -3710,23 +3902,21 @@ void CGvisR2R_PunchDoc::ClrPcr()
 				m_pPcr[i][nIdx]->m_nCamId = 0;
 				m_pPcr[i][nIdx]->m_nTotDef = 0;
 				m_pPcr[i][nIdx]->m_nTotRealDef = 0;
-
-				//sMsg.Format(_T("%d"), m_pPcr[i][nIdx]->m_nTotDef);
-				//AfxMessageBox(sMsg);
-
-				//for (k = 0; k < m_pPcr[i][nIdx]->m_nTotDef; k++)
-				//{
-				//	m_pPcr[i][nIdx]->m_pLayer[k] = -1;
-				//	m_pPcr[i][nIdx]->m_pDefPcs[k] = 0;
-				//	m_pPcr[i][nIdx]->m_pDefPos[k].x = 0;
-				//	m_pPcr[i][nIdx]->m_pDefPos[k].y = 0;
-				//	m_pPcr[i][nIdx]->m_pDefType[k] = 0;
-				//	m_pPcr[i][nIdx]->m_pCell[k] = 0;
-				//	m_pPcr[i][nIdx]->m_pImgSz[k] = 0;
-				//	m_pPcr[i][nIdx]->m_pImg[k] = 0;
-				//	m_pPcr[i][nIdx]->m_pMk[k] = 0;
-				//}
 			}
+
+			//if (m_pPcrInner[i][0])
+				//{
+			//	m_pPcrInner[i][nIdx]->m_nIdx = 0;							// m_nIdx : From 0 to nTot.....
+			//	m_pPcrInner[i][nIdx]->m_nSerial = 0;
+			//	m_pPcrInner[i][nIdx]->m_nErrPnl = 0;
+			//	m_pPcrInner[i][nIdx]->m_sModel = _T("");
+			//	m_pPcrInner[i][nIdx]->m_sLayer = _T("");
+			//	m_pPcrInner[i][nIdx]->m_sLot = _T("");
+
+			//	m_pPcrInner[i][nIdx]->m_nCamId = 0;
+			//	m_pPcrInner[i][nIdx]->m_nTotDef = 0;
+			//	m_pPcrInner[i][nIdx]->m_nTotRealDef = 0;
+				//}
 		}
 	}
 }
@@ -3737,8 +3927,9 @@ BOOL CGvisR2R_PunchDoc::InitReelmap()
 	{
 		CString strMsg;
 		strMsg.Format(_T("피스 영역이 존재하지 않습니다."));
-		pView->MsgBox(strMsg);
-		// 		AfxMessageBox(strMsg,MB_ICONSTOP);
+		//pView->MsgBox(strMsg);
+		pView->ClrDispMsg();
+		AfxMessageBox(strMsg, MB_ICONSTOP);
 		return FALSE;
 	}
 
@@ -3955,8 +4146,35 @@ void CGvisR2R_PunchDoc::InitPcr()
 			}
 
 			m_pPcr[i][k] = new CDataMarking();
+
+			//if (m_pPcrInner[i][k])
+			//{
+			//	delete m_pPcrInner[i][k];
+			//	m_pPcrInner[i][k] = NULL;
+			//}
+
+			//m_pPcrInner[i][k] = new CDataMarking();
 		}
 	}
+
+	//for (k = 0; k < MAX_PCR_PNL; k++)
+	//{
+	//	if (m_pPcrMk[k])
+	//	{
+	//		delete m_pPcrMk[k];
+	//		m_pPcrMk[k] = NULL;
+	//	}
+
+	//	m_pPcrMk[k] = new CDataMarking();
+
+	//	if (m_pPcrMkInner[k])
+	//	{
+	//		delete m_pPcrMkInner[k];
+	//		m_pPcrMkInner[k] = NULL;
+	//	}
+
+	//	m_pPcrMkInner[k] = new CDataMarking();
+	//}
 }
 
 void CGvisR2R_PunchDoc::SetReelmap(int nDir)
@@ -4340,9 +4558,9 @@ BOOL CGvisR2R_PunchDoc::GetAoiInfoUp(int nSerial, int *pNewLot, BOOL bFromBuf) /
 			if (!m_bBufEmpty[0])
 				m_bBufEmptyF[0] = FALSE;
 
-			WorkingInfo.LastJob.sModelUp = Status.PcrShare[0].sModel;
-			WorkingInfo.LastJob.sLayerUp = Status.PcrShare[0].sLayer;
-			WorkingInfo.LastJob.sLotUp = Status.PcrShare[0].sLot;
+			//WorkingInfo.LastJob.sModelUp = Status.PcrShare[0].sModel;
+			//WorkingInfo.LastJob.sLayerUp = Status.PcrShare[0].sLayer;
+			//WorkingInfo.LastJob.sLotUp = Status.PcrShare[0].sLot;
 			return TRUE;
 		}
 	}
@@ -4363,7 +4581,8 @@ BOOL CGvisR2R_PunchDoc::GetAoiInfoUp(int nSerial, int *pNewLot, BOOL bFromBuf) /
 				WorkingInfo.LastJob.sLayerUp = Status.PcrShare[0].sLayer;
 
 				SetModelInfoUp();
-				pView->OpenReelmapUp(); // At Start...
+				//pView->OpenReelmapUp(); // At Start...
+				pView->OpenReelmap();
 				pView->SetPathAtBufUp();
 				if (pView->m_pDlgMenu01)
 				{
@@ -4375,7 +4594,21 @@ BOOL CGvisR2R_PunchDoc::GetAoiInfoUp(int nSerial, int *pNewLot, BOOL bFromBuf) /
 		}
 	}
 
-	return FALSE;
+	//if (GetTestMode() == MODE_OUTER)
+	//{
+	//	if (WorkingInfo.LastJob.sInnerLotUp != WorkingInfo.LastJob.sLotUp)
+	//	{
+	//		if (!GetInnerInfo(WorkingInfo.LastJob.sLotUp))
+	//		{
+	//			pView->MsgBox(_T("Error - GetInnerInfo()"));
+	//		}
+
+	//		pView->OpenReelmapInner();
+	//	}
+	//}
+
+
+	return FALSE; // TRUE: CHANGED, FALSE: NO CHANGED 
 }
 
 BOOL CGvisR2R_PunchDoc::GetAoiInfoDn(int nSerial, int *pNewLot, BOOL bFromBuf) // TRUE: CHANGED, FALSE: NO CHANGED 
@@ -4513,7 +4746,7 @@ BOOL CGvisR2R_PunchDoc::GetAoiInfoDn(int nSerial, int *pNewLot, BOOL bFromBuf) /
 				WorkingInfo.LastJob.sLayerDn = Status.PcrShare[1].sLayer;
 				SetModelInfoDn();
 
-				pView->OpenReelmapDn(); // At Start...
+				//pView->OpenReelmapDn(); // At Start...
 				pView->SetPathAtBufDn();
 				if (pView->m_pDlgMenu01)
 				{
@@ -5103,6 +5336,17 @@ int CGvisR2R_PunchDoc::LoadPCRUp(int nSerial, BOOL bFromShare)	// return : 2(Fai
 				pView->ResetMkInfo(0); // 0 : AOI-Up , 1 : AOI-Dn , 2 : AOI-UpDn
 			}
 		}
+		else if (WorkingInfo.LastJob.sModelUp != strModel || WorkingInfo.LastJob.sLayerUp != strLayer || WorkingInfo.LastJob.sLotUp != strLot)
+		{
+			WorkingInfo.LastJob.sModelUp = strModel;
+			WorkingInfo.LastJob.sLotUp = strLot;
+			WorkingInfo.LastJob.sLayerUp = strLayer;
+
+			if (!WorkingInfo.LastJob.bDualTest)
+			{
+				pView->ResetMkInfo(0); // 0 : AOI-Up , 1 : AOI-Dn , 2 : AOI-UpDn
+			}
+		}
 	}
 
 	int nTotDef = _tstoi(strTotalBadPieceNum);
@@ -5125,7 +5369,31 @@ int CGvisR2R_PunchDoc::LoadPCRUp(int nSerial, BOOL bFromShare)	// return : 2(Fai
 			strPieceID = strFileData.Left(nTemp);
 			strFileData.Delete(0, nTemp + 1);
 			nFileSize = nFileSize - nTemp - 1;
-			m_pPcr[0][nIdx]->m_pDefPcs[i] = _tstoi(strPieceID);
+
+			// LoadStripPieceRegion_Binary()에 의해 PCS Index가 결정됨.
+			if (pDoc->WorkingInfo.System.bStripPcsRgnBin)	// DTS용
+			{
+				m_pPcr[0][nIdx]->m_pDefPcs[i] = _tstoi(strPieceID);
+
+				//switch (m_Master[0].MasterInfo.nActionCode)	// 0 : Rotation / Mirror 적용 없음(CAM Data 원본), 1 : 좌우 미러, 2 : 상하 미러, 3 : 180 회전, 4 : 270 회전(CCW), 5 : 90 회전(CW)
+				//{
+				//case 0:
+				//	m_pPcr[0][nIdx]->m_pDefPcs[i] = _tstoi(strPieceID);
+				//	break;
+				//case 1:
+				//	m_pPcr[0][nIdx]->m_pDefPcs[i] = MirrorLR(_tstoi(strPieceID));
+				//	break;
+				//case 3:
+				//	m_pPcr[0][nIdx]->m_pDefPcs[i] = Rotate180(_tstoi(strPieceID));
+				//	break;
+				//default:
+				//	m_pPcr[0][nIdx]->m_pDefPcs[i] = _tstoi(strPieceID);
+				//	break;
+				//}
+			}
+			else
+				m_pPcr[0][nIdx]->m_pDefPcs[i] = _tstoi(strPieceID);
+
 			m_pPcr[0][nIdx]->m_pLayer[i] = 0; // Up
 
 			// BadPointPosX
@@ -5314,6 +5582,17 @@ int CGvisR2R_PunchDoc::LoadPCRDn(int nSerial, BOOL bFromShare)	// return : 2(Fai
 				pView->ResetMkInfo(2); // 0 : AOI-Up , 1 : AOI-Dn , 2 : AOI-UpDn
 			}
 		}
+		else if (WorkingInfo.LastJob.sModelDn != strModel || WorkingInfo.LastJob.sLayerDn != strLayer || WorkingInfo.LastJob.sLotDn != strLot)
+		{
+			WorkingInfo.LastJob.sModelDn = strModel;
+			WorkingInfo.LastJob.sLotDn = strLot;
+			WorkingInfo.LastJob.sLayerDn = strLayer;
+
+			if (WorkingInfo.LastJob.bDualTest)
+			{
+				pView->ResetMkInfo(2); // 0 : AOI-Up , 1 : AOI-Dn , 2 : AOI-UpDn
+			}
+		}
 	}
 
 
@@ -5339,10 +5618,28 @@ int CGvisR2R_PunchDoc::LoadPCRDn(int nSerial, BOOL bFromShare)	// return : 2(Fai
 			nFileSize = nFileSize - nTemp - 1;
 
 			// LoadStripPieceRegion_Binary()에 의해 PCS Index가 결정됨.
-			if (pDoc->WorkingInfo.System.bStripPcsRgnBin)
-				m_pPcr[1][nIdx]->m_pDefPcs[i] = _tstoi(strPieceID);				// DTS용
+			if (pDoc->WorkingInfo.System.bStripPcsRgnBin)	// DTS용
+			{
+				m_pPcr[1][nIdx]->m_pDefPcs[i] = _tstoi(strPieceID);
+
+				//switch (m_Master[1].MasterInfo.nActionCode)	// 0 : Rotation / Mirror 적용 없음(CAM Data 원본), 1 : 좌우 미러, 2 : 상하 미러, 3 : 180 회전, 4 : 270 회전(CCW), 5 : 90 회전(CW)
+				//{
+				//case 0:
+				//	m_pPcr[1][nIdx]->m_pDefPcs[i] = _tstoi(strPieceID);
+				//	break;
+				//case 1:
+				//	m_pPcr[1][nIdx]->m_pDefPcs[i] = MirrorLR(_tstoi(strPieceID));
+				//	break;
+				//case 3:
+				//	m_pPcr[1][nIdx]->m_pDefPcs[i] = Rotate180(_tstoi(strPieceID));
+				//	break;
+				//default:
+				//	m_pPcr[1][nIdx]->m_pDefPcs[i] = _tstoi(strPieceID);
+				//	break;
+				//}
+			}
 			else
-				m_pPcr[1][nIdx]->m_pDefPcs[i] = Mirroring(_tstoi(strPieceID));	// 초기 양면검사기용
+				m_pPcr[1][nIdx]->m_pDefPcs[i] = MirrorLR(_tstoi(strPieceID));	// 초기 양면검사기용
 
 			m_pPcr[1][nIdx]->m_pLayer[i] = 1; // Dn
 
@@ -5474,7 +5771,11 @@ BOOL CGvisR2R_PunchDoc::CopyDefImgUp(int nSerial, CString sNewLot)
 	else
 		sLot = sNewLot;
 
-	strAOIImgDataPath.Format(_T("%s\\VRSImage"), WorkingInfo.System.sPathAoiUp);
+	//if (pView->m_pDts->IsUseDts())
+	if (WorkingInfo.System.bUseDTS)
+		strAOIImgDataPath.Format(_T("%s\\VRSImage"), WorkingInfo.System.sPathAoiUpDts);
+	else
+		strAOIImgDataPath.Format(_T("%s\\VRSImage"), WorkingInfo.System.sPathAoiUp);
 
 
 	if (WorkingInfo.System.sPathOldFile.Right(1) != "\\")
@@ -5654,7 +5955,11 @@ BOOL CGvisR2R_PunchDoc::CopyDefImgDn(int nSerial, CString sNewLot)
 	else
 		sLot = sNewLot;
 
-	strAOIImgDataPath.Format(_T("%s\\VRSImage"), WorkingInfo.System.sPathAoiDn);
+	//if (pView->m_pDts->IsUseDts())
+	if(WorkingInfo.System.bUseDTS)
+		strAOIImgDataPath.Format(_T("%s\\VRSImage"), WorkingInfo.System.sPathAoiDnDts);
+	else
+		strAOIImgDataPath.Format(_T("%s\\VRSImage"), WorkingInfo.System.sPathAoiDn);
 
 	if (WorkingInfo.System.sPathOldFile.Right(1) != "\\")
 		strMakeFolderPath.Format(_T("%s\\%s"), WorkingInfo.System.sPathOldFile,
@@ -7944,32 +8249,6 @@ CString CGvisR2R_PunchDoc::GetMax(int nDlgId, int nCtrlId)
 	return _T("");
 }
 
-int CGvisR2R_PunchDoc::Mirroring(int nPcsId)
-{
-#ifdef TEST_MODE
-	return 0;
-#endif
-
-	int nId, nCol, nRow, nC, nR;
-	int nNodeX = m_Master[0].m_pPcsRgn->nCol;
-	int nNodeY = m_Master[0].m_pPcsRgn->nRow;
-
-	nCol = int(nPcsId / nNodeY);
-	if (nCol % 2)
-		nRow = nNodeY*(nCol + 1) - nPcsId - 1;
-	else
-		nRow = nPcsId - nNodeY*nCol;
-
-	nR = nRow;
-	nC = (nNodeX - 1) - nCol;
-	if (nC % 2)
-		nId = nNodeY*(nC + 1) - nR - 1;
-	else
-		nId = nR + nNodeY*nC;
-
-	return nId;
-}
-
 BOOL CGvisR2R_PunchDoc::MakeMkDir(stModelInfo stInfo)
 {
 	CString sMsg = _T("");
@@ -8714,7 +8993,7 @@ void CGvisR2R_PunchDoc::GetCurrentInfoEng()
 	CString sPath = WorkingInfo.System.sPathEngCurrInfo;
 	TCHAR szData[512];
 
-	if (sPath.IsEmpty())
+	if (sPath.IsEmpty() || GetTestMode() != MODE_INNER)
 		return;
 
 	if (0 < ::GetPrivateProfileString(_T("Infomation"), _T("Current Lot"), NULL, szData, sizeof(szData), sPath))
@@ -8758,6 +9037,9 @@ int CGvisR2R_PunchDoc::GetCurrentInfoEngShotNum()
 
 void CGvisR2R_PunchDoc::SetCurrentInfoBufUpTot(int nTotal)
 {
+	if (pView->m_bShift2Mk)
+		return;
+
 	CString sPath = WorkingInfo.System.sPathMkCurrInfoBuf;
 	TCHAR szData[512];
 	CString sData = _T("");
@@ -8771,6 +9053,9 @@ void CGvisR2R_PunchDoc::SetCurrentInfoBufUpTot(int nTotal)
 
 void CGvisR2R_PunchDoc::SetCurrentInfoBufUp(int nIdx, int nData)
 {
+	if (pView->m_bShift2Mk)
+		return;
+
 	CString sPath = WorkingInfo.System.sPathMkCurrInfoBuf;
 	TCHAR szData[512];
 	CString sIdx, sData;
@@ -8786,6 +9071,9 @@ void CGvisR2R_PunchDoc::SetCurrentInfoBufUp(int nIdx, int nData)
 
 void CGvisR2R_PunchDoc::SetCurrentInfoBufDnTot(int nTotal)
 {
+	if (pView->m_bShift2Mk)
+		return;
+
 	CString sPath = WorkingInfo.System.sPathMkCurrInfoBuf;
 	TCHAR szData[512];
 	CString sData = _T("");
@@ -8799,6 +9087,9 @@ void CGvisR2R_PunchDoc::SetCurrentInfoBufDnTot(int nTotal)
 
 void CGvisR2R_PunchDoc::SetCurrentInfoBufDn(int nIdx, int nData)
 {
+	if (pView->m_bShift2Mk)
+		return;
+
 	CString sPath = WorkingInfo.System.sPathMkCurrInfoBuf;
 	TCHAR szData[512];
 	CString sIdx, sData;
@@ -8837,10 +9128,114 @@ void CGvisR2R_PunchDoc::SetMonDispMain(CString sDisp)
 
 void CGvisR2R_PunchDoc::GetMkMenu01()
 {
+	CString sPath = WorkingInfo.System.sPathMkMenu01;
+	TCHAR szData[512];
+
+	if (sPath.IsEmpty())
+		return;
+
+	if (0 < ::GetPrivateProfileString(_T("Info"), _T("Total Shot"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.Info.nTotShot = _ttoi(szData);
+	if (0 < ::GetPrivateProfileString(_T("Info"), _T("Total Work Ratio"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.Info.dTotWorkRto = _ttof(szData);
+	if (0 < ::GetPrivateProfileString(_T("Info"), _T("Lot Work Ratio"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.Info.dLotWorkRto = _ttof(szData);
+	if (0 < ::GetPrivateProfileString(_T("Info"), _T("Total Speed"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.Info.dTotSpd = _ttof(szData);
+	if (0 < ::GetPrivateProfileString(_T("Info"), _T("Patial Speed"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.Info.dPartSpd = _ttof(szData);
+	if (0 < ::GetPrivateProfileString(_T("Info"), _T("DoneLengthMk"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.Info.dDoneLenMk = _ttof(szData);
+	if (0 < ::GetPrivateProfileString(_T("Info"), _T("DoneLengthAoiDn"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.Info.dDoneLengthAoiDn = _ttof(szData);
+	if (0 < ::GetPrivateProfileString(_T("Info"), _T("DoneLengthAoiUp"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.Info.dDoneLenAoiUp = _ttof(szData);
+	if (0 < ::GetPrivateProfileString(_T("Info"), _T("DoneLengthEngrave"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.Info.dDoneLengthEng = _ttof(szData);
+	if (0 < ::GetPrivateProfileString(_T("Info"), _T("VerifyImageNum"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.Info.nVerifyImgNum = _ttoi(szData);
+
+	if (0 < ::GetPrivateProfileString(_T("Total Test"), _T("Total"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.TotTest.nTotal = _ttoi(szData);
+	if (0 < ::GetPrivateProfileString(_T("Total Test"), _T("Up"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.TotTest.nUp = _ttoi(szData);
+	if (0 < ::GetPrivateProfileString(_T("Total Test"), _T("Dn"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.TotTest.nDn = _ttoi(szData);
+
+	if (0 < ::GetPrivateProfileString(_T("Good Ratio"), _T("Up"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.GoodRto.dUp = _ttof(szData);
+	if (0 < ::GetPrivateProfileString(_T("Good Ratio"), _T("Dn"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.GoodRto.dDn = _ttof(szData);
+	if (0 < ::GetPrivateProfileString(_T("Good Ratio"), _T("Total"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.GoodRto.dTotal = _ttof(szData);
+
+	if (0 < ::GetPrivateProfileString(_T("Good"), _T("Up"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.Good.nUp = _ttoi(szData);
+	if (0 < ::GetPrivateProfileString(_T("Good"), _T("Dn"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.Good.nDn = _ttoi(szData);
+	if (0 < ::GetPrivateProfileString(_T("Good"), _T("Total"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.Good.nTotal = _ttoi(szData);
+
+	if (0 < ::GetPrivateProfileString(_T("Bed Ratio"), _T("Up"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.BedRto.dUp = _ttof(szData);
+	if (0 < ::GetPrivateProfileString(_T("Bed Ratio"), _T("Dn"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.BedRto.dDn = _ttof(szData);
+	if (0 < ::GetPrivateProfileString(_T("Bed Ratio"), _T("Total"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.BedRto.dTotal = _ttof(szData);
+
+	if (0 < ::GetPrivateProfileString(_T("Bed"), _T("Up"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.Bed.nUp = _ttoi(szData);
+	if (0 < ::GetPrivateProfileString(_T("Bed"), _T("Dn"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.Bed.nDn = _ttoi(szData);
+	if (0 < ::GetPrivateProfileString(_T("Bed"), _T("Total"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.Bed.nTotal = _ttoi(szData);
+
+	if (0 < ::GetPrivateProfileString(_T("Yield Total"), _T("Up"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.YieldTot.dUp = _ttof(szData);
+	if (0 < ::GetPrivateProfileString(_T("Yield Total"), _T("Dn"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.YieldTot.dDn = _ttof(szData);
+	if (0 < ::GetPrivateProfileString(_T("Yield Total"), _T("Total"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.YieldTot.dTotal = _ttof(szData);
+
+	int i; CString sItem;
+	for (i = 0; i < MAX_STRIP; i++)
+	{
+		sItem.Format(_T("Yield Strip%d"), i);
+		if (0 < ::GetPrivateProfileString(sItem, _T("Up"), NULL, szData, sizeof(szData), sPath))
+			pDoc->Menu01Status.YieldStrip[i].dUp = _ttof(szData);
+		if (0 < ::GetPrivateProfileString(sItem, _T("Dn"), NULL, szData, sizeof(szData), sPath))
+			pDoc->Menu01Status.YieldStrip[i].dDn = _ttof(szData);
+		if (0 < ::GetPrivateProfileString(sItem, _T("Total"), NULL, szData, sizeof(szData), sPath))
+			pDoc->Menu01Status.YieldStrip[i].dTotal = _ttof(szData);
+	}
+
+	for (i = 1; i < MAX_DEF; i++)
+	{
+		sItem.Format(_T("%d"), i);
+		if (0 < ::GetPrivateProfileString(_T("Defect"), sItem, NULL, szData, sizeof(szData), sPath))
+			pDoc->Menu01Status.Defect.nDefNum[i] = _ttoi(szData);
+	}
+
+	if (0 < ::GetPrivateProfileString(_T("Data"), _T("MkNumLf"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.Data.nMkNumLf = _ttoi(szData);
+	if (0 < ::GetPrivateProfileString(_T("Data"), _T("MkNumRt"), NULL, szData, sizeof(szData), sPath))
+		pDoc->Menu01Status.Data.nMkNumRt = _ttoi(szData);
+	if (0 < ::GetPrivateProfileString(_T("Data"), _T("VerifyLen"), NULL, szData, sizeof(szData), sPath))
+	{
+		pDoc->Menu01Status.Data.dVerifyLen = _ttof(szData);
+		pDoc->WorkingInfo.LastJob.sVerifyLen.Format(_T("%.3f"), pDoc->Menu01Status.Data.dVerifyLen);
+	}
+
 }
 
-void CGvisR2R_PunchDoc::SetMkMenu01()
+void CGvisR2R_PunchDoc::SetMkMenu01(CString sMenu, CString sItem, CString sData)
 {
+	CString sPath = WorkingInfo.System.sPathMkMenu01;
+
+	if (sPath.IsEmpty())
+		return;
+
+	::WritePrivateProfileString(sMenu, sItem, sData, sPath);
 }
 
 
@@ -8892,6 +9287,7 @@ void CGvisR2R_PunchDoc::GetMkMenu03()
 	if (sPath.IsEmpty())
 		return;
 
+	// [TqMotor]
 	if (0 < ::GetPrivateProfileString(_T("TqMotor"), _T("MkTq"), NULL, szData, sizeof(szData), sPath))
 		pDoc->WorkingInfo.Motion.bMkTq = pDoc->BtnStatus.Tq.Mk = (_ttoi(szData) > 0) ? TRUE : FALSE;
 
@@ -8900,6 +9296,231 @@ void CGvisR2R_PunchDoc::GetMkMenu03()
 
 	if (0 < ::GetPrivateProfileString(_T("TqMotor"), _T("EngTq"), NULL, szData, sizeof(szData), sPath))
 		pDoc->WorkingInfo.Motion.bEngraveTq = pDoc->BtnStatus.Tq.Eng = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	// [Induction]
+	if (0 < ::GetPrivateProfileString(_T("Induction"), _T("RcCcw"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Induct.Rc = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Induction"), _T("RcCcw"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Induct.Uc = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	// [Core]
+	if (0 < ::GetPrivateProfileString(_T("Core"), _T("Rc150"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Core150.Rc = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Core"), _T("Uc150"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Core150.Uc = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	// [Recoiler]
+	if (0 < ::GetPrivateProfileString(_T("Recoiler"), _T("MvCw"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Rc.FdCw = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Recoiler"), _T("MvCcw"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Rc.FdCcw = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Recoiler"), _T("PrdChuck"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Rc.ReelChuck = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Recoiler"), _T("DancerUp"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Rc.DcRlUpDn = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Recoiler"), _T("PasteUpLf"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Rc.ReelJoinL = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Recoiler"), _T("PasteUpRt"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Rc.ReelJoinR = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Recoiler"), _T("PasteVac"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Rc.ReelJoinVac = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Recoiler"), _T("PprChuck"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Rc.PprChuck = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Recoiler"), _T("PprCw"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Rc.PprCw = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Recoiler"), _T("PprCcw"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Rc.PprCcw = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Recoiler"), _T("DoRewind"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Rc.Rewine = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Recoiler"), _T("PrdPprRewind"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Rc.RewineReelPpr = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	// [Punching]
+	if (0 < ::GetPrivateProfileString(_T("Punching"), _T("MvCw"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Mk.FdCw = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Punching"), _T("MvCcw"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Mk.FdCcw = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Punching"), _T("FdVac"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Mk.FdVac = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Punching"), _T("PushUp"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Mk.PushUp = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Punching"), _T("TblBlw"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Mk.TblBlw = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Punching"), _T("TblVac"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Mk.TblVac = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Punching"), _T("FdClamp"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Mk.FdClp = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Punching"), _T("TensClamp"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Mk.TqClp = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Punching"), _T("OnePnl"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Mk.MvOne = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Punching"), _T("Lsr"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Mk.LsrPt = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Punching"), _T("DancerUp"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Mk.DcRSol = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	// [AoiDn]
+	if (0 < ::GetPrivateProfileString(_T("AoiDn"), _T("MvCw"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.AoiDn.FdCw = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("AoiDn"), _T("MvCcw"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.AoiDn.FdCcw = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("AoiDn"), _T("FdVac"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.AoiDn.FdVac = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("AoiDn"), _T("PushUp"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.AoiDn.PushUp = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("AoiDn"), _T("TblBlw"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.AoiDn.TblBlw = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("AoiDn"), _T("TblVac"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.AoiDn.TblVac = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("AoiDn"), _T("FdClamp"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.AoiDn.FdClp = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("AoiDn"), _T("TensClamp"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.AoiDn.TqClp = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("AoiDn"), _T("OnePnl"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.AoiDn.MvOne = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("AoiDn"), _T("Lsr"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.AoiDn.LsrPt = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("AoiDn"), _T("VelClrSonic"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.AoiDn.VelSonicBlw = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	// [AoiUp]
+	if (0 < ::GetPrivateProfileString(_T("AoiUp"), _T("MvCw"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.AoiUp.FdCw = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("AoiUp"), _T("MvCcw"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.AoiUp.FdCcw = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("AoiUp"), _T("FdVac"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.AoiUp.FdVac = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("AoiUp"), _T("PushUp"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.AoiUp.PushUp = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("AoiUp"), _T("TblBlw"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.AoiUp.TblBlw = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("AoiUp"), _T("TblVac"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.AoiUp.TblVac = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("AoiUp"), _T("FdClamp"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.AoiUp.FdClp = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("AoiUp"), _T("TensClamp"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.AoiUp.TqClp = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("AoiUp"), _T("OnePnl"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.AoiUp.MvOne = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("AoiUp"), _T("Lsr"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.AoiUp.LsrPt = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	// [Engraving]
+	if (0 < ::GetPrivateProfileString(_T("Engraving"), _T("MvCw"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Eng.FdCw = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Engraving"), _T("MvCcw"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Eng.FdCcw = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Engraving"), _T("FdVac"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Eng.FdVac = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Engraving"), _T("PushUp"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Eng.PushUp = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Engraving"), _T("TblBlw"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Eng.TblBlw = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Engraving"), _T("TblVac"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Eng.TblVac = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Engraving"), _T("FdClamp"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Eng.FdClp = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Engraving"), _T("TensClamp"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Eng.TqClp = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Engraving"), _T("OnePnl"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Eng.MvOne = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Engraving"), _T("Lsr"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Eng.LsrPt = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Engraving"), _T("VelClrSonic"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Eng.DcRSol = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Engraving"), _T("DancerUp"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Eng.VelSonicBlw = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	// [Uncoiler]
+	if (0 < ::GetPrivateProfileString(_T("Uncoiler"), _T("MvCw"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Uc.FdCw = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Uncoiler"), _T("MvCcw"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Uc.FdCcw = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Uncoiler"), _T("PrdChuck"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Uc.ReelChuck = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Uncoiler"), _T("DancerUp"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Uc.DcRlUpDn = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Uncoiler"), _T("PasteUpLf"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Uc.ReelJoinL = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Uncoiler"), _T("PasteUpRt"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Uc.ReelJoinR = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Uncoiler"), _T("PasteVac"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Uc.ReelJoinVac = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Uncoiler"), _T("PprChuck"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Uc.PprChuck = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Uncoiler"), _T("PprCw"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Uc.PprCw = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Uncoiler"), _T("PprCcw"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Uc.PprCcw = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Uncoiler"), _T("ClrRollUp"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Uc.ClRlUpDn = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Uncoiler"), _T("ClrRollPush"), NULL, szData, sizeof(szData), sPath))
+		pDoc->BtnStatus.Uc.ClRlPshUpDn = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
 }
 
 void CGvisR2R_PunchDoc::SetMkMenu03(CString sMenu, CString sItem, BOOL bOn)
@@ -8912,4 +9533,194 @@ void CGvisR2R_PunchDoc::SetMkMenu03(CString sMenu, CString sItem, BOOL bOn)
 
 	sData.Format(_T("%d"), bOn > 0 ? 1 : 0);
 	::WritePrivateProfileString(sMenu, sItem, sData, sPath);
+}
+
+void CGvisR2R_PunchDoc::GetMkInfo()
+{
+	CString sPath = WorkingInfo.System.sPathMkInfo;
+	TCHAR szData[512];
+
+	if (sPath.IsEmpty())
+		return;
+
+	if (0 < ::GetPrivateProfileString(_T("Signal"), _T("Use Dual AOI"), NULL, szData, sizeof(szData), sPath))
+		WorkingInfo.LastJob.bDualTest = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	WorkingInfo.LastJob.nTestMode = MODE_NONE;
+	if (0 < ::GetPrivateProfileString(_T("Signal"), _T("Inner Test On"), NULL, szData, sizeof(szData), sPath))
+	{
+		if ((_ttoi(szData) > 0) ? TRUE : FALSE)
+			WorkingInfo.LastJob.nTestMode = MODE_INNER;
+	}
+
+	if (0 < ::GetPrivateProfileString(_T("Signal"), _T("Outer Test On"), NULL, szData, sizeof(szData), sPath))
+	{
+		if ((_ttoi(szData) > 0) ? TRUE : FALSE)
+			WorkingInfo.LastJob.nTestMode = MODE_OUTER;
+	}
+
+	if (0 < ::GetPrivateProfileString(_T("Signal"), _T("Sample Test On"), NULL, szData, sizeof(szData), sPath))
+		WorkingInfo.LastJob.bSampleTest = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Signal"), _T("UncoilerCcw"), NULL, szData, sizeof(szData), sPath))
+		WorkingInfo.LastJob.bTwoMetal = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Signal"), _T("RecoilerCcw"), NULL, szData, sizeof(szData), sPath))
+		WorkingInfo.LastJob.bOneMetal = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Signal"), _T("2PtAlign"), NULL, szData, sizeof(szData), sPath))
+	{
+		if ((_ttoi(szData) > 0) ? TRUE : FALSE)
+			WorkingInfo.LastJob.nAlignMethode = TWO_POINT;
+	}
+
+	if (0 < ::GetPrivateProfileString(_T("Signal"), _T("4PtAlign"), NULL, szData, sizeof(szData), sPath))
+	{
+		if ((_ttoi(szData) > 0) ? TRUE : FALSE)
+			WorkingInfo.LastJob.nAlignMethode = FOUR_POINT;
+		else
+			WorkingInfo.LastJob.nAlignMethode = TWO_POINT;
+	}
+	else
+		WorkingInfo.LastJob.nAlignMethode = TWO_POINT;
+
+	if (0 < ::GetPrivateProfileString(_T("Signal"), _T("DoorSensRecoil"), NULL, szData, sizeof(szData), sPath))
+		WorkingInfo.LastJob.bRclDrSen = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Signal"), _T("DoorSensPunch"), NULL, szData, sizeof(szData), sPath))
+		WorkingInfo.LastJob.bMkDrSen = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Signal"), _T("DoorSensAoiUp"), NULL, szData, sizeof(szData), sPath))
+		pDoc->WorkingInfo.LastJob.bAoiUpDrSen = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Signal"), _T("DoorSensAoiDn"), NULL, szData, sizeof(szData), sPath))
+		pDoc->WorkingInfo.LastJob.bAoiDnDrSen = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Signal"), _T("DoorSensEngrave"), NULL, szData, sizeof(szData), sPath))
+		pDoc->WorkingInfo.LastJob.bEngvDrSen = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Signal"), _T("DoorSensUncoil"), NULL, szData, sizeof(szData), sPath))
+		pDoc->WorkingInfo.LastJob.bUclDrSen = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Signal"), _T("SaftySensPunch"), NULL, szData, sizeof(szData), sPath))
+		pDoc->WorkingInfo.LastJob.bMkSftySen = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Signal"), _T("CleanRolerAoiUp"), NULL, szData, sizeof(szData), sPath))
+		pDoc->WorkingInfo.LastJob.bUseAoiUpCleanRoler = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Signal"), _T("CleanRolerAoiDn"), NULL, szData, sizeof(szData), sPath))
+		pDoc->WorkingInfo.LastJob.bUseAoiDnCleanRoler = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Signal"), _T("UltrasonicAoi"), NULL, szData, sizeof(szData), sPath))
+		pDoc->WorkingInfo.LastJob.bUseAoiDnUltrasonic = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Signal"), _T("UltrasonicEngrave"), NULL, szData, sizeof(szData), sPath))
+		pDoc->WorkingInfo.LastJob.bUseEngraveUltrasonic = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Signal"), _T("TempStop"), NULL, szData, sizeof(szData), sPath))
+		pDoc->WorkingInfo.LastJob.bTempPause = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Signal"), _T("SeparateLot"), NULL, szData, sizeof(szData), sPath))
+		pDoc->WorkingInfo.LastJob.bLotSep = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+	if (0 < ::GetPrivateProfileString(_T("Signal"), _T("FixBed"), NULL, szData, sizeof(szData), sPath))
+		pDoc->WorkingInfo.LastJob.bContFixDef = (_ttoi(szData) > 0) ? TRUE : FALSE;
+
+}
+
+void CGvisR2R_PunchDoc::SetMkInfo(CString sMenu, CString sItem, BOOL bOn)
+{
+	CString sPath = WorkingInfo.System.sPathMkInfo;
+	CString sData = _T("");
+
+	if (sPath.IsEmpty())
+		return;
+
+	sData.Format(_T("%d"), bOn > 0 ? 1 : 0);
+	::WritePrivateProfileString(sMenu, sItem, sData, sPath);
+}
+
+void CGvisR2R_PunchDoc::SetMkInfo(CString sMenu, CString sItem, CString sData)
+{
+	CString sPath = WorkingInfo.System.sPathMkInfo;
+
+	if (sPath.IsEmpty())
+		return;
+
+	::WritePrivateProfileString(sMenu, sItem, sData, sPath);
+}
+
+int CGvisR2R_PunchDoc::MirrorLR(int nPcsId) // 좌우 미러링
+{
+#ifdef TEST_MODE
+	return 0;
+#endif
+
+	int nId, nCol, nRow, nC, nR;
+	int nNodeX = m_Master[0].m_pPcsRgn->nCol; // 1 ~
+	int nNodeY = m_Master[0].m_pPcsRgn->nRow; // 1 ~
+
+	nCol = int(nPcsId / nNodeY); // 0 ~
+	if (nCol % 2)
+		nRow = nNodeY*(nCol + 1) - nPcsId - 1;
+	else
+		nRow = nPcsId - nNodeY*nCol; // 0 ~
+
+	nR = nRow; // 0 ~
+	nC = (nNodeX - 1) - nCol; // 0 ~
+	if (nC % 2) // 홀수 : 시작 감소
+		nId = nNodeY*(nC + 1) - nR - 1;
+	else		// 짝수 : 시작 증가
+		nId = nR + nNodeY*nC;
+
+	return nId;
+}
+
+int CGvisR2R_PunchDoc::Rotate180(int nPcsId) // 180도 회전
+{
+#ifdef TEST_MODE
+	return 0;
+#endif
+
+	int nId, nCol, nRow, nC, nR;
+	int nNodeX = m_Master[0].m_pPcsRgn->nCol; // 1 ~
+	int nNodeY = m_Master[0].m_pPcsRgn->nRow; // 1 ~
+
+	if (nNodeX % 2)		// 홀수 : 시작 감소
+	{
+		nCol = (nNodeX - 1) - int(nPcsId / nNodeY); // 0 ~
+		if (nCol % 2)
+			nRow = nPcsId - nNodeY * (nNodeX - nCol - 1); // 0 ~
+		else
+			nRow = nNodeY * (nNodeX - nCol) - nPcsId - 1; // 0 ~
+
+		//nR = (nNodeY - 1) - nRow; // 0 ~
+		//nC = (nNodeX - 1) - nCol; // 0 ~
+		nR = nRow;
+		nC = nCol;
+
+		if (nC % 2)
+			nId = nNodeY*(nC + 1) - nR - 1; // 0 ~
+		else
+			nId = nR + nNodeY*nC;
+	}
+	else				// 짝수 : 시작 증가
+	{
+		nCol = (nNodeX - 1) - int(nPcsId / nNodeY); // 0 ~
+		if (nCol % 2)
+			nRow = nNodeY * (nNodeX - nCol) - nPcsId - 1; // 0 ~
+		else
+			nRow = nPcsId - nNodeY * (nNodeX - nCol - 1); // 0 ~
+
+		//nR = (nNodeY - 1) - nRow; // 0 ~
+		//nC = (nNodeX - 1) - nCol; // 0 ~
+		nR = nRow;
+		nC = nCol;
+
+		if (nC % 2)
+			nId = nNodeY*(nC + 1) - nR - 1; // 0 ~
+		else
+			nId = nR + nNodeY*nC;
+	}
+	return nId;
 }

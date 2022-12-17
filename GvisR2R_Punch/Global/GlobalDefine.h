@@ -15,6 +15,10 @@
 	#define MAX_STRIP				4
 #endif
 
+#define MAX_STRIP_NUM				4
+#define MAX_PCE_COL					100
+#define MAX_PCE_ROW					100
+
 #ifdef TEST_MODE
 	#define TEST_SHOT				2
 	#define PATH_REELMAP			_T("C:\\R2RSet\\Test\\ReelMap.txt")
@@ -37,7 +41,11 @@
 	#define PATH_PIN_IMG			_T("C:\\R2RSet\\Test\\Pin-330.TIF")
 	#define PATH_ALIGN0_IMG			_T("C:\\R2RSet\\Test\\Align0.TIF")
 	#define PATH_ALIGN1_IMG			_T("C:\\R2RSet\\Test\\Align1.TIF")
+	#define PATH_ALIGN2_IMG			_T("C:\\R2RSet\\Test\\Align2.TIF")
+	#define PATH_ALIGN3_IMG			_T("C:\\R2RSet\\Test\\Align3.TIF")
 	#define PATH_PCS_IMG			_T("C:\\R2RSet\\Test\\Piece.tif")
+	#define PATH_ORDERING_Mk		_T("C:\\R2RSet\\Test\\WriteOrderingMkRotate90ccw.txt")
+	#define PATH_ORDERING_Mk_MIRROR	_T("C:\\R2RSet\\Test\\WriteOrderingMkRotate90ccwMirror.txt")
 
 	#define	USE_MIL
 	#define	USE_VISION
@@ -70,7 +78,7 @@
 	#define	USE_TCPIP
  	#define	USE_SR1000W
 	#define USE_ENGRAVE
-//	#define USE_DTS
+	#define USE_DTS
 
 
 
@@ -80,6 +88,8 @@
 	#define PATH_PIN_IMG			_T("C:\\R2RSet\\Pin\\Pin.TIF")
 	#define PATH_ALIGN0_IMG			_T("C:\\R2RSet\\Align\\Align0.TIF")
 	#define PATH_ALIGN1_IMG			_T("C:\\R2RSet\\Align\\Align1.TIF")
+	#define PATH_ALIGN2_IMG			_T("C:\\R2RSet\\Align\\Align2.TIF")
+	#define PATH_ALIGN3_IMG			_T("C:\\R2RSet\\Align\\Align3.TIF")
 	#define PATH_PCS_IMG			_T("C:\\R2RSet\\Pcs\\Piece.tif")
 #endif
 
@@ -422,6 +432,8 @@ typedef enum {KOREAN=0, ENGLISH=1, JAPANESE=2} LANG;
 #define WM_BUF_THREAD_DONE				(WM_USER+40)
 #define WM_MY_PW						(WM_USER+41)
 
+#define WM_DRAW_REELMAP_INNER			(WM_USER+50)
+#define WM_DRAW_REELMAP_OUTER			(WM_USER+51)
 
 #define WM_CLIENT_RECEIVED				(WM_USER + 100)
 #define WM_CLIENT_CLOSED				(WM_USER + 101)
@@ -602,7 +614,12 @@ typedef struct {
 #define PNLBUF_Y					50
 #define PNLBUF_X					50
 
-enum SEL_RMAP { RMAP_NONE=-1, RMAP_UP=0, RMAP_DN=1, RMAP_ALLUP=2, RMAP_ALLDN=3 };
+enum SEL_RMAP {
+	RMAP_NONE = -1, RMAP_UP = 0, RMAP_DN = 1, RMAP_ALLUP = 2, RMAP_ALLDN = 3, 
+	RMAP_INNER_UP = 4, RMAP_INNER_DN = 5, RMAP_INNER_ALLUP = 6, RMAP_INNER_ALLDN = 7,
+	RMAP_INOUTER_UP = 8, RMAP_INOUTER_DN = 9, RMAP_INNER = 10
+};
+
 enum SEL_CAM { CAM_LF=0, CAM_RT=1, CAM_BOTH=2 };
 enum MAIN_BTN { MN_RST=0, MN_RDY=1, MN_STOP=2, MN_RUN=3 };
 
@@ -618,15 +635,17 @@ struct stSystem
 	CString sMcName;
 	CString sPathCamSpecDir;
 
-	CString sPathAoiUp, sPathAoiUpCurrInfo, sPathAoiUpVrsData, sPathAoiUpOffset;
+	CString sPathAoiUp, sPathAoiUpDts, sPathAoiUpCurrInfo, sPathAoiUpVrsData, sPathAoiUpOffset;
+	CString sPathAoiUpLocalSpec;
 	CString sPathVrsShareUp, sPathVrsBufUp;
 	CString sPathVsShareUp;
-	CString sPathAoiDn, sPathAoiDnCurrInfo, sPathAoiDnVrsData, sPathAoiDnOffset;
+	CString sPathAoiDn, sPathAoiDnDts, sPathAoiDnCurrInfo, sPathAoiDnVrsData, sPathAoiDnOffset;
+	CString sPathAoiDnLocalSpec;
 	CString sPathVrsShareDn, sPathVrsBufDn;
 	CString sPathVsShareDn;
 
 	CString sPathEng, sPathEngCurrInfo, sPathEngOffset, sPathMkCurrInfo, sPathMkCurrInfoBuf;
-	CString sPathMkMenu01, sPathMkMenu03, sPathMonDispMain;
+	CString sPathMkMenu01, sPathMkMenu03, sPathMkInfo, sPathMonDispMain;
 
 	CString sPathOldFile;
 	CString sPathSapp3;
@@ -643,23 +662,26 @@ struct stSystem
 	CString sPort[3];		// ID_SR1000W, ID_MDX2500, ID_ENGRAVE(ID_PUNCH)
 	BOOL bSaveMkImg;
 	BOOL bStripPcsRgnBin;
+	BOOL bUseDTS;
 
 	stSystem()
 	{
 		sMcName = _T("");
 		sPathCamSpecDir = _T("");
 
-		sPathAoiUp = _T(""); sPathAoiUpCurrInfo = _T("");
+		sPathAoiUp = _T(""); sPathAoiUpDts = _T(""); sPathAoiUpCurrInfo = _T("");
 		sPathAoiUpOffset = _T(""); sPathAoiUpVrsData = _T("");
+		sPathAoiUpLocalSpec = _T("");
 		sPathVrsShareUp = _T(""); sPathVrsBufUp = _T("");
 		sPathVsShareUp = _T("");
-		sPathAoiDn = _T(""); sPathAoiDnCurrInfo = _T("");
+		sPathAoiDn = _T(""); sPathAoiDnDts = _T(""); sPathAoiDnCurrInfo = _T("");
 		sPathAoiDnOffset = _T(""); sPathAoiDnVrsData = _T("");
+		sPathAoiDnLocalSpec = _T("");
 		sPathVrsShareDn = _T(""); sPathVrsBufDn = _T("");
 		sPathVsShareDn = _T("");
 
 		sPathEng = _T(""); sPathEngCurrInfo = _T(""); sPathEngOffset = _T(""); sPathMkCurrInfo = _T("");
-		sPathMkCurrInfoBuf = _T(""); sPathMkMenu01 = _T(""); sPathMkMenu03 = _T(""); sPathMonDispMain = _T("");
+		sPathMkCurrInfoBuf = _T(""); sPathMkMenu01 = _T(""); sPathMkMenu03 = _T(""); sPathMkInfo = _T(""); sPathMonDispMain = _T("");
 
 		sPathOldFile = _T("");
 		bSaveLog = FALSE;
@@ -677,6 +699,7 @@ struct stSystem
 
 		bSaveMkImg = FALSE;
 		bStripPcsRgnBin = FALSE;
+		bUseDTS = FALSE;
 	}
 };
 
@@ -686,6 +709,8 @@ struct stLastJob
 	CString sModelUp, sLayerUp, sLotUp, sSerialUp, sCompletedSerialUp;
 	CString sModelDn, sLayerDn, sLotDn, sSerialDn, sCompletedSerialDn;
 	CString sSerialEng;
+	CString sInnerModelUp, sInnerLayerUp, sInnerLotUp;
+	CString sInnerModelDn, sInnerLayerDn, sInnerLotDn;
 
 	CString sSelUserName, sReelTotLen, sOnePnlLen;
 	BOOL bLotSep;
@@ -726,6 +751,8 @@ struct stLastJob
 		sModelUp = _T(""); sLayerUp = _T(""); sLotUp = _T(""); sSerialUp = _T(""); sCompletedSerialUp = _T("");
 		sModelDn = _T(""); sLayerDn = _T(""); sLotDn = _T(""); sSerialDn = _T(""); sCompletedSerialDn = _T("");
 		sSerialEng = _T("");
+		sInnerModelUp = _T(""); sInnerLayerUp = _T(""); sInnerLotUp = _T("");
+		sInnerModelDn = _T(""); sInnerLayerDn = _T(""); sInnerLotDn = _T("");
 
 		sSelUserName = _T(""); sReelTotLen = _T(""); sOnePnlLen = _T("");
 		bLotSep = FALSE;
@@ -1044,7 +1071,7 @@ struct stYield
 {
 	int nTot, nGood, nDef;
 	int nTotSriptOut;
-	int nDefStrip[MAX_STRIP], nDefA[MAX_DEF], nDefPerStrip[MAX_STRIP][MAX_DEF], nStripOut[MAX_STRIP];
+	int nDefStrip[MAX_STRIP_NUM], nDefA[MAX_DEF], nDefPerStrip[MAX_STRIP_NUM][MAX_DEF], nStripOut[MAX_STRIP_NUM];
 
 	stYield()
 	{
@@ -1057,7 +1084,7 @@ struct stYield
 		{
 			nDefA[k] = 0;
 
-			for (int i = 0; i < 4; i++)
+			for (int i = 0; i < MAX_STRIP_NUM; i++)
 			{
 				nDefPerStrip[i][k] = 0;
 			}
@@ -1611,6 +1638,185 @@ struct stBtnStatus
 	stBtnEngAuto EngAuto;
 };
 
+
+struct stMenu01Info
+{
+	int nTotShot, nVerifyImgNum;
+	double dTotWorkRto, dLotWorkRto, dTotSpd, dPartSpd, dDoneLenMk, dDoneLenAoiUp, dDoneLengthAoiDn, dDoneLengthEng;
+
+	stMenu01Info()
+	{
+		_Init();
+	}
+
+	void _Init()
+	{
+		nTotShot = 0; dTotWorkRto = 0.0; dLotWorkRto = 0.0; dTotSpd = 0.0; dPartSpd = 0.0; dDoneLenMk = 0.0;
+		dDoneLenAoiUp = 0.0; dDoneLengthAoiDn = 0.0; dDoneLengthEng = 0.0; nVerifyImgNum = 0;
+	}
+
+};
+
+struct stMenu01TotalTest
+{
+	double nUp, nDn, nTotal;
+
+	stMenu01TotalTest()
+	{
+		_Init();
+	}
+
+	void _Init()
+	{
+		nUp = 0; nDn = 0; nTotal = 0;
+	}
+
+};
+
+struct stMenu01GoodRatio
+{
+	double dUp, dDn, dTotal;
+
+	stMenu01GoodRatio()
+	{
+		_Init();
+	}
+
+	void _Init()
+	{
+		dUp = 0.0; dDn = 0.0; dTotal = 0.0;
+	}
+
+};
+
+struct stMenu01Good
+{
+	int nUp, nDn, nTotal;
+
+	stMenu01Good()
+	{
+		_Init();
+	}
+
+	void _Init()
+	{
+		nUp = 0; nDn = 0; nTotal = 0;
+	}
+
+};
+
+struct stMenu01BedRatio
+{
+	double dUp, dDn, dTotal;
+
+	stMenu01BedRatio()
+	{
+		_Init();
+	}
+
+	void _Init()
+	{
+		dUp = 0.0; dDn = 0.0; dTotal = 0.0;
+	}
+
+};
+
+struct stMenu01Bed
+{
+	int nUp, nDn, nTotal;
+
+	stMenu01Bed()
+	{
+		_Init();
+	}
+
+	void _Init()
+	{
+		nUp = 0; nDn = 0; nTotal = 0;
+	}
+
+};
+
+struct stMenu01YieldTotal
+{
+	double dUp, dDn, dTotal;
+
+	stMenu01YieldTotal()
+	{
+		_Init();
+	}
+
+	void _Init()
+	{
+		dUp = 0.0; dDn = 0.0; dTotal = 0.0;
+	}
+
+};
+
+struct stMenu01YieldStrip
+{
+	double dUp, dDn, dTotal;
+
+	stMenu01YieldStrip()
+	{
+		_Init();
+	}
+
+	void _Init()
+	{
+		dUp = 0.0; dDn = 0.0; dTotal = 0.0;
+	}
+
+};
+
+struct stMenu01Defect
+{
+	int nDefNum[MAX_DEF];
+
+	stMenu01Defect()
+	{
+		_Init();
+	}
+
+	void _Init()
+	{
+		for (int i = 0; i < MAX_DEF; i++)
+			nDefNum[i] = 0;
+	}
+
+};
+
+struct stMenu01Data
+{
+	int nMkNumLf, nMkNumRt;
+	double dVerifyLen;
+
+	stMenu01Data()
+	{
+		_Init();
+	}
+
+	void _Init()
+	{
+		nMkNumLf = 0; nMkNumRt = 0; dVerifyLen = 0.0;
+	}
+
+};
+
+struct stMenu01Status
+{
+	stMenu01Info Info;
+	stMenu01TotalTest TotTest;
+	stMenu01GoodRatio GoodRto;
+	stMenu01Good Good;
+	stMenu01BedRatio BedRto;
+	stMenu01Bed Bed;
+	stMenu01YieldTotal YieldTot;
+	stMenu01YieldStrip YieldStrip[MAX_STRIP];
+	stMenu01Defect Defect;
+	stMenu01Data Data;
+};
+
 typedef enum {
 	DOOR_FL_MK = 0, DOOR_FR_MK = 1,
 	DOOR_BL_MK = 2, DOOR_BR_MK = 3
@@ -1753,11 +1959,11 @@ struct stMpeIoWrite
 
 struct stPcrMerge
 {
-	int nIdx, nIdxUp, nIdxDn;
+	int nIdx, nIdxUp, nIdxDn, nIdxUpInner, nIdxDnInner;
 
 	stPcrMerge()
 	{
-		nIdx = -1; nIdxUp = -1; nIdxDn = -1;
+		nIdx = -1; nIdxUp = -1; nIdxDn = -1; nIdxUpInner = -1; nIdxDnInner = -1;
 	}
 };
 

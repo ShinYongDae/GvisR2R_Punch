@@ -45,6 +45,7 @@ public:
 	stWorkingInfo WorkingInfo;
 	stStatus Status;								// Status 입력신호
 	stBtnStatus BtnStatus;
+	stMenu01Status Menu01Status;
 
 	CReelMap* m_pReelMap;
 	CReelMap *m_pReelMapUp, *m_pReelMapDn, *m_pReelMapAllUp, *m_pReelMapAllDn;
@@ -305,8 +306,6 @@ public:
 	int GetLastShotUp();	// pView->m_pDlgFrameHigh->m_nAoiLastShot[0]
 	int GetLastShotDn();	// pView->m_pDlgFrameHigh->m_nAoiLastShot[1]
 
-	int Mirroring(int nPcsId);
-
 	BOOL GetPcrInfo(CString sPath, stModelInfo &stInfo);
 
 	int GetMkCntL();
@@ -397,10 +396,16 @@ public:
 	CString GetMonDispMain();
 	void SetMonDispMain(CString sDisp);
 	void GetMkMenu01();
-	void SetMkMenu01();
+	void SetMkMenu01(CString sMenu, CString sItem, CString sData);
 	void GetMkMenu03();
 	void GetMkMenu03Main();
 	void SetMkMenu03(CString sMenu, CString sItem, BOOL bOn);
+	void GetMkInfo();
+	void SetMkInfo(CString sMenu, CString sItem, BOOL bOn);
+	void SetMkInfo(CString sMenu, CString sItem, CString sData);
+
+	int MirrorLR(int nPcsId);
+	int Rotate180(int nPcsId);
 
 
 // 재정의입니다.

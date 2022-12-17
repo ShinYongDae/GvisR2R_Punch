@@ -76,6 +76,7 @@
 #define TIM_SHOW_MENU02			19
 #define TIM_CHK_TEMP_STOP		20
 #define TIM_SAFTY_STOP			21
+#define TIM_TCPIP_UPDATE		22
 #define TIM_START_UPDATE		100
 
 #define MAX_THREAD				18
@@ -196,6 +197,7 @@ class CGvisR2R_PunchView : public CFormView
 	double m_dTotVel, m_dPartVel;
 	BOOL m_bTIM_CHK_TEMP_STOP;
 	BOOL m_bTIM_SAFTY_STOP;
+	BOOL m_bTIM_TCPIP_UPDATE;
 	CString m_sMyMsg; int m_nTypeMyMsg;
 	int m_nVsBufLastSerial[2];
 	//BOOL m_bOpenShareUp, m_bOpenShareDn;
@@ -324,6 +326,8 @@ class CGvisR2R_PunchView : public CFormView
 	BOOL SortingInDn(CString sPath, int nIndex);
 	BOOL SortingOutDn(int* pSerial, int nTot);
 	void SwapDn(__int64 *num1, __int64 *num2);
+
+	BOOL LoadMstInfo();
 
 	void DoAutoEng();
 	void DoAtuoGetEngStSignal();
@@ -487,7 +491,7 @@ public:
 	BOOL m_bShowMyMsg;
 	CWnd *m_pMyMsgForeground;
 
-	BOOL m_bRejectDone[2][4]; // Shot[2], Strip[4] - [좌/우][] : 스트립에 펀칭한 피스 수 count가 스트립 폐기 설정수 완료 여부 
+	BOOL m_bRejectDone[2][MAX_STRIP_NUM]; // Shot[2], Strip[4] - [좌/우][] : 스트립에 펀칭한 피스 수 count가 스트립 폐기 설정수 완료 여부 
 
 	CString m_sDispSts[2];
 
@@ -510,6 +514,8 @@ public:
 
 // 작업입니다.
 public:
+	BOOL m_bShift2Mk;
+
 	void SetLastSerialEng(int nSerial);
 	int MsgBox(CString sMsg, int nThreadIdx = 0, int nType = MB_OK, int nTimOut = DEFAULT_TIME_OUT);		// SyncMsgBox
 	int AsyncMsgBox(CString sMsg, int nThreadIdx = 1, int nType = MB_OK, int nTimOut = DEFAULT_TIME_OUT); // AsyncMsgBox
@@ -913,6 +919,7 @@ public:
 	BOOL IsLastProc();
 	BOOL IsLastJob(int nAoi); // 0 : AOI-Up , 1 : AOI-Dn , 2 : AOI-UpDn
 
+	void MonPlcSignal();
 	void MonPlcAlm();
 	void MonDispMain();
 	void PlcAlm(BOOL bMon, BOOL bClr);
@@ -951,6 +958,8 @@ public:
 	void CntMk();
 	void ChkMyMsg();
 	BOOL ReloadRst(int nSerial);
+	//BOOL ReloadRstInner();
+	//BOOL ReloadRstInner(int nSerial);
 	BOOL IsSameUpDnLot();
 	BOOL ChkStShotNum();
 	BOOL ChkContShotNum();
@@ -999,6 +1008,10 @@ public:
 	BOOL IsPinPos0();
 	BOOL IsPinPos1();
 
+
+	//BOOL LoadAoiSpec();
+	BOOL LoadMasterSpec();
+
 	void UpdateYield();
 	void UpdateYield(int nSerial);
 
@@ -1029,7 +1042,25 @@ public:
 	void ReloadRstAllDn();
 
 	BOOL m_bSetSig, m_bSetSigF, m_bSetData, m_bSetDataF;
+	BOOL m_bLoadMstInfo, m_bLoadMstInfoF;
 	BOOL m_bTIM_START_UPDATE;
+
+
+	void UpdateRstInner();
+	void OpenReelmapInner();
+	void OpenReelmapInnerUp();
+	void OpenReelmapInnerDn();
+
+	BOOL LoadPcrInnerUp(int nSerial, BOOL bFromShare = FALSE);
+	BOOL LoadPcrInnerDn(int nSerial, BOOL bFromShare = FALSE);
+
+	void SetInnerPathAtBuf();
+	void SetInnerPathAtBufUp();
+	void SetInnerPathAtBufDn();
+
+	// DTS
+	BOOL GetDtsPieceOut(int nSerial, int* pPcsOutIdx, int& nTotPcsOut);
+	CString GetCurrentDBName();
 
 // 재정의입니다.
 public:

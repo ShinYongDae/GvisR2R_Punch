@@ -698,6 +698,41 @@ void CVision::SelDispCad(HWND hDispCtrl, CRect rtDispCtrl, int nIdx, int nDispla
 
 }
 
+void CVision::FreeDispCad(HWND hDispCtrl, CRect rtDispCtrl, int nIdx, int nDisplayFitMode)
+{
+	if (!m_pMil)
+		return;
+
+	// for CAD..........
+
+	// Live Image Buffer set
+	if (m_pMilBufCad[nIdx])
+	{
+		delete m_pMilBufCad[nIdx];
+		m_pMilBufCad[nIdx] = NULL;
+	}
+
+	// Mil Display set
+	if (m_pMilDispCad[nIdx])
+	{
+		delete m_pMilDispCad[nIdx];
+		m_pMilDispCad[nIdx] = NULL;
+	}
+
+	// Draw
+	if (m_pMilOvrCad[nIdx])
+	{
+		delete m_pMilOvrCad[nIdx];
+		m_pMilOvrCad[nIdx] = NULL;
+	}
+
+	if (m_pMilDelOvrCad[nIdx])
+	{
+		delete m_pMilDelOvrCad[nIdx];
+		m_pMilDelOvrCad[nIdx] = NULL;
+	}
+}
+
 void CVision::SetOvrCadFontSz(int nIdxMkInfo)
 {
 	int nDisplayMargin = 3;
@@ -772,6 +807,43 @@ void CVision::SelDispDef(HWND hDispCtrl, CRect rtDispCtrl, int nIdx, int nDispla
 		m_pMilDelOvrDef[nIdx] = m_pMil->AllocDraw(m_pMilDispDef[nIdx]);
  		m_pMilDelOvrDef[nIdx]->SetDrawColor(m_pMilDispDef[nIdx]->m_lOverlayColor);
  		m_pMilDelOvrDef[nIdx]->SetDrawBackColor(m_pMilDispDef[nIdx]->m_lOverlayColor);
+	}
+}
+
+void CVision::FreeDispDef(HWND hDispCtrl, CRect rtDispCtrl, int nIdx, int nDisplayFitMode)
+{
+	if (!m_pMil)
+		return;
+
+	// 	// Mil System set
+
+	// for Def.............
+
+	// Live Image Buffer set
+	if (m_pMilBufDef[nIdx])
+	{
+		delete m_pMilBufDef[nIdx];
+		m_pMilBufDef[nIdx] = NULL;
+	}
+
+	// Mil Display set
+	if (m_pMilDispDef[nIdx])
+	{
+		delete m_pMilDispDef[nIdx];
+		m_pMilDispDef[nIdx] = NULL;
+	}
+
+	// Draw
+	if (m_pMilOvrDef[nIdx])
+	{
+		delete m_pMilOvrDef[nIdx];
+		m_pMilOvrDef[nIdx] = NULL;
+	}
+
+	if (m_pMilDelOvrDef[nIdx])
+	{
+		delete m_pMilDelOvrDef[nIdx];
+		m_pMilDelOvrDef[nIdx] = NULL;
 	}
 }
 
@@ -2958,8 +3030,11 @@ double CVision::CalcCameraPixelSize()
 		if(dCurrX < -1000.0 || dCurrY < -1000.0)
 		{
 			//if(!pView->m_pMotion->Move(MS_X0Y0, pTgtPos, 0.3, ABS, WAIT))
-			if(!pView->m_pMotion->Move(MS_X0Y0, pTgtPos, 0.3, ABS, WAIT))
+			if (!pView->m_pMotion->Move(MS_X0Y0, pTgtPos, 0.3, ABS, WAIT))
+			{
+				pView->ClrDispMsg();
 				AfxMessageBox(_T("Move XY Error..."));
+		}
 		}
 		else
 		{
@@ -2969,10 +3044,13 @@ double CVision::CalcCameraPixelSize()
 			{
 				pView->m_pMotion->GetSpeedProfile(TRAPEZOIDAL, AXIS_X0, fLen, fVel, fAcc, fJerk);
 				//if(!pView->m_pMotion->Move(MS_X0Y0, pTgtPos, fVel, fAcc, fAcc))
-				if(!pView->m_pMotion->Move(MS_X0Y0, pTgtPos, fVel, fAcc, fAcc))
+				if (!pView->m_pMotion->Move(MS_X0Y0, pTgtPos, fVel, fAcc, fAcc))
+				{
+					pView->ClrDispMsg();
 					AfxMessageBox(_T("Move XY Error..."));
 			}
 		}
+	}
 	}
 	else if(m_nIdx==1)
 	{
@@ -2981,8 +3059,11 @@ double CVision::CalcCameraPixelSize()
 		if(dCurrX < -1000.0 || dCurrY < -1000.0)
 		{
 			//if(!pView->m_pMotion->Move(MS_X1Y1, pTgtPos, 0.3, ABS, WAIT))
-			if(!pView->m_pMotion->Move(MS_X1Y1, pTgtPos, 0.3, ABS, WAIT))
+			if (!pView->m_pMotion->Move(MS_X1Y1, pTgtPos, 0.3, ABS, WAIT))
+			{
+				pView->ClrDispMsg();
 				AfxMessageBox(_T("Move XY Error..."));
+		}
 		}
 		else
 		{
@@ -2992,10 +3073,13 @@ double CVision::CalcCameraPixelSize()
 			{
 				pView->m_pMotion->GetSpeedProfile(TRAPEZOIDAL, AXIS_X1, fLen, fVel, fAcc, fJerk);
 				//if(!pView->m_pMotion->Move(MS_X1Y1, pTgtPos, fVel, fAcc, fAcc))
-				if(!pView->m_pMotion->Move(MS_X1Y1, pTgtPos, fVel, fAcc, fAcc))
+				if (!pView->m_pMotion->Move(MS_X1Y1, pTgtPos, fVel, fAcc, fAcc))
+				{
+					pView->ClrDispMsg();
 					AfxMessageBox(_T("Move XY Error..."));
 			}
 		}
+	}
 	}
 
 	Sleep(500);
@@ -3179,8 +3263,11 @@ double CVision::CalcCameraPixelSize()
 		if(dCurrX < -1000.0 || dCurrY < -1000.0)
 		{
 			//if(!pView->m_pMotion->Move(MS_X0Y0, pTgtPos, 0.3, ABS, WAIT))
-			if(!pView->m_pMotion->Move(MS_X0Y0, pTgtPos, 0.3, ABS, WAIT))
+			if (!pView->m_pMotion->Move(MS_X0Y0, pTgtPos, 0.3, ABS, WAIT))
+			{
+				pView->ClrDispMsg();
 				AfxMessageBox(_T("Move XY Error..."));
+		}
 		}
 		else
 		{
@@ -3190,10 +3277,13 @@ double CVision::CalcCameraPixelSize()
 			{
 				pView->m_pMotion->GetSpeedProfile(TRAPEZOIDAL, AXIS_X0, fLen, fVel, fAcc, fJerk);
 				//if(!pView->m_pMotion->Move(MS_X0Y0, pTgtPos, fVel/10.0, fAcc/10.0, fAcc/10.0))
-				if(!pView->m_pMotion->Move(MS_X0Y0, pTgtPos, fVel/10.0, fAcc/10.0, fAcc/10.0))
+				if (!pView->m_pMotion->Move(MS_X0Y0, pTgtPos, fVel / 10.0, fAcc / 10.0, fAcc / 10.0))
+				{
+					pView->ClrDispMsg();
 					AfxMessageBox(_T("Move XY Error..."));
 			}
 		}
+	}
 	}
 	else if(m_nIdx==1)
 	{
@@ -3204,8 +3294,11 @@ double CVision::CalcCameraPixelSize()
 		if(dCurrX < -1000.0 || dCurrY < -1000.0)
 		{
 			//if(!pView->m_pMotion->Move(MS_X1Y1, pTgtPos, 0.3, ABS, WAIT))
-			if(!pView->m_pMotion->Move(MS_X1Y1, pTgtPos, 0.3, ABS, WAIT))
+			if (!pView->m_pMotion->Move(MS_X1Y1, pTgtPos, 0.3, ABS, WAIT))
+			{
+				pView->ClrDispMsg();
 				AfxMessageBox(_T("Move XY Error..."));
+		}
 		}
 		else
 		{
@@ -3215,10 +3308,13 @@ double CVision::CalcCameraPixelSize()
 			{
 				pView->m_pMotion->GetSpeedProfile(TRAPEZOIDAL, AXIS_X1, fLen, fVel, fAcc, fJerk);
 				//if(!pView->m_pMotion->Move(MS_X1Y1, pTgtPos, fVel/10.0, fAcc/10.0, fAcc/10.0))
-				if(!pView->m_pMotion->Move(MS_X1Y1, pTgtPos, fVel/10.0, fAcc/10.0, fAcc/10.0))
+				if (!pView->m_pMotion->Move(MS_X1Y1, pTgtPos, fVel / 10.0, fAcc / 10.0, fAcc / 10.0))
+				{
+					pView->ClrDispMsg();
 					AfxMessageBox(_T("Move XY Error..."));
 			}
 		}
+	}
 	}
 	Sleep(500);
 
@@ -4077,6 +4173,7 @@ BOOL CVision::SaveMkImg(CString sPath)
 	if (m_pIRayple->OneshotGrab() == FALSE)
 	{
 		//pView->MsgBox(_T("Image Grab Fail !!"));
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("m_pIRayple->OneshotGrab() Fail !!"));
 		if (MilGrabImg)
 			delete MilGrabImg;
@@ -4086,6 +4183,7 @@ BOOL CVision::SaveMkImg(CString sPath)
 	else if(m_pMil->OneshotGrab(MilGrabImg->m_MilImage, GRAB_COLOR_COLOR) == FALSE)
 	{
 		//pView->MsgBox(_T("Image Grab Fail !!"));
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("m_pMil->OneshotGrab Fail !!"));
 		if (MilGrabImg)
 			delete MilGrabImg;
@@ -4103,6 +4201,7 @@ BOOL CVision::SaveMkImg(CString sPath)
 		MbufSave(sPath, MilGrabImg->m_MilImage);
 	else
 	{
+		pView->ClrDispMsg();
 		AfxMessageBox(_T("MbufSave() Fail !!"));
 		//if (MilOriginDisp)
 		//	delete MilOriginDisp;
