@@ -101,6 +101,8 @@ BEGIN_MESSAGE_MAP(CDlgInfo, CDialog)
 	ON_BN_CLICKED(IDC_CHK_1188, &CDlgInfo::OnBnClickedChk1188)
 	ON_STN_CLICKED(IDC_STC_36, &CDlgInfo::OnStnClickedStc36)
 	ON_STN_CLICKED(IDC_STC_17, &CDlgInfo::OnStnClickedStc17)
+	ON_STN_CLICKED(IDC_STC_41, &CDlgInfo::OnStnClickedStc41)
+	ON_STN_CLICKED(IDC_STC_43, &CDlgInfo::OnStnClickedStc43)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -402,7 +404,9 @@ void CDlgInfo::InitStcTitle()
 	myStcTitle[60].SubclassDlgItem(IDC_STC_35, this); //Period
 	myStcTitle[61].SubclassDlgItem(IDC_STC_37, this); //Shot
 
-	myStcTitle[62].SubclassDlgItem(IDC_STC_16, this); //오더번호
+	myStcTitle[62].SubclassDlgItem(IDC_STC_16, this); //ITS코드 라벨
+	myStcTitle[63].SubclassDlgItem(IDC_STC_40, this); //ITS코드 라벨
+	myStcTitle[64].SubclassDlgItem(IDC_STC_42, this); //ITS코드 라벨
 
 	for(int i=0; i<MAX_INFO_STC; i++)
 	{
@@ -418,6 +422,8 @@ void CDlgInfo::InitStcTitle()
 		case 3:
 		case 20:
 		case 62:
+		case 63:
+		case 64:
 			myStcTitle[i].SetTextColor(RGB_NAVY);
 			myStcTitle[i].SetBkColor(RGB_LTDKORANGE);
 			myStcTitle[i].SetFontBold(TRUE);
@@ -479,7 +485,9 @@ void CDlgInfo::InitStcData()
 
 	myStcData[15].SubclassDlgItem(IDC_STC_36, this); // 불량 확인 Period [Shot]
 
-	myStcData[16].SubclassDlgItem(IDC_STC_17, this); // 오더번호
+	myStcData[16].SubclassDlgItem(IDC_STC_17, this); // ITS코드
+	myStcData[17].SubclassDlgItem(IDC_STC_41, this); // Shot수 현재값
+	myStcData[18].SubclassDlgItem(IDC_STC_43, this); // Shot수 설정값
 
 
 	for(int i=0; i<MAX_INFO_STC_DATA; i++)
@@ -551,7 +559,9 @@ void CDlgInfo::Disp()
 	myStcData[14].SetText(pDoc->WorkingInfo.LastJob.sCustomNeedRatio);
 	str.Format(_T("%d"), pDoc->WorkingInfo.LastJob.nVerifyPeriod);
 	myStcData[15].SetText(str);
-	myStcData[16].SetText(pDoc->WorkingInfo.LastJob.sEngOrderNum);	// IDC_STC_17	오더번호
+	myStcData[16].SetText(pDoc->WorkingInfo.LastJob.sEngItsCode);		// IDC_STC_17	ITS코드
+	myStcData[17].SetText(pDoc->WorkingInfo.LastJob.sCurrentShotNum);	// IDC_STC_41	Shot수 현재값
+	myStcData[18].SetText(pDoc->WorkingInfo.LastJob.sSettingShotNum);	// IDC_STC_43	Shot수 설정값
 
 	if(pDoc->WorkingInfo.LastJob.bLotSep)
 		myBtn[1].SetCheck(TRUE);
@@ -686,6 +696,13 @@ void CDlgInfo::Disp()
 		myBtn[24].SetCheck(TRUE); // IDC_CHK_USE_AOI_OUTER
 		break;
 	}
+
+	str.Format(_T("%d"), pDoc->m_pMpeData[2][7]) ; // Shot수 현재값
+	myStcData[17].SetWindowText(str);
+
+	str.Format(_T("%d"), pDoc->m_pMpeData[7][6]) ; //Shot수 설정값
+	myStcData[18].SetWindowText(str);
+
 }
 
 void CDlgInfo::OnStc0008()
@@ -1951,10 +1968,56 @@ void CDlgInfo::OnStnClickedStc17()
 
 	CString sData;
 	GetDlgItem(IDC_STC_17)->GetWindowText(sData);
-	pDoc->SetEngOrderNum(sData);
+	pDoc->SetEngItsCode(sData);
 
 #ifdef USE_ENGRAVE
 	if (pView && pView->m_pEngrave)
-		pView->m_pEngrave->SetEngOrderNum();	//_ItemInx::_EngOrderNum
+		pView->m_pEngrave->SetEngItsCode();	//_ItemInx::_EngItsCode
+#endif
+}
+
+
+void CDlgInfo::OnStnClickedStc41()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	myStcData[17].SetBkColor(RGB_RED);
+	myStcData[17].RedrawWindow();
+
+	CPoint pt;	CRect rt;
+	GetDlgItem(IDC_STC_41)->GetWindowRect(&rt);
+	pt.x = rt.right; pt.y = rt.bottom;
+	ShowKeypad(IDC_STC_41, pt, TO_BOTTOM | TO_RIGHT);
+
+	myStcData[17].SetBkColor(RGB_WHITE);
+	myStcData[17].RedrawWindow();
+
+	CString sData;
+	GetDlgItem(IDC_STC_41)->GetWindowText(sData);
+	::WritePrivateProfileString(_T("Last Job"), _T("Current ShotNum"), sData, PATH_WORKING_INFO);
+#ifdef USE_MPE
+	pView->m_pMpe->Write(_T("ML44098"), _ttoi(sData)); // Shot수 현재값
+#endif
+}
+
+
+void CDlgInfo::OnStnClickedStc43()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	myStcData[18].SetBkColor(RGB_RED);
+	myStcData[18].RedrawWindow();
+
+	CPoint pt;	CRect rt;
+	GetDlgItem(IDC_STC_43)->GetWindowRect(&rt);
+	pt.x = rt.right; pt.y = rt.bottom;
+	ShowKeypad(IDC_STC_43, pt, TO_BOTTOM | TO_RIGHT);
+
+	myStcData[18].SetBkColor(RGB_WHITE);
+	myStcData[18].RedrawWindow();
+
+	CString sData;
+	GetDlgItem(IDC_STC_43)->GetWindowText(sData);
+	::WritePrivateProfileString(_T("Last Job"), _T("Current ShotNum"), sData, PATH_WORKING_INFO);
+#ifdef USE_MPE
+	pView->m_pMpe->Write(_T("ML45108"), _ttoi(sData)); // Shot수 설정값
 #endif
 }

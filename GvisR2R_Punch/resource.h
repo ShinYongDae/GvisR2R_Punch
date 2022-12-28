@@ -103,6 +103,7 @@
 #define IDD_DLG_CLIENT                  350
 #define IDD_DIALOG2                     352
 #define IDD_DLG_UTIL_07                 352
+#define IDD_DLG_MENU_06                 353
 #define IDC_SVR_PORT                    374
 #define IDC_TXT_MESSAGE                 376
 #define IDC_BTN_START                   486
@@ -251,6 +252,8 @@
 #define IDC_BTN_JOG_LF                  1089
 #define IDC_STC_DEF_SPACE               1090
 #define IDC_BTN_JOG_RT                  1090
+#define IDC_CHK_MENU_6                  1090
+#define IDC_CHK_MENU_06                 1090
 #define IDC_STC_DEF_EX                  1091
 #define IDC_CHK_JOG_VF                  1091
 #define IDC_STC_DEF_EXTRA               1092
@@ -433,9 +436,11 @@
 #define IDC_STC_TOTAL_NUM_ALL           1154
 #define IDC_CHK_ELEC_TEST               1154
 #define IDC_STC_013                     1154
+#define IDC_STC_40                      1154
 #define IDC_STC_WK_ALL                  1155
 #define IDC_BTN_START_SAVE              1155
 #define IDC_STC_015                     1155
+#define IDC_STC_42                      1155
 #define IDC_STC_0016                    1156
 #define IDC_STC_GD_RA_1                 1156
 #define IDC_STC_ALN_SCR2                1156
@@ -635,6 +640,7 @@
 #define IDC_GRP_LT12                    1202
 #define IDC_STC_10_                     1202
 #define IDC_STC_27                      1202
+#define IDC_STC_REELMAP_INNER           1202
 #define IDC_CHK_002                     1203
 #define IDC_CHK_MK_POS1_1               1203
 #define IDC_CHK_42                      1203
@@ -810,9 +816,11 @@
 #define IDC_STC_12_23                   1248
 #define IDC_STC_79                      1248
 #define IDC_STC_UTIL04_17               1248
+#define IDC_STC_41                      1248
 #define IDC_STC_12_25                   1249
 #define IDC_STC_80                      1249
 #define IDC_STC_UTIL04_18               1249
+#define IDC_STC_43                      1249
 #define IDC_CHK_19                      1250
 #define IDC_STC_81                      1250
 #define IDC_STC_UTIL04_19               1250
@@ -1304,7 +1312,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        354
 #define _APS_NEXT_COMMAND_VALUE         32779
-#define _APS_NEXT_CONTROL_VALUE         1000
+#define _APS_NEXT_CONTROL_VALUE         1203
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

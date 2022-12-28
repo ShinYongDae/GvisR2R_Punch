@@ -534,7 +534,7 @@ BOOL CDlgMenu02::OnInitDialog()
 	GetDlgItem(IDC_BTN_BUFF_HOME)->ShowWindow(SW_HIDE);
 	GetDlgItem(IDC_BTN_BUFF_INIT_MOVE)->ShowWindow(SW_HIDE);
 	GetDlgItem(IDC_BTN_BUFF_INIT_SAVE)->ShowWindow(SW_HIDE);
-// 	GetDlgItem(IDC_CHK_ELEC_TEST)->ShowWindow(SW_HIDE);
+ 	//GetDlgItem(IDC_CHK_ELEC_TEST)->ShowWindow(SW_HIDE);
 
 	
 	//ShowDlg(IDD_DLG_UTIL_03);
@@ -4319,8 +4319,11 @@ void CDlgMenu02::ChkElecTest()
 void CDlgMenu02::OnChkElecTest() 
 {
 	// TODO: Add your control notification handler code here
-	m_lChk = 2;
-	SetTimer(TIM_SHOW_ELEC_TEST, 150, NULL);
+	if (IDYES == pView->MsgBox(_T("CamMaster에서 해당 모델의 데이터를 다시 업로드 할까요?"), 0, MB_YESNO))
+		pView->m_bLoadMstInfo = TRUE;
+
+	//m_lChk = 2;
+	//SetTimer(TIM_SHOW_ELEC_TEST, 150, NULL);
 	
 	//ChkElecTest();
 }

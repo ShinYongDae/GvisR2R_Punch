@@ -328,6 +328,9 @@ BOOL CPcsRgn::GetMkMatrix(int nPcsId, int &nC, int &nR)
 		case 1:
 			nPcsId = pDoc->MirrorLR(nPcsId);
 			break;
+		case 2:
+			nPcsId = pDoc->MirrorUD(nPcsId);
+			break;
 		case 3:
 			nPcsId = pDoc->Rotate180(nPcsId);
 			break;
@@ -369,6 +372,9 @@ BOOL CPcsRgn::GetMkMatrix(int nPcsId, int &nStrip, int &nC, int &nR) // nStrip:0
 			break;
 		case 1:
 			nPcsId = pDoc->MirrorLR(nPcsId);
+			break;
+		case 2:
+			nPcsId = pDoc->MirrorUD(nPcsId);
 			break;
 		case 3:
 			nPcsId = pDoc->Rotate180(nPcsId);

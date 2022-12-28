@@ -178,11 +178,11 @@ public:
 	void SetFixDef();
 	void SetNumContFixDef();
 	void SetUltraSonicStTim();
-	void SetEngOrderNum();
+	void SetEngItsCode();
 
 	// SetInfo()
 	void SetModelUpName();
-	void SetModelDnName();
+	//void SetModelDnName();
 	void SetLotUpName();
 	void SetLotDnName();
 	void SetLayerUpName();

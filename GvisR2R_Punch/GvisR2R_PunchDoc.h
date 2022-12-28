@@ -37,8 +37,6 @@ public:
 	double m_dRTRShiftVal;
 	double m_dShiftAdjustRatio;
 
-	BOOL m_bCamChged;
-	CCamMaster m_Master[2];
 	CMyFile *m_pFile;
 	CMySpec *m_pSpecLocal;
 	stMkIo MkIo;
@@ -46,11 +44,27 @@ public:
 	stStatus Status;								// Status 입력신호
 	stBtnStatus BtnStatus;
 	stMenu01Status Menu01Status;
+	CString *pMkInfo;
+	CYield m_Yield[3]; // [0]:AOI-Up , [1]:AOI-Dn , [2]:AOI-All
+
+	// 현재 작업인 데이터구조 ===================================================================
+	BOOL m_bCamChged;
+	CCamMaster m_Master[2];
 
 	CReelMap* m_pReelMap;
 	CReelMap *m_pReelMapUp, *m_pReelMapDn, *m_pReelMapAllUp, *m_pReelMapAllDn;
 	CDataMarking* m_pPcr[MAX_PCR][MAX_PCR_PNL];	//릴맵화면표시를 위한 데이터	// [0]:AOI-Up , [1]:AOI-Dn , [2]:AOI-AllUp , [3]:AOI-AllDn
-	CString *pMkInfo;
+
+	// 내층 작업한 데이터구조  ====================================================================
+	CCamMaster m_MasterInner[2];
+
+	//CReelMap* m_pReelMapInner;
+	CDataMarking* m_pPcrInner[MAX_PCR][MAX_PCR_PNL];	//릴맵화면표시를 위한 데이터	// [0]:AOI-Up , [1]:AOI-Dn , [2]:AOI-AllUp , [3]:AOI-AllDn
+
+	CReelMap* m_pReelMapIts;
+	CDataMarking* m_pPcrIts[MAX_PCR_PNL];				//릴맵화면표시를 위한 데이터	// 내외층 merging
+
+	//=============================================================================================
 
 	stMpeIoWrite m_pIo[TOT_M_IO];
 
@@ -71,7 +85,6 @@ public:
 	long **m_pMpeData;
 
 	CString m_sPassword;
-	CYield m_Yield[3]; // [0]:AOI-Up , [1]:AOI-Dn , [2]:AOI-All
 
 	CString m_sAlmMsg, m_sPrevAlmMsg;
 	CString m_sIsAlmMsg;
@@ -381,7 +394,7 @@ public:
 	int GetTestMode();
 	BOOL GetEngOffset(CfPoint &OfSt);
 
-	void SetEngOrderNum(CString sOrderNum);
+	void SetEngItsCode(CString sItsCode);
 
 	void SetCurrentInfoSignal(int nIdxSig, BOOL bOn);
 	BOOL GetCurrentInfoSignal(int nIdxSig);
@@ -404,9 +417,45 @@ public:
 	void SetMkInfo(CString sMenu, CString sItem, BOOL bOn);
 	void SetMkInfo(CString sMenu, CString sItem, CString sData);
 
-	int MirrorLR(int nPcsId);
-	int Rotate180(int nPcsId);
+	// PCS 인덱스를 예전방식의 인덱스로 변환함.
+	int MirrorLR(int nPcsId); // 좌우 미러링
+	int Rotate180(int nPcsId);// 180도 회전 = 좌우 미러링 & 상하 미러링
+	int MirrorUD(int nPcsId); // 상하 미러링
 
+	// For ITS
+	CString m_sItsCode;
+	CString m_sEngLotNum, m_sEngProcessNum;
+	CString m_sEngModel, m_sEngLayerUp;
+	CString m_sEngLayerDn;
+	int m_nWritedItsSerial;
+
+	BOOL MakeLayerMappingHeader();
+	BOOL MakeLayerMappingSerial(int nIdx, int nItsSerial);
+
+	BOOL GetItsSerialInfo(int nItsSerial, BOOL &bDualTest, CString &sLot, CString &sLayerUp, CString &sLayerDn, int nOption=0);		// 내층에서의 ITS 시리얼의 정보
+	BOOL SetItsSerialInfo(int nItsSerial);																							// 내층에서의 ITS 시리얼의 정보
+	//BOOL WriteReelmapIts(int nItsSerial);																							// 내외층 머징된 릴맵 데이타
+	int GetLastItsSerial();																											// 내외층 머징된 릴맵 데이타의 Last 시리얼
+	CString GetItsFolderPath();
+	CString GetItsReelmapPath();
+	BOOL GetInnerFolderPath(int nItsSerial, CString  &sUp, CString &sDn);
+
+	char* StrToChar(CString str);
+	void StrToChar(CString str, char* pCh);
+
+
+	// For MODE_OUTER ============================================
+	int LoadPCRAllUpInner(int nSerial, BOOL bFromShare = FALSE);	// return : 2(Failed), 1(정상), -1(Align Error, 노광불량), -2(Lot End)
+	int LoadPCRAllDnInner(int nSerial, BOOL bFromShare = FALSE);	// return : 2(Failed), 1(정상), -1(Align Error, 노광불량), -2(Lot End)
+	int LoadPCRUpInner(int nSerial, BOOL bFromShare = FALSE);	// return : 2(Failed), 1(정상), -1(Align Error, 노광불량), -2(Lot End)
+	int LoadPCRDnInner(int nSerial, BOOL bFromShare = FALSE);	// return : 2(Failed), 1(정상), -1(Align Error, 노광불량), -2(Lot End)
+
+	// ITS
+	int LoadPCRIts(int nSerial, BOOL bFromShare = FALSE);	// return : 2(Failed), 1(정상), -1(Align Error, 노광불량), -2(Lot End)
+	void LoadPCRIts11(int nSerial); // 11 -> 외층 : 양면, 내층 : 양면
+	void LoadPCRIts10(int nSerial); // 10 -> 외층 : 양면, 내층 : 단면
+	void LoadPCRIts01(int nSerial); // 11 -> 외층 : 단면, 내층 : 양면
+	void LoadPCRIts00(int nSerial); // 10 -> 외층 : 단면, 내층 : 단면
 
 // 재정의입니다.
 public:

@@ -443,12 +443,12 @@ void CMyGL::Draw()
 	//	DrawRgn();
 	//	DrawBack();
 	//	break;
-	//case IDC_STC_REELMAP_INNER:
-	//	DrawPnlDefNum();
-	//	DrawPnlNum();
-	//	DrawRgn();
-	//	DrawBack();
-	//	break;
+	case IDC_STC_REELMAP_INNER:
+		DrawPnlDefNum();
+		DrawPnlNum();
+		DrawRgn();
+		DrawBack();
+		break;
 
 // 	case IDC_STC_PCS_IMG:
 // 		DrawPcs();

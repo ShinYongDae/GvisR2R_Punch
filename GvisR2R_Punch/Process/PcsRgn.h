@@ -37,8 +37,8 @@ public:
 	CfPoint GetMkPnt0(int nPcsId);
 	CfPoint GetMkPnt1(int nPcsId);
 	void SetPinPos(int nCam, CfPoint ptPnt);
-	BOOL GetMkMatrix(int nPcsId, int &nC, int &nR);
-	BOOL GetMkMatrix(int nPcsId, int &nStrip, int &nC, int &nR);
+	BOOL GetMkMatrix(int nPcsId, int &nC, int &nR);					// Strip의 Col, Row정보를 얻음
+	BOOL GetMkMatrix(int nPcsId, int &nStrip, int &nC, int &nR);	// Strip의 Col, Row정보를 얻음
 
 	void GetPcsRgn(int nC, int nR, int &nPcsId, CRect &ptRect);
 

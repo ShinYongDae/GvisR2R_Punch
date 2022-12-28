@@ -76,10 +76,10 @@
 #define TIM_SHOW_MENU02			19
 #define TIM_CHK_TEMP_STOP		20
 #define TIM_SAFTY_STOP			21
-#define TIM_TCPIP_UPDATE		22
+#define TIM_CAMMASTER_UPDATE	22
 #define TIM_START_UPDATE		100
 
-#define MAX_THREAD				18
+#define MAX_THREAD				19
 
 namespace Read2dIdx
 {
@@ -197,7 +197,7 @@ class CGvisR2R_PunchView : public CFormView
 	double m_dTotVel, m_dPartVel;
 	BOOL m_bTIM_CHK_TEMP_STOP;
 	BOOL m_bTIM_SAFTY_STOP;
-	BOOL m_bTIM_TCPIP_UPDATE;
+	BOOL m_bTIM_CAMMASTER_UPDATE;
 	CString m_sMyMsg; int m_nTypeMyMsg;
 	int m_nVsBufLastSerial[2];
 	//BOOL m_bOpenShareUp, m_bOpenShareDn;
@@ -355,6 +355,7 @@ public:
 	CPtAlign m_Align[2];	// [0] : LeftCam , [1] : RightCam
 #ifdef USE_VISION
 	CVision* m_pVision[2];	// [0] : LeftCam , [1] : RightCam
+	CVision* m_pVisionInner[2];	// [0] : LeftCam , [1] : RightCam
 #endif
 	CMotion* m_pMotion;
 	CLight* m_pLight;
@@ -618,6 +619,7 @@ public:
 	static UINT ThreadProc15(LPVOID lpContext); // Safety check thread procedure
 	static UINT ThreadProc16(LPVOID lpContext); // Safety check thread procedure
 	static UINT ThreadProc17(LPVOID lpContext); // Safety check thread procedure
+	static UINT ThreadProc18(LPVOID lpContext); // Safety check thread procedure
 
 	void UpdateRMapUp();
 	void UpdateRMapAllUp();
@@ -673,7 +675,7 @@ public:
 	void InitAuto(BOOL bInit = TRUE);
 	void Mk0();
 	void Mk1();
-	BOOL IsMk();
+	//BOOL IsMk();
 	BOOL IsReMk();
 	BOOL IsMkDone();
 	BOOL IsAoiTblVac();
@@ -1046,17 +1048,49 @@ public:
 	BOOL m_bTIM_START_UPDATE;
 
 
-	void UpdateRstInner();
-	void OpenReelmapInner();
-	void OpenReelmapInnerUp();
-	void OpenReelmapInnerDn();
+	//void UpdateRstInner();
+	//void OpenReelmapInner();
+	//void OpenReelmapInnerUp();
+	//void OpenReelmapInnerDn();
 
-	BOOL LoadPcrInnerUp(int nSerial, BOOL bFromShare = FALSE);
-	BOOL LoadPcrInnerDn(int nSerial, BOOL bFromShare = FALSE);
+	//BOOL LoadPcrInnerUp(int nSerial, BOOL bFromShare = FALSE);
+	//BOOL LoadPcrInnerDn(int nSerial, BOOL bFromShare = FALSE);
+
+	// ITS
+	BOOL m_bTHREAD_UPDATE_REELMAP_ITS;
+	BOOL WriteReelmapIts();
 
 	void SetInnerPathAtBuf();
 	void SetInnerPathAtBufUp();
 	void SetInnerPathAtBufDn();
+
+	void DoMark0Its();
+	void DoMark1Its();
+
+	int GetErrCode0Its(int nSerial); // 1(정상), -1(Align Error, 노광불량), -2(Lot End)
+	int GetErrCodeUp0Its(int nSerial); // 1(정상), -1(Align Error, 노광불량), -2(Lot End)
+	int GetErrCodeDn0Its(int nSerial); // 1(정상), -1(Align Error, 노광불량), -2(Lot End)
+
+	int GetErrCode1Its(int nSerial); // 1(정상), -1(Align Error, 노광불량), -2(Lot End)
+	int GetErrCodeUp1Its(int nSerial); // 1(정상), -1(Align Error, 노광불량), -2(Lot End)
+	int GetErrCodeDn1Its(int nSerial); // 1(정상), -1(Align Error, 노광불량), -2(Lot End)
+
+	int GetTotDefPcs0Its(int nSerial);
+	int GetTotDefPcsUp0Its(int nSerial);
+	int GetTotDefPcsDn0Its(int nSerial);
+
+	int GetTotDefPcs1Its(int nSerial);
+	int GetTotDefPcsUp1Its(int nSerial);
+	int GetTotDefPcsDn1Its(int nSerial);
+
+	CfPoint GetMkPnt0Its(int nSerial, int nMkPcs); // pcr 시리얼, pcr 불량 피스 읽은 순서 인덱스
+	CfPoint GetMkPnt1Its(int nSerial, int nMkPcs); // pcr 시리얼, pcr 불량 피스 읽은 순서 인덱스
+
+	int GetMkStripIdx0Its(int nSerial, int nMkPcs); // 0 : Fail , 1~4 : Strip Idx
+	int GetMkStripIdx1Its(int nSerial, int nMkPcs); // 0 : Fail , 1~4 : Strip Idx
+
+	BOOL SetMkIts(BOOL bRun);	// Marking Start
+
 
 	// DTS
 	BOOL GetDtsPieceOut(int nSerial, int* pPcsOutIdx, int& nTotPcsOut);

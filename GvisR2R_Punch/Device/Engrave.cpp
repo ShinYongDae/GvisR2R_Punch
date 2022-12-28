@@ -1880,12 +1880,12 @@ void CEngrave::GetOpInfo(SOCKET_DATA SockData)
 #endif
 			}
 			break;
-		case _ItemInx::_EngOrderNum:
-			if (pDoc->WorkingInfo.LastJob.sEngOrderNum != CharToString(SockData.strData))
+		case _ItemInx::_EngItsCode:
+			if (pDoc->WorkingInfo.LastJob.sEngItsCode != CharToString(SockData.strData))
 			{
 				m_bGetOpInfo = TRUE;
-				pDoc->WorkingInfo.LastJob.sEngOrderNum = CharToString(SockData.strData);
-				pDoc->SetEngOrderNum(pDoc->WorkingInfo.LastJob.sEngOrderNum);
+				pDoc->WorkingInfo.LastJob.sEngItsCode = CharToString(SockData.strData);
+				pDoc->SetEngItsCode(pDoc->WorkingInfo.LastJob.sEngItsCode);
 
 				//::WritePrivateProfileString(_T("Last Job"), _T("Engrave Order Num"), pDoc->WorkingInfo.LastJob.sEngOrderNum, PATH_WORKING_INFO);
 			}
@@ -1937,13 +1937,13 @@ void CEngrave::GetInfo(SOCKET_DATA SockData)
 				pDoc->WorkingInfo.LastJob.sModelUp = CharToString(SockData.strData);
 			}
 			break;
-		case _ItemInx::_ModelDnName:
-			if (pDoc->WorkingInfo.LastJob.sModelDn != CharToString(SockData.strData))
-			{
-				m_bGetInfo = TRUE;
-				pDoc->WorkingInfo.LastJob.sModelDn = CharToString(SockData.strData);
-			}
-			break;
+		//case _ItemInx::_ModelDnName:
+		//	if (pDoc->WorkingInfo.LastJob.sModelDn != CharToString(SockData.strData))
+		//	{
+		//		m_bGetInfo = TRUE;
+		//		pDoc->WorkingInfo.LastJob.sModelDn = CharToString(SockData.strData);
+		//	}
+		//	break;
 		case _ItemInx::_LotUpName:
 			if (pDoc->WorkingInfo.LastJob.sLotUp != CharToString(SockData.strData))
 			{
@@ -3403,13 +3403,13 @@ void CEngrave::SetOpInfo()
 	SetFixDef();
 	SetNumContFixDef();
 	SetUltraSonicStTim();
-	SetEngOrderNum();
+	SetEngItsCode();
 }
 
 void CEngrave::SetInfo()
 {
 	SetModelUpName();
-	SetModelDnName();
+	//SetModelDnName();
 	SetLotUpName();
 	SetLotDnName();
 	SetLayerUpName();
@@ -4420,7 +4420,7 @@ void CEngrave::SetUltraSonicStTim()
 	SendCommand(SocketData);
 }
 
-void CEngrave::SetEngOrderNum()
+void CEngrave::SetEngItsCode()
 {
 	if (!pDoc)
 		return;
@@ -4429,8 +4429,8 @@ void CEngrave::SetEngOrderNum()
 	SocketData.nCmdCode = _SetData;
 	char cData[BUFFER_DATA_SIZE];
 
-	SocketData.nMsgID = _stItemInx::_EngOrderNum;
-	StringToChar(pDoc->WorkingInfo.LastJob.sEngOrderNum, cData);
+	SocketData.nMsgID = _stItemInx::_EngItsCode;
+	StringToChar(pDoc->WorkingInfo.LastJob.sEngItsCode, cData);
 	sprintf(SocketData.strData, "%s", cData);
 	SendCommand(SocketData);
 }
@@ -4451,20 +4451,20 @@ void CEngrave::SetModelUpName()
 	SendCommand(SocketData);
 }
 
-void CEngrave::SetModelDnName()
-{
-	if (!pDoc)
-		return;
-
-	SOCKET_DATA SocketData;
-	SocketData.nCmdCode = _SetData;
-	char cData[BUFFER_DATA_SIZE];
-
-	SocketData.nMsgID = _stItemInx::_ModelDnName;
-	StringToChar(pDoc->WorkingInfo.LastJob.sModelDn, cData);
-	sprintf(SocketData.strData, "%s", cData);
-	SendCommand(SocketData);
-}
+//void CEngrave::SetModelDnName()
+//{
+//	if (!pDoc)
+//		return;
+//
+//	SOCKET_DATA SocketData;
+//	SocketData.nCmdCode = _SetData;
+//	char cData[BUFFER_DATA_SIZE];
+//
+//	SocketData.nMsgID = _stItemInx::_ModelDnName;
+//	StringToChar(pDoc->WorkingInfo.LastJob.sModelDn, cData);
+//	sprintf(SocketData.strData, "%s", cData);
+//	SendCommand(SocketData);
+//}
 
 void CEngrave::SetLotUpName()
 {
@@ -5239,7 +5239,7 @@ void CEngrave::SetEngBuffCurrPos()
 	char cData[BUFFER_DATA_SIZE];
 
 	CString str;
-	double dBufEnc = (double)pDoc->m_pMpeData[0][2] / 1000.0;	// 각인부 버퍼 엔코더 값(단위 mm * 1000)
+	double dBufEnc = (double)pDoc->m_pMpeData[1][1] / 1000.0;	// 각인부 버퍼 엔코더 값(단위 mm * 1000)
 	str.Format(_T("%.1f"), dBufEnc);
 	pDoc->WorkingInfo.Motion.sEngBuffCurrPos = str;
 
@@ -5585,7 +5585,7 @@ void CEngrave::SetMkBuffCurrPos() // (Engrave)
 	SocketData.nCmdCode = _SetData;
 
 	SocketData.nMsgID = _stItemInx::_MkBuffCurrPos;
-	double dBufEnc = (double)pDoc->m_pMpeData[0][1] / 1000.0;	// 각인부 버퍼 엔코더 값(단위 mm * 1000)
+	double dBufEnc = (double)pDoc->m_pMpeData[1][1] / 1000.0;	// 각인부 버퍼 엔코더 값(단위 mm * 1000)
 																//sprintf(SocketData.strData, "%.1f", dBufEnc);
 	SocketData.fData1 = (float)dBufEnc;
 	SendCommand(SocketData);

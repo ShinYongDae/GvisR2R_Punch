@@ -76,9 +76,9 @@
 //	#define USE_CREVIS
 
 	#define	USE_TCPIP
- 	#define	USE_SR1000W
-	#define USE_ENGRAVE
+ 	#define USE_ENGRAVE
 	#define USE_DTS
+	//#define	USE_SR1000W
 
 
 
@@ -617,7 +617,7 @@ typedef struct {
 enum SEL_RMAP {
 	RMAP_NONE = -1, RMAP_UP = 0, RMAP_DN = 1, RMAP_ALLUP = 2, RMAP_ALLDN = 3, 
 	RMAP_INNER_UP = 4, RMAP_INNER_DN = 5, RMAP_INNER_ALLUP = 6, RMAP_INNER_ALLDN = 7,
-	RMAP_INOUTER_UP = 8, RMAP_INOUTER_DN = 9, RMAP_INNER = 10
+	RMAP_INOUTER_UP = 8, RMAP_INOUTER_DN = 9, RMAP_INNER = 10, RMAP_ITS = 11
 };
 
 enum SEL_CAM { CAM_LF=0, CAM_RT=1, CAM_BOTH=2 };
@@ -720,7 +720,7 @@ struct stLastJob
 	CString sTempPauseLen, sLmtTotYld, sLmtPatlYld;
 	CString sStripOutRatio, sCustomNeedRatio;
 	BOOL bContFixDef;
-	CString sNumRangeFixDef, sNumContFixDef, sUltraSonicCleannerStTim, sEngOrderNum;
+	CString sNumRangeFixDef, sNumContFixDef, sUltraSonicCleannerStTim, sEngItsCode;
 	BOOL bRclDrSen, bMkDrSen, bBufDrSen, bAoiUpDrSen, bAoiDnDrSen, bEngvDrSen, bUclDrSen;
 	BOOL bDispMkPcs, bStopFixDef, bMkSftySen, bAoiSftySen;
 	CString sJogSpd, sLotSerial; //sLightVal, 
@@ -744,6 +744,7 @@ struct stLastJob
 	BOOL bUseAoiUpCleanRoler, bUseAoiDnCleanRoler;
 	BOOL bUseEngraveUltrasonic, bUseAoiDnUltrasonic;
 	BOOL bVelEngraveUltrasonic, bVelAoiDnUltrasonic;
+	CString sCurrentShotNum, sSettingShotNum;
 
 	stLastJob()
 	{
@@ -794,7 +795,8 @@ struct stLastJob
 		nAlignMethode = TWO_POINT;
 
 		bUseAoiUpCleanRoler = FALSE; bUseAoiDnCleanRoler = FALSE;
-		sEngOrderNum = _T("");
+		sEngItsCode = _T("");
+		sCurrentShotNum = _T(""); sSettingShotNum = _T("");
 	}
 };
 

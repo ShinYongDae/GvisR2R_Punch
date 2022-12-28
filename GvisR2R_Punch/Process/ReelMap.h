@@ -187,6 +187,32 @@ public:
 
 	BOOL UpdateYield(int nSerial);
 	BOOL UpdateRst();
+	BOOL MakeHeader(CString sPath);
+
+	// ITS
+	CString GetPathReelmapIts();
+	BOOL MakeItsReelmapHeader();	// ³»¿ÜÃþ ¸ÓÂ¡µÈ ¸±¸Ê Çìµå
+	BOOL WriteIts(int nItsSerial);
+
+	//short ***m_pPnlBufIts;		// DefCode 3D Array : [nSerial-1][nRow][nCol] on File -> [nSerial-1][NodeX][NodeY] : Rotated Cw 90 
+	//int m_nPnlBufIts;			// ¸Þ¸ð¸®¿¡ ÇÒ´çµÈ ÃÑ Shot¼ö
+	//int m_nTotPcsIts, m_nGoodPcsIts, m_nBadPcsIts, m_nDefIts[MAX_DEF];	// [DefCode] : Total Num.
+	//int m_nDefStripIts[MAX_STRIP_NUM], m_nDefPerStripIts[MAX_STRIP_NUM][MAX_DEF];
+	//int m_nStripOutIts[MAX_STRIP_NUM], m_nTotStOutIts;
+	//BOOL m_FixPcsIts[FIX_PCS_SHOT_MAX][FIX_PCS_COL_MAX][FIX_PCS_ROW_MAX]; // [Col][Row]
+	//int m_FixPcsPrevIts[FIX_PCS_COL_MAX][FIX_PCS_ROW_MAX]; // [Col][Row]
+
+	//void CloseRstIts();
+	//BOOL InitRstIts();
+	//BOOL IsFixPcsIts(int nSerial, int* pCol, int* pRow, int &nTot);
+	//BOOL IsFixPcsIts(int nSerial, int &Col, int &Row);
+	//void ClrFixPcsIts(int nCol, int nRow);
+	//void ClrFixPcsIts();
+	//void SetFixPcsIts(int nSerial, int nCol, int nRow);
+	//void SetFixPcsIts(int nSerial);
+	//BOOL InitRstIts();
+	//void CloseRstIts();
+
 
 // Overrides
 	// ClassWizard generated virtual function overrides

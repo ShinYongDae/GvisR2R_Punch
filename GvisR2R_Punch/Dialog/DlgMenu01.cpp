@@ -420,8 +420,10 @@ BOOL CDlgMenu01::OpenReelmap(CString sPath)
 		return FALSE;
 	}
 
-	if(pDoc->m_pReelMapUp)
+	if (pDoc->m_pReelMapUp)
+	{
 		pDoc->m_pReelMapUp->Open(pView->GetRmapPath(RMAP_UP, stInfo), stInfo.sModel, stInfo.sLayer, stInfo.sLot);
+	}
 #endif
 	return TRUE;
 }
@@ -2886,12 +2888,12 @@ void CDlgMenu01::UpdateData()
 	BOOL bDualTest = pDoc->WorkingInfo.LastJob.bDualTest;
 	if(bDualTest)
 	{
-		myStcData[1].SetText(pDoc->WorkingInfo.LastJob.sModelDn);		// 모델
-		myStcData[3].SetText(pDoc->WorkingInfo.LastJob.sLotDn);			// 로트
-		myStcData[2].SetText(pDoc->WorkingInfo.LastJob.sLayerUp);		// 상면레이어
+		//myStcData[1].SetText(pDoc->WorkingInfo.LastJob.sModelDn);		// 모델
+		//myStcData[3].SetText(pDoc->WorkingInfo.LastJob.sLotDn);			// 로트
+		//myStcData[2].SetText(pDoc->WorkingInfo.LastJob.sLayerUp);		// 상면레이어
 		myStcData[75].SetText(pDoc->WorkingInfo.LastJob.sLayerDn);		// 하면레이어
 	}
-	else
+	//else
 	{
 		myStcData[1].SetText(pDoc->WorkingInfo.LastJob.sModelUp);		// 모델
 		myStcData[3].SetText(pDoc->WorkingInfo.LastJob.sLotUp);			// 로트
